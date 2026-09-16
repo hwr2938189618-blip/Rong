@@ -41,6 +41,12 @@
 
 - [skills/](../skills/) — DSH 原生技能（9 个，运行时真源在 `E:\DSH\home\skills\`）
 
+## 最近更新
+
+| 日期 | 内容 |
+|---|---|
+| 2026-09-16 | 新增 `toolbox/03` WorkBuddy 能力参照、`toolbox/04` 本机环境硬事实、`toolbox/05` 技能冒烟测试记录；新建 [skills/](../skills/) 收录 9 个 DSH 原生技能 |
+
 ## 写作约定
 
 1. 新笔记从 [_templates/note-template.md](_templates/note-template.md) 复制开始
