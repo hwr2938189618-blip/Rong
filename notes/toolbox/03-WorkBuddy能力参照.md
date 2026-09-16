@@ -59,6 +59,27 @@ WorkBuddy 是**同机同网络的另一个 AI 助手**，它的技能清单是�
 
 > 结论：**方法论可以照搬，安装方式不能照搬。**
 
+### ✅ 已落地：9 个自建技能改写为 DSH 原生 skill（2026-09-16）
+
+WorkBuddy 那 9 个自建技能的方法论，已按 DSH 机制重写并安装到位：
+
+- **运行时位置**：`E:\DSH\home\skills\`（DSH 的 user-dsh 扫描根，rank 400）
+- **仓库镜像**：`Rong/skills/`（含 README 索引）
+
+| 技能 | 干什么 |
+|---|---|
+| `windows-shell-workarounds` | 本机 shell/文件操作自救 |
+| `windows-disk-cleanup` | 磁盘扫描与安全清理 |
+| `github-repo-push` | GitHub 读写（走 MCP/REST） |
+| `homework-photo-explainer` | 作业照片 → 孩子看得懂的讲解 |
+| `note-to-word-digest` | 中文笔记 → 可背诵 Word |
+| `math-modeling` | 数模竞赛全流程 |
+| `humanizer` | 去 AI 味 |
+| `self-improving` | 自我改进协议 |
+| `find-skills` | 技能发现与复用决策 |
+
+**机制更正（重要）**：我原先以为「WorkBuddy 是 SKILL.md / DSH 是插件」两套完全不同 —— 不够准确。DSH 的**技能层同样是 `SKILL.md`**（`<name>/SKILL.md` 或 `<name>.md`，只扫一层，chokidar 热加载免重启）；真正不同的是**插件层**（`dsh plugin add` + `cordis.patch.yml`）。所以技能可以几乎照搬格式，插件才不能。
+
 ### ⚠️ 同源多份，不要盲目合并
 
 `agent-browser` 同时存在于用户级 / 官方插件 / 团队市场；`tencent-docs` 有个人版与企业版；`skill-creator`、`pdfkit-py`、`wb-finance-skill` 各有两份。它们的挂载范围不同，按需取用即可。
@@ -86,13 +107,17 @@ Get-Content 'C:\Users\29381\.workbuddy\skills\homework-photo-explainer\SKILL.md'
 | 差点把两套技能机制混为一谈 | WorkBuddy 的 `SKILL.md` 与 DSH 的插件是**两套互不通用的架构** | 明确分工：借方法论，不抄装法 |
 | 移交包里写的路径有失效的 | `leon-daily-checkin` 的 `SKILL.md` 路径带过时的 `__skillhub` 后缀，照抄会找不到脚本 | 文档里的路径先 `Test-Path` 实测再引用 |
 | 把「清单里列了」当成「我这里也有」 | 清单是 WorkBuddy 的挂载，不是本机通用能力 | 先查我这边装了没（如浏览器自动化：DSH 侧未装） |
+| 差点以为技能机制完全不能迁移 | 只记住了「插件机制不同」，误推到技能层 | DSH 技能层也是 `SKILL.md`，格式可照搬；只有插件层不同 |
+| 写 skill 到 `E:\DSH\home\skills` 被沙箱拒绝 | 该路径在工作区 `E:\DSH\workspace` 之外 | 一次性提权写一次；提权后 chokidar 会立刻加载，无需重启 |
 
 ## 参考链接
 
 - 完整移交包（本地）：`E:\DSH\workspace\WorkBuddy-能力与知识移交包.md`
 - 速览版（本地）：`E:\DSH\workspace\WorkBuddy-速览（发给DSH）.md`
 - 同批笔记：[本机环境硬事实](04-本机环境硬事实.md)
+- 技能索引：[skills/README.md](../../skills/README.md)
 
 ## 回顾记录
 
 - **2026-09-16**: 首次整理。读完 935 行移交包，核实技能存放位置，建立需求映射表，明确「方法论可迁移、安装方式不可照搬」这条边界。
+- **2026-09-16（当日追加）**: 把 9 个自建技能改写为 DSH 原生 skill 并安装到 `E:\DSH\home\skills\`，镜像进仓库 `skills/`；更正「技能机制完全不同」的误判（技能层同为 SKILL.md）。
