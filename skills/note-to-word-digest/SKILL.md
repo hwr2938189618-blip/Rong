@@ -39,6 +39,25 @@ doc.save('背诵版.docx')   # 中文文件名没问题，内容用 UTF-8
 
 ## 流程（顺序不能乱）
 
+### 第 0 步：先探测依赖（否则后面全白跑）
+
+```powershell
+# 本机 Python（注意：目录名 3.13.12，实际版本 3.13.14；且没有 numpy）
+$exe = 'C:\Users\29381\.workbuddy\binaries\python\versions\3.13.12\python.exe'
+& $exe -c "import docx; print('docx OK')"
+& $exe -c "import openpyxl; print('openpyxl OK')"
+```
+
+- **缺依赖时不要试图生成 Word**，直接把下面的安装命令交给主人执行（不要自行 pip install 改环境）：
+
+```
+C:\Users\29381\.workbuddy\binaries\python\versions\3.13.12\python.exe -m pip install python-docx openpyxl python-pptx
+```
+
+- 已知缺口（2026-09-16 实测）：本机 Python 原本只有 `pillow` + `pywin32`，**python-docx / openpyxl / python-pptx 当时未装**（现已补上）
+
+### 然后是主流程
+
 ```
 1. 先抽全部原料 —— 别凭印象！把源文件所有文字抽出来落盘，再开始
 2. 抽内嵌插图     —— 讲义里的图常是关键，不能丢
