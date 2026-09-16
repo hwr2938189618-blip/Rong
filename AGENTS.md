@@ -82,6 +82,8 @@ Rong/
 
 > 2026-09-16 实测：我和 WorkBuddy 在同一分钟内各推了一次 `notes/README.md`，**这次没丢内容**（它后发、以我的版本为底座叠加），但那是运气不是机制。参与者变多，冲突只会更多。
 
+**想上技术强制手段时**，方案与取舍已写成决策记录：[notes/toolbox/07-多AI共写仓库防冲突方案.md](notes/toolbox/07-多AI共写仓库防冲突方案.md)（方案 A 写锁 / 方案 B 本地 git + push），**当前不实施**，触发条件写在里面。本地路径：`E:\DSH\workspace\Rong\notes\toolbox\07-多AI共写仓库防冲突方案.md`。
+
 ## 凭据
 
 GitHub 令牌通过环境变量 **`GITHUB_PAT_TOKEN`** 提供，已配置在 MCP 服务器里。
