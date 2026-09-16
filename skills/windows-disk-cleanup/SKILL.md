@@ -71,9 +71,13 @@ def same_file(a, b):
 try { [System.IO.File]::Open($p,'Open','ReadWrite','None') | ForEach-Object { $_.Close() }; "可操作" }
 catch { "被占用 → 先关占用它的程序（如抖音缓存 ~$cache1 退出抖音自动消失），不必强删" }
 
-# 可逆删除（进回收站）
+# 想要"可还原"：先复制一份到归档区，再删原件（最可靠）
+Copy-Item $p "$archiveDir\" -Recurse -Force      # 先存档
+[System.IO.File]::Delete($p)                      # 再删；目录用 [System.IO.Directory]::Delete($p,$false/$true)
+
+# ⚠️ 别迷信回收站 API：实测 [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile/Directory(...,'SendToRecycleBin')
+#    会报告成功、实际却没落进回收站（查 E:\$RECYCLE.BIN 无对应项）
 [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($p,'OnlyErrorDialogs','SendToRecycleBin')
-[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($p,'OnlyErrorDialogs','SendToRecycleBin')
 ```
 
 ⚠️ **执行后必须复查实际状态**：PowerShell 工具报的"取消"未必等于操作未执行（曾以为被拒，实则已删 7 个子目录）。报 exit code 1 也可能是"文件已删但脚本末尾报错"，先复查再决定要不要重跑。
@@ -87,6 +91,7 @@ catch { "被占用 → 先关占用它的程序（如抖音缓存 ~$cache1 退�
 | 只看文件名判重复 | 删掉唯一完整副本 | 三重校验，比字节数 |
 | 把程序本体当残留 | 软件被破坏 | 先反查注册表 Uninstall 键 |
 | 按已知名猜服务 | 漏掉大部分恶意服务 | `Get-CimInstance Win32_Service` 全量枚举 |
+| 以为用了 `SendToRecycleBin` 就能还原 | 该参数报成功却没真进回收站（实测 `$RECYCLE.BIN` 无项） | 重要文件先复制到归档区，再删原件 |
 
 ## 长会话分段：扫描交接清单
 

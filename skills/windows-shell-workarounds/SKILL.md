@@ -67,7 +67,8 @@ catch { "被占用：先关掉占用它的程序，别强删" }
 # 可靠删除（Remove-Item 偶发失效时）
 [System.IO.File]::Delete($p)
 
-# 可逆删除：进回收站（比直接删安全）
+# ⚠️ 回收站 API 不可信：DeleteFile/Directory(...,'SendToRecycleBin') 会报成功但没落进回收站
+#    （实测：查 E:\$RECYCLE.BIN 无对应项）。重要文件先 Copy-Item 到归档区再删。
 [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($p,'OnlyErrorDialogs','SendToRecycleBin')
 ```
 
