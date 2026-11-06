@@ -80,6 +80,7 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 | `image-search` 插件连接失败 | MCP 返回 `coding plan is required`；当前是 `zai-start-plan`（会员套餐），不是 coding plan | 该插件对当前套餐无效，关掉或忽略；找图改用 `visualize` / 普通搜索 |
 | `/recall` 只报了知识库现状 | 命令里的关键词为空（只打了 `/recall` 没带参数） | 正常行为。要召回具体内容得带词，如 `/recall powercfg`、`/recall 代理` |
 | 以为仓库的 `AGENTS.md` 会自动生效 | ZCode 默认工作区是 `~/.zcode/workspace/default`（非 git 仓库） | 工作区级指令只在工作区根命中；换工作区到 `E:\ZCODE\workspace\Rong`，或靠用户级 AGENTS.md + 技能里的绝对路径兜底 |
+| 想用目录联接把默认工作区指到仓库 | 空目录进不了回收站（`genie-trash` 失败），`Remove-Item`/`rmdir` 都 fail-closed 拦下；且 ZCode 正把该目录当 cwd 占用 | 不动目录。改为在默认工作区放一个**桥接 `AGENTS.md`**（指针 + 三条硬规矩），效果等价；要 git 上下文才需要手动切工作区 |
 
 ## 参考链接
 
