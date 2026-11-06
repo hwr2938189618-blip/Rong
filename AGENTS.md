@@ -64,7 +64,7 @@ Rong/
 `gh` CLI 从未登录，且 `github.com` 主站不通（21 秒超时）→ **不要试 `gh auth login`**。
 一律走 MCP：`mcp__github__push_files` / `get_file_contents` / `list_commits`（走 `api.github.com`，实测可用）。
 
-## ⚠️ 这个仓库不是我一个人在用（三个 AI 共写）
+## ⚠️ 这个仓库不是我一个人在用（多个 AI 共写）
 
 同一个仓库 `hwr2938189618-blip/Rong`，本机还有别的 AI 助手在读写在写。**改共享文件前必须先拉最新版。**
 
@@ -72,6 +72,7 @@ Rong/
 |---|---|---|
 | **DSH**（我） | `mcp__github__push_files` / `create_or_update_file` | 在用 |
 | **WorkBuddy** | REST API 手工六步（技能 `rong-notes-publish` + `publish.py`） | 在用 |
+| **ZCode**（智谱桌面端） | REST API 六步（技能 `rong-notes` + `push.py`），本地镜像 `E:\ZCODE\workspace\Rong` | 在用（2026-11-06 接入） |
 | **Codex** | 待主人安排 | ⬜ 尚未接入（主人说「以后有空也会弄」） |
 
 ### 防覆盖铁律（必须遵守）
@@ -79,7 +80,7 @@ Rong/
 1. **推送前先 `get_file_contents` 读一次目标文件的最新版** —— 不要用自己缓存的旧版本整体覆盖
 2. **共享文件是高频冲突点**：`notes/README.md`、根 `README.md`、`AGENTS.md` —— 改之前必拉最新
 3. 推完**回读验证**：分类计数与实际文件数是否一致、有没有把别人的改动覆盖掉
-4. 学别的 AI 的做法时**注意路径归属**：各家的技能目录不同，别照抄（如 WorkBuddy 的技能在 `~/.workbuddy/skills/`，Codex 的配置在 `D:\codex\.codex\`）
+4. 学别的 AI 的做法时**注意路径归属**：各家的技能目录不同，别照抄（如 WorkBuddy 的技能在 `~/.workbuddy/skills/`，ZCode 的技能在 `~/.zcode/skills/`，Codex 的配置在 `D:\codex\.codex\`）
 5. **结构类内容有多个副本，改一处必须改全**：目录结构树同时存在于根 `README.md` 与**本文件**；笔记类别与命名规范同时存在于根 `README.md`「笔记规范」与**本文件**「记笔记的规范」。
    → 2026-10-03 发现：新增「每日总结」一类后，两处都没同步，形成「导航对了、规范没覆盖」的缺口（导航计数一直是准的，所以不容易发现）。**计数器全对 ≠ 每一类都被规范覆盖到。**
 
