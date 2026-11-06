@@ -93,6 +93,47 @@ baseURL: https://zcode.z.ai/api/v1/zcode-plan/anthropic
 
 ⚠️ key 只进 ZCode 本地配置，**不进本仓库**。
 
+## office 插件实测（2026-11-06，绕开模型直接验）
+
+额度用尽后不等它恢复也能验——**插件本质是本地 MCP 服务**，可以直接用 stdio 拉起握手，
+不需要任何模型。
+
+| 插件 | MCP 服务 | 工具数 |
+|---|---|---|
+| documents | `documents v0.2.1` | 15 |
+| presentations | `presentations v0.2.1` | 15 |
+| spreadsheets | `spreadsheets v0.2.1` | 15 |
+
+启动方式（`ELECTRON_RUN_AS_NODE=1`，`ZCode.exe zcode.cjs __zcode-plugin-host <server.mjs>`）：
+
+```python
+subprocess.Popen([r'E:\ZCODE\ZCode.exe', r'E:\ZCODE\resources\glm\zcode.cjs',
+                  '__zcode-plugin-host', r'...\documents\0.2.1\dist\server.mjs'],
+                 env={**os.environ, 'ELECTRON_RUN_AS_NODE':'1',
+                      'ZCODE_WORKSPACE_ROOT': r'C:\Users\29381\.zcode\workspace\default'},
+                 stdin=PIPE, stdout=PIPE, text=True)
+# 之后走 JSON-RPC：initialize → notifications/initialized → tools/list
+```
+
+**三个 viewer 全通**，但**生成能力不在 MCP 里**，在技能目录（`docx-js` / `pptxgenjs` / `openpyxl`）。
+一开始这些依赖是空的，实测补齐：
+
+```bash
+npm install -g docx pptxgenjs
+python -m pip install openpyxl XlsxWriter python-pptx defusedxml
+```
+
+补齐后按技能文档各产一份并验结构，全部通过：
+
+| 产物 | 大小 | 校验 |
+|---|---|---|
+| `.docx` 一页摘要 | 12,644 B | zip 完整、19 个部件、正文 1048 字、关键词齐全 |
+| `.xlsx` 知识库状态表 | 5.1 KB | 1 个工作表、5 行、中文表头正常 |
+| `.pptx` 两页概览 | 69 KB | 2 页、16:9、含 `<a:tbl>` 表格且单元格文字完整 |
+
+⚠️ **关键细节**：`require("docx")` 必须带 `NODE_PATH="$(npm root -g)"`，否则报
+`Cannot find module 'docx'`——npm 全局包装在 WorkBuddy 的 node 目录下，Node 默认不查那里。
+
 ## 踩坑记录
 
 | 问题 | 原因 | 解决 |
@@ -137,3 +178,7 @@ baseURL: https://zcode.z.ai/api/v1/zcode-plan/anthropic
 - **2026-11-06 13:42**: 额度用尽（`rate_limited` / `retryable:false`）。补了「额度三条路」一节，
   并实测本机 `sk-` key 打 `api.deepseek.com/anthropic` 返回 200 —— 可作为不断线的替代 provider。
   **未验证**：在 ZCode 内跑 `rong-notes` 写笔记、以及 `documents`/`spreadsheets`/`presentations` 三个 office 插件。
+- **2026-11-06 13:52**: 绕开模型把 office 那两项验了。三个插件的 MCP viewer 直接 stdio 拉起全部成功（各 15 工具）；
+  生成链路缺依赖，补齐 `docx` / `pptxgenjs` / `openpyxl` / `XlsxWriter` / `python-pptx` / `defusedxml` 后，
+  docx / xlsx / pptx 各产一份并验结构，全部通过。**唯一剩下的未验证项：ZCode 模型驱动 `rong-notes` 写笔记**
+  （这项绕不开模型，脚本本身已反复验过）。
