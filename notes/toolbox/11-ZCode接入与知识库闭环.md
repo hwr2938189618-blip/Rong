@@ -94,3 +94,6 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 - **2026-11-06 12:39**: 重启后实测通过。启动日志：`enabledPluginCount=13`、`skillRootCount=11`、
   `commandRootCount=1`、`diagnosticCount=0`；`/recall` 正确读到本地镜像（`git pull` → Already up to date，
   汇总 16 篇笔记 + 3 篇每日总结 + 9 个技能镜像）。唯一失败项是 `image-search` 的 MCP（套餐不含 coding plan）。
+- **2026-11-06 12:51**: 发现 `/recall` 只做了「读 `notes/README.md` + `git pull`」两步，计数是**照抄导航**而非数文件。
+  补 `rong-recall/scripts/kb-status.py`：比对 `HEAD vs origin`、每类「声明 vs 实际」、草稿数，不一致退出码 1。
+  同理纠正一个认知：`Already up to date` ≠ 本地等于远端，要 `HEAD == origin/main` 才算。
