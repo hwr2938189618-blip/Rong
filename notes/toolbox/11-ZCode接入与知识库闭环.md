@@ -77,6 +77,9 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 | 想用 `git push` 推笔记 | gh-proxy 下 push 不可靠（历史实测） | 读用 `git pull`，写一律走 REST API 六步 |
 | `E:\DSH\workspace\Rong` 看着像仓库 | 那是文件副本，没有 `.git` | 真镜像另建在 `E:\ZCODE\workspace\Rong`，克隆时走代理一次成功 |
 | token 读取失败 | 文件存成 UTF-8 with BOM | 一律 `encoding='utf-8-sig'` |
+| `image-search` 插件连接失败 | MCP 返回 `coding plan is required`；当前是 `zai-start-plan`（会员套餐），不是 coding plan | 该插件对当前套餐无效，关掉或忽略；找图改用 `visualize` / 普通搜索 |
+| `/recall` 只报了知识库现状 | 命令里的关键词为空（只打了 `/recall` 没带参数） | 正常行为。要召回具体内容得带词，如 `/recall powercfg`、`/recall 代理` |
+| 以为仓库的 `AGENTS.md` 会自动生效 | ZCode 默认工作区是 `~/.zcode/workspace/default`（非 git 仓库） | 工作区级指令只在工作区根命中；换工作区到 `E:\ZCODE\workspace\Rong`，或靠用户级 AGENTS.md + 技能里的绝对路径兜底 |
 
 ## 参考链接
 
@@ -87,3 +90,6 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 ## 回顾记录
 
 - **2026-11-06**: 首次接入。启用 13 个插件、写 3 个技能 + 2 个命令 + 用户级 `AGENTS.md`、建本地镜像。
+- **2026-11-06 12:39**: 重启后实测通过。启动日志：`enabledPluginCount=13`、`skillRootCount=11`、
+  `commandRootCount=1`、`diagnosticCount=0`；`/recall` 正确读到本地镜像（`git pull` → Already up to date，
+  汇总 16 篇笔记 + 3 篇每日总结 + 9 个技能镜像）。唯一失败项是 `image-search` 的 MCP（套餐不含 coding plan）。
