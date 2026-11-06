@@ -97,3 +97,9 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 - **2026-11-06 12:51**: 发现 `/recall` 只做了「读 `notes/README.md` + `git pull`」两步，计数是**照抄导航**而非数文件。
   补 `rong-recall/scripts/kb-status.py`：比对 `HEAD vs origin`、每类「声明 vs 实际」、草稿数，不一致退出码 1。
   同理纠正一个认知：`Already up to date` ≠ 本地等于远端，要 `HEAD == origin/main` 才算。
+- **2026-11-06 12:55**: **召回质量实测通过**。`/recall powercfg` 命中 `windows/03`（主笔记）+
+  `toolbox/04` L118-125（RTC 参数），逐条核对无幻觉：`(006)` 后缀必须原样带上、`GVINPUT` /
+  `TENCENTMYAPPSHIDBUS` 虚拟 HID 也是唤醒源、PS/2 内置键盘不在 `wake_armed`、`devicedisablewake`
+  需管理员——全部与原文一致，还主动区分了「2 篇实质命中 + 2 处仅索引提及」。
+  唯一瑕疵：把 `/qh`（L122，出自 `toolbox/04`）归到 `windows/03`——多篇同时命中时容易混标出处，
+  已写进 `rong-recall` 的反面清单。
