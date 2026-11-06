@@ -66,6 +66,33 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 `push.py` 自动完成「取 head → 取 base_tree → 建 blob → 建 tree → 建 commit → 移 ref」，
 然后回读验证三件事：commit 在、字节数一致、根目录原有文件没丢。
 
+## 额度用尽怎么办（2026-11-06 实测）
+
+**症状**：对话直接失败，看着像断网或掉登录。日志里的真相是：
+
+```
+model.request.failed  reason: "rate_limited"  retryable: false
+providerId: account:zai-start-plan  modelId: GLM-5.3
+baseURL: https://zcode.z.ai/api/v1/zcode-plan/anthropic
+```
+
+**判据**：`reason=rate_limited` + `retryable=false` = 套餐额度到顶，重试无用，也**不是**鉴权问题
+（鉴权失败会是 401/`unauthorized`）。别反复重试，只会白等。
+
+**三条路**：
+
+| 方案 | 代价 | 备注 |
+|---|---|---|
+| 等额度窗口重置 | 零成本，但要等 | start 类套餐按窗口/按日重置 |
+| 升级 coding plan / highspeed 卡 | 花钱 | 顺带解锁 `image-search`（它要 coding plan） |
+| **接第三方 API key** | 按量付费 | ZCode 内置 34 个 provider 模板，`deepseek` 就是 `api-key` + `anthropic-messages` |
+
+接第三方的方式：设置 → 模型/Provider → 添加 → 选 `DeepSeek` → 填 key → 新会话选模型。
+端点 `https://api.deepseek.com/anthropic`，`x-api-key` 或 `Authorization: Bearer` 两种头都认（实测均 200，
+返回标准 anthropic 格式含 `usage`）。
+
+⚠️ key 只进 ZCode 本地配置，**不进本仓库**。
+
 ## 踩坑记录
 
 | 问题 | 原因 | 解决 |
@@ -107,3 +134,6 @@ python "C:/Users/29381/.zcode/skills/rong-notes/scripts/push.py" \
 - **2026-11-06 12:59**: 核对脚本首次实跑通过。`/recall`（空参数）走了新流程，报出 `HEAD = origin = 5e54828`、
   4 项计数「声明 = 实际」、草稿 0、退出码 0。**召回闭环至此全链路验证完毕**（读→检索→核对→给边界）。
   唯一瑕疵是「笔记总数 19 篇」的口径（16 主题 + 3 总结被加总），已改脚本输出为分区 + 显式合计。
+- **2026-11-06 13:42**: 额度用尽（`rate_limited` / `retryable:false`）。补了「额度三条路」一节，
+  并实测本机 `sk-` key 打 `api.deepseek.com/anthropic` 返回 200 —— 可作为不断线的替代 provider。
+  **未验证**：在 ZCode 内跑 `rong-notes` 写笔记、以及 `documents`/`spreadsheets`/`presentations` 三个 office 插件。
