@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.14.0';
+  D.VERSION = '1.15.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -328,6 +328,16 @@
       id: 'dash', name: '瞬息', icon: '↯', color: '#7df9ff',
       desc: function (l) { return '闪避冷却 -' + (l * 12) + '%'; },
       apply: function (p, l) { p.dashCdMul *= 0.88; }
+    },
+    {
+      id: 'surge', name: '超导回路', icon: '⚡', color: '#ffd479',
+      desc: function (l) { return '星核能量获取 +' + (l * 30) + '%'; },
+      apply: function (p, l) { p.ultGain += 0.30; }
+    },
+    {
+      id: 'ignite', name: '引燃', icon: '✹', color: '#ff9f68',
+      desc: function (l) { return '命中时 ' + (l * 8) + '% 概率点燃敌人 2.5 秒'; },
+      apply: function (p, l) { p.igniteChance += 0.08; }
     }
   ];
   D.PASSIVE_MAP = {};

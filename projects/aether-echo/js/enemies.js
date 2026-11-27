@@ -699,10 +699,16 @@
       const G = AE.G;
       const pl = G.player;
       G.stats.damage += dmg;
-      // 灼星者：命中点燃目标
-      if (pl && pl.burn && !(opts && opts.noBurn) && dmg > 0) {
-        e.burnT = Math.max(e.burnT || 0, 3);
-        e.burnDps = Math.max(e.burnDps || 0, 6 + pl.level * 1.6);
+      // 灼星者：命中点燃目标；引燃被动：任意角色有概率点燃
+      if (pl && !(opts && opts.noBurn) && dmg > 0) {
+        if (pl.burn) {
+          e.burnT = Math.max(e.burnT || 0, 3);
+          e.burnDps = Math.max(e.burnDps || 0, 6 + pl.level * 1.6);
+        } else if (pl.igniteChance > 0 && Math.random() < pl.igniteChance) {
+          e.burnT = Math.max(e.burnT || 0, 2.5);
+          e.burnDps = Math.max(e.burnDps || 0, 4 + pl.level * 1.2);
+          AE.FX.spark(e.x, e.y, '#ff9f68', 3, { spd: 90, life: 0.3, size: 2.2, add: true });
+        }
       }
       // 遗物：霜冻之触
       if (pl && pl.relics && pl.relics.indexOf('frost') >= 0 && Math.random() < 0.12) {
@@ -795,11 +801,12 @@
       // 星核能量：击杀积攒爆发
       if (pl && pl.ult < pl.ultMax) {
         const wasFull = pl.ult >= pl.ultMax;
-        pl.ult = Math.min(pl.ultMax, pl.ult + (e.boss ? 40 : (e.elite ? 10 : 1.2)));
+        const gain = (e.boss ? 40 : (e.elite ? 10 : 1.2)) * (1 + (pl.ultGain || 0));
+        pl.ult = Math.min(pl.ultMax, pl.ult + gain);
         if (!wasFull && pl.ult >= pl.ultMax && AE.UI && AE.UI.syncDash) AE.UI.syncDash();
       }
-      // 灼星者：燃烧的敌人死亡时引燃周围
-      if (e.burnT > 0 && pl && pl.burn) {
+      // 灼星者 / 引燃：燃烧的敌人死亡时引燃周围
+      if (e.burnT > 0 && pl && (pl.burn || pl.igniteChance > 0)) {
         e.burnT = 0;
         const near = AE.World.grid.query(e.x, e.y, 140);
         for (let k = 0; k < near.length; k++) {
