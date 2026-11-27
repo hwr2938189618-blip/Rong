@@ -69,7 +69,9 @@
         orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
         phase2: false, enraged: false, scale: 1
       };
-      e.maxHp = def.hp * (1 + (G.time / 60) * 0.55) * (1 + (G.loop || 0) * 0.8);
+      e.maxHp = G.rush
+        ? def.hp * (1 + (G.rushIndex || 0) * 0.55)
+        : def.hp * (1 + (G.time / 60) * 0.55) * (1 + (G.loop || 0) * 0.8);
       e.hp = e.maxHp;
       this.list.push(e);
       AE.FX.ring(x, y, def.color, 10, 140, 0.9, 4);

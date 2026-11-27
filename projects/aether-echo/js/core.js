@@ -207,7 +207,8 @@
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 },
         achievements: [],
         bestRuns: [],
-        dailyBest: {}
+        dailyBest: {},
+        bestRush: { time: 0, char: '', date: '' }
       };
     },
     load: function () {
@@ -229,6 +230,7 @@
         if (!Array.isArray(d.achievements)) d.achievements = [];
         if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
         if (!d.dailyBest || typeof d.dailyBest !== 'object') d.dailyBest = {};
+        if (!d.bestRush || typeof d.bestRush !== 'object') d.bestRush = { time: 0, char: '', date: '' };
       } else {
         d = base;
       }

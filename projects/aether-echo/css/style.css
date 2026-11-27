@@ -839,3 +839,26 @@ body.reduce-motion *::after {
   .bi-kicker, .bi-title { font-size: 8px; letter-spacing: 0.32em; }
   .toast { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ---------- 首领连战 ---------- */
+.btn.rush {
+  background: linear-gradient(135deg, rgba(255, 92, 122, 0.18), rgba(255, 159, 104, 0.1));
+  border-color: rgba(255, 92, 122, 0.48);
+  color: #ffd4dd;
+  font-weight: 700;
+}
+.btn.rush:hover {
+  border-color: rgba(255, 92, 122, 0.8);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 24px rgba(255, 92, 122, 0.16);
+}
+.rush-badge {
+  font-size: 10.5px; letter-spacing: 0.12em; color: #ffb3c4;
+  border: 1px solid rgba(255, 92, 122, 0.34); background: rgba(255, 92, 122, 0.07);
+  border-radius: 20px; padding: 6px 14px; text-align: center;
+}
+.daily-card.rush {
+  border-color: rgba(255, 92, 122, 0.28);
+  background: linear-gradient(90deg, rgba(255, 92, 122, 0.08), rgba(8, 12, 24, 0.7));
+}
+.daily-card.rush .daily-card-date { color: rgba(255, 140, 160, 0.7); }
+.daily-card.rush .daily-card-main b { color: #ff8fa3; }

@@ -16,6 +16,7 @@
     spawnT: 0, eliteT: 50, bossIdx: 0, bossWarnT: 0, bossWarned: false,
     draft: null, anns: [], timers: [], echoBonus: 0, winning: false,
     slowT: 0, daily: null, mod: null,
+    rush: false, rushIndex: 0, rushGap: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -165,6 +166,7 @@
       G.state = 'menu';
       G.time = 0; G.loop = 0;
       G.daily = null; G.mod = null;
+      G.rush = false; G.rushIndex = 0; G.rushGap = 0;
       AE.RNG.restore();
       G.enemies = AE.Enemies.list;
       if (!G.player) {
@@ -176,13 +178,14 @@
       AE.UI.showMenu();
     },
 
-    startRun: function (charId, daily) {
+    startRun: function (charId, daily, rush) {
       if (G.state === 'playing') return;
       AE.Audio.init();
       const S = AE.Save.data;
       if (charId && AE.Data.CHAR_MAP[charId] && S.chars.indexOf(charId) >= 0) S.char = charId;
       charId = S.char || 'echo';
       const isDaily = !!daily;
+      const isRush = !!rush;
       G.daily = isDaily ? this.dailyInfo() : null;
       G.mod = this.modFrom(G.daily ? G.daily.anomalies : []);
       if (isDaily) AE.RNG.set(G.daily.seed); else AE.RNG.restore();
@@ -199,11 +202,24 @@
       G.spawnT = 0.6; G.eliteT = 55; G.bossIdx = 0; G.boss = null;
       G.bossWarnT = 0; G.bossWarned = false; G.winning = false;
       G.slowT = 0;
+      G.rush = isRush; G.rushIndex = 0; G.rushGap = 1.2;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
       G.player.armor += G.mod.armor || 0;
       G.player.speed *= G.mod.speedMul || 1;
+      if (isRush) {
+        if (G.player.weapons[0]) G.player.weapons[0].level = 3;
+        const pool = AE.Data.WEAPONS.map(function (w) { return w.id; }).filter(function (id) {
+          return !G.player.weapons.some(function (w) { return w.id === id; });
+        });
+        if (pool.length) {
+          AE.Player.addWeapon(G.player, pool[Math.floor(Math.random() * pool.length)], 2);
+        }
+        AE.Player.addPassive(G.player, 'power');
+        AE.Player.addPassive(G.player, 'power');
+        AE.Player.addPassive(G.player, 'vitality');
+      }
       AE.Cam.resize(this.W, this.H);
       AE.Cam.snap(G.player);
       AE.Cam.trauma = 0;
@@ -213,7 +229,7 @@
       AE.Player.setAim(G.player, G.player.x + 120, G.player.y);
       AE.FX.flash(0.35, '#ffffff');
       AE.FX.ring(G.player.x, G.player.y, '#7df9ff', 10, 220, 0.8, 3);
-      this.announce('第 1 层 · 苏醒', '#7df9ff', 2.0);
+      this.announce(isRush ? '首领连战 · 五连战' : '第 1 层 · 苏醒', isRush ? '#ffd479' : '#7df9ff', 2.0);
       if (isDaily) {
         this.announce('每日挑战 · ' + G.daily.key, '#ffd479', 3.0);
         G.daily.anomalies.forEach(function (a) {
@@ -420,8 +436,30 @@
       return cur.w;
     },
 
+    updateRushDirector: function (dt) {
+      if (G.boss) return;
+      const order = AE.Data.RUSH_ORDER;
+      if (G.rushIndex >= order.length) return;
+      G.rushGap -= dt;
+      if (G.rushGap > 0) return;
+      const id = order[G.rushIndex];
+      const def = AE.Data.BOSSES.filter(function (b) { return b.id === id; })[0];
+      if (!def) return;
+      const p = G.player, C = AE.Data.CONST;
+      const a = Math.random() * U.TAU;
+      const x = U.clamp(p.x + Math.cos(a) * 470, 80, C.WORLD_W - 80);
+      const y = U.clamp(p.y + Math.sin(a) * 470, 80, C.WORLD_H - 80);
+      const b = AE.Enemies.spawnBoss(def, x, y);
+      G.boss = b;
+      G.rushIndex++;
+      G.rushGap = 2.4;
+      if (AE.UI && AE.UI.bossIntro) AE.UI.bossIntro(def);
+      this.announce('首领连战 · ' + G.rushIndex + ' / ' + order.length, '#ffd479', 2.0);
+    },
+
     updateDirector: function (dt) {
       if (G.winning) return;
+      if (G.rush) { this.updateRushDirector(dt); return; }
       const C = AE.Data.CONST;
       const count = AE.Enemies.list.length;
       const pressure = count / C.MAX_ENEMIES;
@@ -580,6 +618,23 @@
       G.echoBonus += def.echo || 20;
       AE.Player.heal(G.player, G.player.maxHp * 0.25);
       this.checkAchievements(false);
+      if (G.rush) {
+        AE.Player.heal(G.player, G.player.maxHp * 0.3);
+        const self = this;
+        if (G.rushIndex >= AE.Data.RUSH_ORDER.length) {
+          G.winning = true;
+          G.player.invuln = 6;
+          this.announce('五连战 · 全破', '#ffd479', 3);
+          this.delay(1.4, function () { self.endRun(true); });
+        } else {
+          G.pending += 3;
+          this.announce('击破 ' + def.name + ' · 强化 ×3', '#ffd479', 2.4);
+          this.delay(0.9, function () {
+            if (G.state === 'playing') self.openLevelUp(true);
+          });
+        }
+        return;
+      }
       if (def.id === 'final' && !G.loop) {
         G.winning = true;
         G.player.invuln = 6;
@@ -666,6 +721,16 @@
         const keys = Object.keys(S.dailyBest).sort();
         while (keys.length > 14) delete S.dailyBest[keys.shift()];
       }
+      let rushNew = false;
+      let rushBest = null;
+      if (G.rush) {
+        S.bestRush = S.bestRush || { time: 0, char: '', date: '' };
+        if (victory && (!S.bestRush.time || G.time < S.bestRush.time)) {
+          S.bestRush = { time: Math.round(G.time), char: p.char.id, date: AE.dateKey() };
+          rushNew = true;
+        }
+        rushBest = S.bestRush;
+      }
       AE.Save.save();
       this.checkAchievements(true);
       G.result = {
@@ -677,7 +742,8 @@
         daily: G.daily ? G.daily.key : null,
         dailyNew: dailyNew,
         dailyBest: dailyBest,
-        anomalies: G.daily ? G.daily.anomalies.map(function (a) { return a.name; }) : []
+        anomalies: G.daily ? G.daily.anomalies.map(function (a) { return a.name; }) : [],
+        rush: !!G.rush, rushNew: rushNew, rushBest: rushBest
       };
       G.state = victory ? 'victory' : 'gameover';
       AE.RNG.restore();
@@ -792,7 +858,10 @@
       else if (G.time >= 450) stage = '第 4 层';
       else if (G.time >= 300) stage = '第 3 层';
       else if (G.time >= 150) stage = '第 2 层';
-      if (!G.boss) {
+      if (G.rush) {
+        ctx.fillText('首领连战 · ' + Math.min(G.rushIndex, AE.Data.RUSH_ORDER.length) + ' / ' +
+          AE.Data.RUSH_ORDER.length + ' · 用时 ' + U.fmtTime(G.time), W / 2, 56);
+      } else if (!G.boss) {
         ctx.fillText(stage + (G.loop ? ' · 无尽 ' + (G.loop + 1) : '') + ' · 击杀 ' + G.kills, W / 2, 56);
       }
 

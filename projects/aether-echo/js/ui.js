@@ -80,6 +80,7 @@
         if (self.mode === 'menu') {
           if (k === 'Enter') { e.preventDefault(); self.action('play'); }
           else if (k === 'd' || k === 'D') { e.preventDefault(); self.action('daily'); }
+          else if (k === 'b' || k === 'B') { e.preventDefault(); self.action('rush'); }
           return;
         }
         if (self.mode === 'result') {
@@ -172,6 +173,12 @@
           break;
         case 'daily':
           AE.Game.startRun(S.char, true);
+          break;
+        case 'rush':
+          AE.Game.startRun(S.char, false, true);
+          break;
+        case 'rushagain':
+          AE.Game.startRun(S.char, false, true);
           break;
         case 'meta':
           this.prev = this.mode === 'result' ? 'result' : 'menu';
@@ -330,6 +337,7 @@
         '<div class="menu-actions">' +
         '<button class="btn primary" data-act="play">开始回响<span class="kbd">ENTER</span></button>' +
         '<button class="btn daily" data-act="daily">每日挑战<span class="kbd">D</span></button>' +
+        '<button class="btn rush" data-act="rush">首领连战<span class="kbd">B</span></button>' +
         '<button class="btn ghost" data-act="meta">回响强化</button>' +
         '<button class="btn ghost" data-act="how">玩法</button>' +
         '</div>' +
@@ -350,6 +358,7 @@
         '<div>最佳存活 <b>' + U.fmtTime(best.time || 0) + '</b></div>' +
         '<div>最高击杀 <b>' + (best.kills || 0) + '</b></div>' +
         '<div>最高等级 <b>' + (best.level || 0) + '</b></div>' +
+        '<div>连战最佳 <b>' + (S.bestRush && S.bestRush.time ? U.fmtTime(S.bestRush.time) : '--:--') + '</b></div>' +
         '<div class="echo">◈ 回响 <b>' + S.echoes + '</b></div>' +
         '</div>' +
         '</div>';
@@ -432,11 +441,17 @@
       this.mode = 'result';
       this.prev = 'result';
       const victory = r.victory;
-      const title = victory ? '回响长存' : '回响中断';
-      const kicker = victory ? 'AETHER ECHO · RUN COMPLETE' : 'ECHO FADED · RUN OVER';
-      const sub = victory
-        ? '终焉回响已被击破 · ' + r.char.name + (r.loop ? ' · 无尽 ' + (r.loop + 1) : '')
-        : '星渊吞没了这道回响 · 但记忆仍在';
+      const title = r.rush
+        ? (victory ? '五连战 · 全破' : '连战中断')
+        : (victory ? '回响长存' : '回响中断');
+      const kicker = r.rush
+        ? (victory ? 'BOSS RUSH · CLEAR' : 'BOSS RUSH · FAILED')
+        : (victory ? 'AETHER ECHO · RUN COMPLETE' : 'ECHO FADED · RUN OVER');
+      const sub = r.rush
+        ? '五名首领连战 · ' + r.char.name + ' · 用时 ' + U.fmtTime(r.time)
+        : (victory
+          ? '终焉回响已被击破 · ' + r.char.name + (r.loop ? ' · 无尽 ' + (r.loop + 1) : '')
+          : '星渊吞没了这道回响 · 但记忆仍在');
       const html =
         '<div class="screen result-screen">' +
         '<div class="result-head">' +
@@ -456,11 +471,16 @@
         (r.daily ? '<div class="daily-badge">每日挑战 · ' + r.daily + ' · ' +
           (r.dailyNew ? '今日新纪录' : ('今日最佳 ' + U.fmtTime(r.dailyBest ? r.dailyBest.time : 0))) +
           (r.anomalies && r.anomalies.length ? ' · ' + r.anomalies.join(' / ') : '') + '</div>' : '') +
+        (r.rush ? '<div class="rush-badge">首领连战 · 最佳 ' +
+          (r.rushBest && r.rushBest.time ? U.fmtTime(r.rushBest.time) : '--:--') +
+          (r.rushNew ? ' · 新纪录' : '') + '</div>' : '') +
         '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
         '<div class="result-actions">' +
-        (victory
-          ? '<button class="btn primary" data-act="endless">继续无尽</button>'
-          : '<button class="btn primary" data-act="restart">再来一局</button>') +
+        (r.rush
+          ? '<button class="btn primary" data-act="rushagain">再来一次</button>'
+          : (victory
+            ? '<button class="btn primary" data-act="endless">继续无尽</button>'
+            : '<button class="btn primary" data-act="restart">再来一局</button>')) +
         '<button class="btn ghost" data-act="meta">回响强化</button>' +
         '<button class="btn ghost" data-act="menu">主菜单</button>' +
         '</div>' +
@@ -628,6 +648,14 @@
           ? '<div class="daily-card-main"><b>' + U.fmtTime(db.time) + '</b><span>Lv' + db.level + ' · ' + db.kills + ' 击杀 · ◈ ' + db.echoes + '</span></div>'
           : '<div class="daily-card-main"><b>— —</b><span>今天还没有记录，打一局每日挑战</span></div>') +
         '</div>';
+      const rb = S.bestRush || { time: 0 };
+      const rushCard = '<div class="daily-card rush">' +
+        '<div class="daily-card-date">首领连战 · 最佳</div>' +
+        (rb.time
+          ? '<div class="daily-card-main"><b>' + U.fmtTime(rb.time) + '</b><span>' +
+            (AE.Data.CHAR_MAP[rb.char] ? AE.Data.CHAR_MAP[rb.char].name : rb.char) + ' · ' + (rb.date || '') + '</span></div>'
+          : '<div class="daily-card-main"><b>— —</b><span>还没有连战记录</span></div>') +
+        '</div>';
       const html =
         '<div class="screen archive-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -645,6 +673,7 @@
         '<div class="stat-cell"><span>武器进化</span><b>' + (st.evolves || 0) + '</b></div>' +
         '</div>' +
         dailyCard +
+        rushCard +
         '<div class="section-label">成就 · ' + got.length + ' / ' + all.length + '</div>' +
         '<div class="ach-grid">' + achHtml + '</div>' +
         '<div class="section-label">最佳记录</div>' +
