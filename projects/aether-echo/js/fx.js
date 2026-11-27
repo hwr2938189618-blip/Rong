@@ -10,7 +10,7 @@
     particles: [], rings: [], texts: [], lines: [], flashes: [],
     t: 0, W: 1280, H: 720, dpr: 1,
     hitstop: 0,
-    shakeMul: 1, dmgText: true, quality: 1,
+    shakeMul: 1, dmgText: true, quality: 1, motion: true, contrast: false,
     vignette: null, lowHp: 0,
     glows: {}, stars: null, nebulae: [],
 
@@ -191,11 +191,12 @@
     },
 
     flash: function (a, color) {
+      if (!this.motion) return;
       this.flashes.push({ a: a, color: color || '#ffffff', life: 0.22, max: 0.22 });
       if (this.flashes.length > 6) this.flashes.shift();
     },
 
-    shake: function (v) { if (AE.Cam) AE.Cam.addShake(v * this.shakeMul); },
+    shake: function (v) { if (this.motion && AE.Cam) AE.Cam.addShake(v * this.shakeMul); },
 
     hitStop: function (t) { this.hitstop = Math.max(this.hitstop, t); },
 
@@ -255,18 +256,20 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // 星云
-      ctx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < this.nebulae.length; i++) {
-        const p = 0.015 + i * 0.012;
-        const nx = ((-cam.x * p) % 900) - 200 + i * 260;
-        const ny = ((-cam.y * p) % 700) - 150 + i * 190;
-        ctx.globalAlpha = 0.62 + Math.sin(t * 0.12 + i) * 0.08;
-        ctx.drawImage(this.nebulae[i], nx, ny, 760, 760);
-        ctx.drawImage(this.nebulae[i], nx + 900, ny + 300, 600, 600);
+      // 星云（低画质时跳过，节省填充率）
+      if (this.quality > 0.65) {
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < this.nebulae.length; i++) {
+          const p = 0.015 + i * 0.012;
+          const nx = ((-cam.x * p) % 900) - 200 + i * 260;
+          const ny = ((-cam.y * p) % 700) - 150 + i * 190;
+          ctx.globalAlpha = 0.62 + Math.sin(t * 0.12 + i) * 0.08;
+          ctx.drawImage(this.nebulae[i], nx, ny, 760, 760);
+          ctx.drawImage(this.nebulae[i], nx + 900, ny + 300, 600, 600);
+        }
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
       }
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = 'source-over';
 
       // 星层
       if (this.stars) {
@@ -491,11 +494,13 @@
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 扫描线（极淡，质感）
-      ctx.globalAlpha = 0.035;
-      ctx.fillStyle = '#9fd8ff';
-      for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
-      ctx.globalAlpha = 1;
+      // 扫描线（极淡，质感；低动态 / 低画质时关闭）
+      if (this.motion && this.quality > 0.75) {
+        ctx.globalAlpha = 0.035;
+        ctx.fillStyle = '#9fd8ff';
+        for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
+        ctx.globalAlpha = 1;
+      }
     }
   };
 

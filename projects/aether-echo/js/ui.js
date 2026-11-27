@@ -11,6 +11,7 @@
     el: null,
     toastEl: null,
     dashEl: null,
+    pauseEl: null,
     mode: null,
     prev: 'menu',
     enabled: false,
@@ -21,10 +22,18 @@
       this.el = document.getElementById('overlay');
       this.toastEl = document.getElementById('toast');
       this.dashEl = document.getElementById('touch-dash');
+      this.pauseEl = document.getElementById('touch-pause');
       if (!this.el) return;
       this.enabled = true;
-      this._touch = (typeof g.matchMedia === 'function' && g.matchMedia('(pointer: coarse)').matches);
+      const forceTouch = typeof location !== 'undefined' && /(?:^|[?&])touch=1/.test(location.search);
+      this._touch = forceTouch || (typeof g.matchMedia === 'function' && g.matchMedia('(pointer: coarse)').matches);
       const self = this;
+      if (this.pauseEl) {
+        this.pauseEl.addEventListener('pointerdown', function (e) {
+          e.preventDefault();
+          if (AE.G && AE.G.state === 'playing') AE.Game.pause();
+        });
+      }
       this.el.addEventListener('click', function (e) {
         const btn = e.target.closest ? e.target.closest('[data-act]') : null;
         if (!btn || btn.disabled) return;
@@ -108,10 +117,11 @@
     hidePause: function () { this.hideAll(); },
 
     syncDash: function () {
-      if (!this.dashEl) return;
       const playing = AE.G && AE.G.state === 'playing';
       const touch = this._touch || (AE.Input && AE.Input.touch && AE.Input.touch.on);
-      this.dashEl.classList.toggle('hidden', !(touch && playing));
+      const show = !!(touch && playing);
+      if (this.dashEl) this.dashEl.classList.toggle('hidden', !show);
+      if (this.pauseEl) this.pauseEl.classList.toggle('hidden', !show);
     },
 
     bossIntro: function (def, dur) {
@@ -332,7 +342,9 @@
         '<div class="menu-feats">' +
         '<span>' + D.WEAPONS.length + ' 把可进化武器</span><span>' + Object.keys(D.ENEMIES).length + ' 种虚空生物</span><span>' + D.BOSSES.length + ' 场首领战</span><span>无尽轮次</span>' +
         '</div>' +
-        '<div class="menu-hint">WASD 移动 · 空格 / Shift 闪避 · 武器自动攻击</div>' +
+        '<div class="menu-hint">' + (this._touch
+          ? '左半屏拖动移动 · 右下角「闪」闪避 · 右上角暂停'
+          : 'WASD 移动 · 空格 / Shift 闪避 · 武器自动攻击') + '</div>' +
         '</div>' +
         '<div class="menu-foot">' +
         '<div>最佳存活 <b>' + U.fmtTime(best.time || 0) + '</b></div>' +
@@ -516,6 +528,10 @@
         slider('shake', '屏幕震动', st.shake) +
         '<div class="set-row"><div class="set-label">伤害数字</div>' +
         '<button class="switch ' + (st.dmgText ? 'on' : '') + '" data-act="toggle" data-id="dmgText">' + (st.dmgText ? '开' : '关') + '</button></div>' +
+        '<div class="set-row"><div class="set-label">动态效果</div>' +
+        '<button class="switch ' + (st.motion !== false ? 'on' : '') + '" data-act="toggle" data-id="motion">' + (st.motion !== false ? '开' : '关') + '</button></div>' +
+        '<div class="set-row"><div class="set-label">高对比</div>' +
+        '<button class="switch ' + (st.contrast ? 'on' : '') + '" data-act="toggle" data-id="contrast">' + (st.contrast ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">画质</div><div class="seg">' +
         [['0.6', '低'], ['1', '中'], ['1.4', '高']].map(function (p) {
           const on = Math.abs(q - parseFloat(p[0])) < 0.01;

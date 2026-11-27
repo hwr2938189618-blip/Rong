@@ -80,6 +80,13 @@
       AE.FX.shakeMul = s.shake === undefined ? 1 : s.shake;
       AE.FX.dmgText = s.dmgText !== false;
       AE.FX.quality = s.quality || 1;
+      AE.FX.motion = s.motion !== false;
+      AE.FX.contrast = !!s.contrast;
+      if (typeof document !== 'undefined' && document.body && document.body.classList &&
+          document.body.classList.toggle) {
+        document.body.classList.toggle('high-contrast', !!s.contrast);
+        document.body.classList.toggle('reduce-motion', s.motion === false);
+      }
     },
 
     dailyInfo: function () {
@@ -262,6 +269,24 @@
       if (dt > 0.08) dt = 0.08;
       if (dt < 0) dt = 0;
       if (G.slowT > 0) { G.slowT -= dt; dt *= 0.35; }
+
+      // 自适应画质：持续低于约 43fps 时自动降一档
+      if (G.state === 'playing' && !this.headless) {
+        this.perfT = (this.perfT || 0) + dt;
+        this.perfSum = (this.perfSum || 0) + dt;
+        this.perfN = (this.perfN || 0) + 1;
+        if (this.perfT > 3) {
+          const avg = this.perfSum / Math.max(1, this.perfN);
+          const q = (AE.Save.data.settings && AE.Save.data.settings.quality) || 1;
+          if (avg > 0.0235 && q > 0.62) {
+            AE.Save.data.settings.quality = Math.max(0.6, Math.round((q - 0.15) * 100) / 100);
+            AE.Save.save();
+            this.applySettings();
+            if (AE.UI) AE.UI.toast('已自动降低画质以保持流畅', '#7df9ff');
+          }
+          this.perfT = 0; this.perfSum = 0; this.perfN = 0;
+        }
+      }
 
       G.t += dt;
       if (G.state === 'playing') {
@@ -907,11 +932,14 @@
       }
 
       if (!AE.Save.data.seen && G.time < 12) {
+        const touchUI = AE.Input.touch.on || (AE.UI && AE.UI._touch);
         ctx.globalAlpha = U.clamp((12 - G.time) / 2, 0, 1);
         ctx.textAlign = 'center';
         ctx.font = '600 13px ' + head;
         ctx.fillStyle = 'rgba(190,225,255,0.85)';
-        ctx.fillText('WASD 移动 · 武器自动攻击 · 空格 / Shift 闪避 · ESC 暂停', W / 2, H - 26);
+        ctx.fillText(touchUI
+          ? '左半屏拖动移动 · 右下角「闪」闪避 · 右上角暂停'
+          : 'WASD 移动 · 武器自动攻击 · 空格 / Shift 闪避 · ESC 暂停', W / 2, H - 26);
         ctx.globalAlpha = 1;
       }
 
