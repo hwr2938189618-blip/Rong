@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.8.0';
+  D.VERSION = '1.9.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -475,6 +475,10 @@
     { id: 'time10', name: '坚持到底', desc: '单局存活 10 分钟', icon: '⊙', color: '#8affc1' },
     { id: 'win1', name: '回响长存', desc: '击破最终首领，完成一次通关', icon: '✵', color: '#ffd479' },
     { id: 'runs10', name: '老兵', desc: '完成 10 局游戏', icon: '◍', color: '#9fb4ff' },
+    { id: 'time15', name: '深潜者', desc: '单局存活 15 分钟', icon: '◷', color: '#8affc1' },
+    { id: 'relic4', name: '遗物收藏家', desc: '单局获得 4 件遗物', icon: '✧', color: '#ffd479' },
+    { id: 'relic5', name: '遗物猎人', desc: '单局获得 5 件遗物', icon: '✺', color: '#ffd479' },
+    { id: 'rush_win', name: '五连破晓', desc: '完成一次首领连战', icon: '⛨', color: '#ff8fa3' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 
@@ -566,6 +570,22 @@
     {
       id: 'critchain', name: '连锁暴击', icon: '⚡', color: '#ffd479', hook: true,
       desc: '暴击时对周围敌人溅射 35% 伤害'
+    },
+    {
+      id: 'static', name: '雷霆核心', icon: '⌁', color: '#9fe8ff', hook: true,
+      desc: '每 4.2 秒自动电击 3 个附近敌人'
+    },
+    {
+      id: 'executioner', name: '处决之刃', icon: '✧', color: '#ff8fa3', hook: true,
+      desc: '对生命低于 30% 的敌人伤害 +45%'
+    },
+    {
+      id: 'bloodmoon', name: '血月', icon: '◐', color: '#ff5c7a', hook: true,
+      desc: '生命低于 50% 时每秒回复 3 点生命'
+    },
+    {
+      id: 'reaper', name: '收割之环', icon: '❂', color: '#b388ff', hook: true,
+      desc: '每击杀 20 个敌人释放一次收割新星'
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

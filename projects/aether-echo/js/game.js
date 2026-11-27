@@ -158,7 +158,11 @@
       if ((st.evolves || 0) >= 6) unlock('evolve6');
       if (runTime >= 600) unlock('time10');
       if ((st.wins || 0) >= 1) unlock('win1');
+      if (runTime >= 900) unlock('time15');
       if ((st.runs || 0) >= 10) unlock('runs10');
+      if (runActive && G.player.relics && G.player.relics.length >= 4) unlock('relic4');
+      if (runActive && G.player.relics && G.player.relics.length >= 5) unlock('relic5');
+      if (S.bestRush && S.bestRush.time > 0) unlock('rush_win');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 

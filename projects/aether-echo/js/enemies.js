@@ -625,6 +625,13 @@
       if (!e || !e.alive) return 0;
       if (e.spawning > 0) return 0;
       let dmg = amount;
+      const G0 = AE.G;
+      const pl0 = G0.player;
+      // 遗物：处决之刃 —— 对残血目标增伤
+      if (pl0 && pl0.relics && pl0.relics.indexOf('executioner') >= 0 &&
+          e.maxHp > 0 && e.hp / e.maxHp <= 0.3) {
+        dmg *= 1.45;
+      }
       if (e.armor) dmg = Math.max(1, dmg - e.armor);
       e.hp -= dmg;
       e.flash = 0.09;
@@ -696,6 +703,27 @@
           const add = Math.min(0.005, 1 - pl.stackBonus);
           pl.stackBonus += add;
           pl.dmgMul += add;
+        }
+      }
+      // 遗物：收割之环 —— 每 20 杀释放一次新星
+      if (pl && pl.relics && pl.relics.indexOf('reaper') >= 0) {
+        pl.reaperKills = (pl.reaperKills || 0) + 1;
+        if (pl.reaperKills >= 20 && !pl.reaperBurst) {
+          pl.reaperKills = 0;
+          pl.reaperBurst = true;
+          AE.FX.ring(pl.x, pl.y, '#b388ff', 12, 180, 0.5, 3);
+          AE.FX.flash(0.05, '#b388ff');
+          AE.FX.shake(0.1);
+          AE.Audio.sfx('nova');
+          const near = AE.World.grid.query(pl.x, pl.y, 180);
+          const nd = (60 + G.level * 4) * (pl.dmgMul || 1);
+          for (let k = 0; k < near.length; k++) {
+            const o = near[k];
+            if (!o.alive || o.spawning > 0) continue;
+            if (U.d2(pl.x, pl.y, o.x, o.y) > 180 * 180) continue;
+            this.damage(o, nd, { noSplash: true, noFrost: true });
+          }
+          pl.reaperBurst = false;
         }
       }
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));

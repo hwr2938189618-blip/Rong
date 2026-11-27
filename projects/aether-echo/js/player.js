@@ -119,6 +119,30 @@
         const h = Math.min(p.maxHp - p.hp, p.regen * dt);
         p.hp += h; p.healed += h;
       }
+      // 遗物：血月 —— 低血量时额外回复
+      if (p.relics.indexOf('bloodmoon') >= 0 && p.hp < p.maxHp * 0.5) {
+        const hm = Math.min(p.maxHp - p.hp, 3 * dt);
+        p.hp += hm; p.healed += hm;
+      }
+      // 遗物：雷霆核心 —— 定时电击最近敌人
+      if (p.relics.indexOf('static') >= 0) {
+        p.staticT = (p.staticT || 0) - dt;
+        if (p.staticT <= 0) {
+          const ts = AE.Weapons.nearestEnemies(p.x, p.y, 3, 420);
+          if (ts.length) {
+            p.staticT = 4.2;
+            for (let i = 0; i < ts.length; i++) {
+              const t = ts[i];
+              AE.FX.line(p.x, p.y, t.x, t.y, '#9fe8ff', 0.18, 4, false);
+              AE.FX.spark(t.x, t.y, '#9fe8ff', 5, { spd: 140, life: 0.3, size: 2.2 });
+              AE.Enemies.damage(t, (40 + p.level * 6) * p.dmgMul, { noSplash: true });
+            }
+            AE.Audio.sfx('arc');
+          } else {
+            p.staticT = 0.5;
+          }
+        }
+      }
 
       const mv = Input.moveVec();
       p.moving = mv.x !== 0 || mv.y !== 0;
