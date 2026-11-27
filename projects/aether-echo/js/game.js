@@ -159,7 +159,7 @@
       if (runTime >= 600) unlock('time10');
       if ((st.wins || 0) >= 1) unlock('win1');
       if ((st.runs || 0) >= 10) unlock('runs10');
-      if (S.chars.length >= 4) unlock('allchar');
+      if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
     /* ---------- 场景 ---------- */
@@ -912,6 +912,12 @@
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(255,212,121,0.72)';
         ctx.fillText('每日 · ' + G.daily.anomalies.map(function (a) { return a.name; }).join(' / '), 28, 112);
+      }
+      if (p.killStack) {
+        ctx.textAlign = 'left';
+        ctx.font = '600 10px ' + head;
+        ctx.fillStyle = 'rgba(255,127,176,0.82)';
+        ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks, 28, G.daily ? 128 : 112);
       }
 
       const wx = W - 34, wy = H / 2 - p.weapons.length * 26 + 16;

@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.7.0';
+  D.VERSION = '1.8.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -416,6 +416,20 @@
       start: 'arc', color: '#8affc1',
       intro: '与星渊共振，经验与连锁闪电都更快。',
       perk: '经验 +18% · 初始相位链'
+    },
+    {
+      id: 'lumen', name: '逐光者', title: 'LIGHTRUNNER', cost: 320,
+      hp: 88, speed: 250, dmgMul: 1.0, armor: 0, crit: 0.08, xpMul: 1.0,
+      start: 'prism', color: '#ffd479', dashDamage: true, dashCdMul: 0.7,
+      intro: '把闪避本身当成武器，从敌群中穿过去。',
+      perk: '闪避冷却 -30% · 闪避穿过敌人造成伤害'
+    },
+    {
+      id: 'devourer', name: '噬星者', title: 'STAR DEVOURER', cost: 420,
+      hp: 92, speed: 226, dmgMul: 1.0, armor: 0, crit: 0, xpMul: 1.0,
+      start: 'arc', color: '#ff7fb0', killStack: true,
+      intro: '每一次击杀都让它更饥饿，也更强。',
+      perk: '每击杀 +0.5% 伤害（上限 +100%）· 生命 -8%'
     }
   ];
   D.CHAR_MAP = {};
@@ -461,7 +475,7 @@
     { id: 'time10', name: '坚持到底', desc: '单局存活 10 分钟', icon: '⊙', color: '#8affc1' },
     { id: 'win1', name: '回响长存', desc: '击破最终首领，完成一次通关', icon: '✵', color: '#ffd479' },
     { id: 'runs10', name: '老兵', desc: '完成 10 局游戏', icon: '◍', color: '#9fb4ff' },
-    { id: 'allchar', name: '全员集结', desc: '解锁全部四名角色', icon: '✺', color: '#7df9ff' }
+    { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 
   /* ============================================================

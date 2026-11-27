@@ -27,7 +27,10 @@
         critDmg: D.CONST.BASE_CRITDMG,
         armor: char.armor || 0,
         regen: 0,
-        dashCdMul: 1,
+        dashCdMul: char.dashCdMul || 1,
+        dashDamage: !!char.dashDamage,
+        killStack: !!char.killStack,
+        killStacks: 0, stackBonus: 0,
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),
         weapons: [], passives: {}, passiveCount: 0,
@@ -124,6 +127,25 @@
         p.dashT -= dt;
         p.x += p.dashDir.x * p.speed * AE.Data.CONST.DASH_SPEED * dt;
         p.y += p.dashDir.y * p.speed * AE.Data.CONST.DASH_SPEED * dt;
+        // 逐光者：闪避穿过敌人造成伤害
+        if (p.dashDamage) {
+          const list = AE.Enemies.list;
+          const now = AE.G.time;
+          for (let i = 0; i < list.length; i++) {
+            const e = list[i];
+            if (!e.alive || e.spawning > 0) continue;
+            if (now - (e.dashHitAt || -9) < 0.5) continue;
+            const rr = e.r + p.r + 14;
+            if (U.d2(p.x, p.y, e.x, e.y) > rr * rr) continue;
+            e.dashHitAt = now;
+            const crit = Math.random() < p.crit;
+            const dmg = (40 + p.level * 6) * p.dmgMul * (crit ? p.critDmg : 1);
+            AE.Enemies.damage(e, dmg, { crit: crit });
+            e.kx = (e.kx || 0) + p.dashDir.x * 120;
+            e.ky = (e.ky || 0) + p.dashDir.y * 120;
+            AE.FX.spark(e.x, e.y, p.char.color, 6, { spd: 180, life: 0.35, size: 2.6 });
+          }
+        }
         p.trailT -= dt;
         if (p.trailT <= 0) {
           p.trailT = 0.028;

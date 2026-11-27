@@ -159,7 +159,13 @@ html, body {
   justify-content: space-between;
   gap: 0;
   padding: clamp(6px, 1.6vh, 20px) 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 249, 255, 0.28) transparent;
 }
+.menu-screen::-webkit-scrollbar { width: 6px; }
+.menu-screen::-webkit-scrollbar-thumb { background: rgba(125, 249, 255, 0.24); border-radius: 3px; }
 .menu-top { text-align: center; position: relative; padding-top: clamp(4px, 2vh, 22px); }
 .brand-kicker {
   display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -231,9 +237,9 @@ html, body {
 .menu-hint b { color: var(--dim); font-weight: 600; }
 .char-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  width: min(920px, 100%);
+  width: min(880px, 100%);
 }
 .char-card {
   --c: var(--cyan);
@@ -570,9 +576,17 @@ html, body {
   .toast { bottom: 18px; }
 }
 @media (max-height: 760px) {
-  .brand-title { font-size: clamp(40px, 7vw, 74px); }
-  .char-card { min-height: 82px; padding: 10px 12px 10px 14px; }
+  .brand-title { font-size: clamp(34px, 5vw, 56px); }
+  .char-card { min-height: 74px; padding: 9px 12px 9px 14px; }
   .char-card .char-perk { display: none; }
+  .menu-feats { display: none; }
+  .meta-screen { gap: 10px; }
+  .meta-head h2 { font-size: 26px; }
+  .meta-head .sub { margin-top: 3px; }
+  .meta-row { padding: 7px 10px; }
+  .meta-row .m-icon { width: 32px; height: 32px; font-size: 15px; }
+  .meta-pips { margin-top: 4px; }
+  .meta-note { display: none; }
   .pick { min-height: 230px; padding: 16px; }
   .pick-desc { min-height: 36px; }
 }
@@ -816,9 +830,9 @@ body.reduce-motion *::after {
   .char-card { min-height: 0; padding: 9px 10px 9px 12px; }
   .char-card .char-title { font-size: 8px; }
   .char-card .char-perk { display: none; }
-  .menu-actions { flex-direction: column; }
+  .menu-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .menu-actions .btn { width: 100%; }
-  .menu-actions .btn.primary { min-width: 0; }
+  .menu-actions .btn.primary { grid-column: 1 / -1; min-width: 0; }
   .menu-links, .menu-feats { gap: 6px; }
   .menu-feats span { font-size: 9px; padding: 4px 8px; }
   .menu-hint { font-size: 9px; }

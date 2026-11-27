@@ -689,6 +689,15 @@
           }
         }
       }
+      // 噬星者：击杀永久叠伤（上限 +100%）
+      if (pl && pl.killStack) {
+        pl.killStacks = (pl.killStacks || 0) + 1;
+        if (pl.stackBonus < 1) {
+          const add = Math.min(0.005, 1 - pl.stackBonus);
+          pl.stackBonus += add;
+          pl.dmgMul += add;
+        }
+      }
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));
       AE.World.dropOrbs(e.x, e.y, val, e.elite);
       if (e.elite) {
