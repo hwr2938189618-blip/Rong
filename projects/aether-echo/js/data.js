@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.12.0';
+  D.VERSION = '1.13.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -416,6 +416,11 @@
       id: 'eclipse', name: '星蚀', title: 'ECLIPSE', at: 780,
       hp: 4800, r: 68, speed: 96, dmg: 30, xp: 360, echo: 70,
       color: '#c9b6ff', ai: 'eclipse'
+    },
+    {
+      id: 'abyss', name: '深渊之眼', title: 'THE ABYSS GAZES', at: 960,
+      hp: 5600, r: 86, speed: 88, dmg: 32, xp: 460, echo: 90,
+      color: '#ff5c9a', ai: 'abyss'
     }
   ];
   /* 首领连战顺序 */

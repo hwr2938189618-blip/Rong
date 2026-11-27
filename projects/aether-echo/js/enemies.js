@@ -512,6 +512,53 @@
           }
           break;
         }
+        case 'abyss': {
+          // 保持中远距离凝视
+          if (d > 360) { e.x += nx * e.speed * dt; e.y += ny * e.speed * dt; }
+          else if (d < 240) { e.x -= nx * e.speed * 0.8 * dt; e.y -= ny * e.speed * 0.8 * dt; }
+          // 环绕碎片碰撞
+          for (let k = 0; k < 3; k++) {
+            const oa = e.t * 1.15 + k * U.TAU / 3;
+            const sx = e.x + Math.cos(oa) * 136, sy = e.y + Math.sin(oa) * 136;
+            if (p.invuln <= 0 && U.d2(sx, sy, p.x, p.y) < 40 * 40) {
+              AE.Player.hurt(p, e.dmg * 0.35, sx, sy);
+            }
+          }
+          // 眼睑开合 → 三束凝视激光
+          if (e.mode === 'idle') {
+            e.modeT -= dt;
+            if (e.modeT <= 0) {
+              e.mode = 'tele'; e.modeT = 1.1;
+              e.beamBase = Math.atan2(dy, dx);
+              AE.Audio.sfx('warn');
+            }
+          } else if (e.mode === 'tele') {
+            if (e.modeT <= 0) { e.mode = 'beam'; e.modeT = 1.6; AE.Audio.sfx('arc'); }
+          } else if (e.mode === 'beam') {
+            e.modeT -= dt;
+            e.beamBase += dt * 0.52 * (e.enraged ? 1.3 : 1);
+            e.beams = [-0.17, 0, 0.17];
+            for (let i = 0; i < e.beams.length; i++) {
+              const a = e.beamBase + e.beams[i];
+              const ex = e.x + Math.cos(a) * 1100, ey = e.y + Math.sin(a) * 1100;
+              if (p.invuln <= 0 && this.pointLineDist(p.x, p.y, e.x, e.y, ex, ey) < 18) {
+                AE.Player.hurt(p, e.dmg * 0.55, e.x, e.y);
+              }
+            }
+            if (e.modeT <= 0) { e.mode = 'idle'; e.modeT = 2.6 / rage; e.beams = []; }
+          } else {
+            e.mode = 'idle'; e.modeT = 2.2;
+          }
+          if (e.t1 <= 0) {
+            e.t1 = 3.4 / rage;
+            this.bossRadial(e, 14, 175 * rage, 0.5);
+          }
+          if (e.t2 <= 0) {
+            e.t2 = 9 / rage;
+            this.summon(e, 'wisp', 3, 250);
+          }
+          break;
+        }
         case 'final': {
           const k = e.hp / e.maxHp;
           const stage = k > 0.66 ? 1 : (k > 0.33 ? 2 : 3);
@@ -1110,6 +1157,29 @@
         }
       }
 
+      if (e.ai === 'abyss' && (e.mode === 'beamTele' || e.mode === 'beam')) {
+        const tele = e.mode === 'beamTele';
+        for (let i = 0; i < 3; i++) {
+          const a = e.beamBase + (i - 1) * 0.17;
+          ctx.save();
+          ctx.rotate(a);
+          const ga = ctx.createLinearGradient(0, 0, 1100, 0);
+          ga.addColorStop(0, AE.FX.alpha(col, tele ? 0.32 : 0.85));
+          ga.addColorStop(1, AE.FX.alpha(col, 0));
+          ctx.strokeStyle = ga;
+          ctx.lineWidth = tele ? 2.5 : 10;
+          if (tele) ctx.setLineDash([10, 12]);
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1100, 0); ctx.stroke();
+          ctx.setLineDash([]);
+          if (!tele) {
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(255,230,240,0.9)';
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1100, 0); ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
       ctx.rotate(e.rot);
       const R = e.r;
       if (e.ai === 'weaver') {
@@ -1167,6 +1237,59 @@
         ctx.beginPath(); ctx.arc(Math.cos(e.t * 0.8) * R * 0.12, Math.sin(e.t * 0.8) * R * 0.08, R * 0.17, 0, U.TAU); ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(Math.cos(e.t * 0.8) * R * 0.12 - 2, Math.sin(e.t * 0.8) * R * 0.08 - 3, R * 0.06, 0, U.TAU); ctx.fill();
+      } else if (e.ai === 'abyss') {
+        // 深渊之眼：卷须 + 开合眼睑 + 竖瞳 + 环绕碎片
+        const open = e.mode === 'tele' ? Math.max(0.08, e.modeT / 1.1)
+          : (e.mode === 'beam' ? 0.2 : 0.82 + Math.sin(time * 1.6) * 0.06);
+        ctx.strokeStyle = AE.FX.alpha(col, 0.42);
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 8; i++) {
+          const a = i * U.TAU / 8 + time * 0.18;
+          const wob = Math.sin(time * 2.2 + i) * 26;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * R * 0.86, Math.sin(a) * R * 0.86);
+          ctx.quadraticCurveTo(
+            Math.cos(a) * R * 1.36 + Math.cos(a + 1.5) * wob,
+            Math.sin(a) * R * 1.36 + Math.sin(a + 1.5) * wob,
+            Math.cos(a) * R * 1.92, Math.sin(a) * R * 1.92);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#140410';
+        ctx.strokeStyle = col; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.ellipse(0, 0, R * 1.04, R * 0.94, 0, 0, U.TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#efe6ff';
+        ctx.beginPath(); ctx.ellipse(0, 0, R * 0.8, R * 0.64 * open, 0, 0, U.TAU); ctx.fill();
+        const gi = ctx.createRadialGradient(0, 0, R * 0.06, 0, 0, R * 0.56);
+        gi.addColorStop(0, '#ffd9e6');
+        gi.addColorStop(0.4, col);
+        gi.addColorStop(1, '#3a0a1e');
+        ctx.fillStyle = gi;
+        ctx.beginPath(); ctx.ellipse(0, 0, R * 0.54, R * 0.44 * open, 0, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = '#08020a';
+        ctx.beginPath(); ctx.ellipse(0, 0, R * 0.085, R * 0.46 * open, 0, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(-R * 0.2, -R * 0.16, R * 0.055, 0, U.TAU); ctx.fill();
+        for (let i = 0; i < 10; i++) {
+          const a = i * U.TAU / 10 + time * 0.35;
+          ctx.fillStyle = AE.FX.alpha(col, 0.85);
+          ctx.beginPath(); ctx.arc(Math.cos(a) * R * 0.84, Math.sin(a) * R * 0.74, 3.2, 0, U.TAU); ctx.fill();
+          ctx.fillStyle = '#10030c';
+          ctx.beginPath(); ctx.arc(Math.cos(a) * R * 0.84, Math.sin(a) * R * 0.74, 1.3, 0, U.TAU); ctx.fill();
+        }
+        for (let i = 0; i < 3; i++) {
+          const oa = e.t * 1.15 + i * U.TAU / 3;
+          const ox = Math.cos(oa) * 136, oy = Math.sin(oa) * 136;
+          ctx.globalCompositeOperation = 'lighter';
+          AE.FX.glow(ctx, ox, oy, 34, col, 0.5);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.save();
+          ctx.translate(ox, oy); ctx.rotate(oa * 2);
+          ctx.fillStyle = '#1b0614'; ctx.strokeStyle = col; ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, -16); ctx.lineTo(11, 0); ctx.lineTo(0, 16); ctx.lineTo(-11, 0);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.restore();
+        }
       } else if (e.ai === 'final') {
         // final
         const stage = e.stage || 1;
