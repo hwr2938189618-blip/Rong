@@ -203,6 +203,21 @@
         }
         b.x += b.vx * dt;
         b.y += b.vy * dt;
+        // 回旋月刃：飞出一段后折返，回程清空命中记录再切一次
+        if (b.boomerang) {
+          b.bt = (b.bt || 0) + dt;
+          if (b.bt > 0.42) {
+            const dx = p.x - b.x, dy = p.y - b.y;
+            const dd = Math.hypot(dx, dy);
+            if (dd < 34) { bs.splice(i, 1); continue; }
+            const cur = Math.atan2(b.vy, b.vx);
+            const want = Math.atan2(dy, dx);
+            const na = U.angLerp(cur, want, Math.min(1, 7 * dt));
+            const sp = Math.hypot(b.vx, b.vy) || 1;
+            b.vx = Math.cos(na) * sp; b.vy = Math.sin(na) * sp;
+            if (b.bt < 0.46) b.hitIds = [];
+          }
+        }
         if (b.x < -80 || b.x > AE.Data.CONST.WORLD_W + 80 || b.y < -80 || b.y > AE.Data.CONST.WORLD_H + 80) {
           bs.splice(i, 1);
           continue;

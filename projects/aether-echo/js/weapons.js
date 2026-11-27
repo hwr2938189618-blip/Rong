@@ -233,6 +233,40 @@
           AE.FX.shake(0.12);
           break;
         }
+        case 'scythe': {
+          const n = s.count || 2;
+          for (let i = 0; i < n; i++) {
+            const a = p.aimAngle + (i - (n - 1) / 2) * (s.spread || 0.55);
+            AE.World.addBullet({
+              x: p.x + Math.cos(a) * 14, y: p.y + Math.sin(a) * 14,
+              vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
+              r: 8, dmg: s.dmg * p.dmgMul, life: s.life || 1.5,
+              color: def.color, kind: 'shard', pierce: 3, hitIds: [],
+              critChance: p.crit, critDmg: p.critDmg, size: s.size || 8,
+              homing: 0, trailT: 0, boomerang: true, bt: 0
+            });
+          }
+          AE.Audio.sfx('orbit');
+          break;
+        }
+        case 'bloom': {
+          const n = s.count || 8;
+          const off = Math.random() * U.TAU;
+          for (let i = 0; i < n; i++) {
+            const a = off + i / n * U.TAU;
+            AE.World.addBullet({
+              x: p.x + Math.cos(a) * 12, y: p.y + Math.sin(a) * 12,
+              vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
+              r: 5, dmg: s.dmg * p.dmgMul, life: s.life || 1.1,
+              color: i % 3 === 0 ? '#ffd479' : def.color, kind: 'shard',
+              pierce: s.pierce || 1, hitIds: [],
+              critChance: p.crit, critDmg: p.critDmg, size: s.size || 5,
+              homing: 0, trailT: 0
+            });
+          }
+          AE.Audio.sfx('pulse');
+          break;
+        }
       }
     },
 

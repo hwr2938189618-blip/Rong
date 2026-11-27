@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.11.0';
+  D.VERSION = '1.12.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -202,6 +202,42 @@
       evolved: {
         name: '贯穿星轨', icon: '⇶', dmg: 240, cd: 1.05, width: 46, range: 1050,
         beams: 3, spread: 0.13, note: '三道星轨同时贯穿战场'
+      }
+    },
+    {
+      id: 'scythe', name: '回旋月刃', icon: '☾', color: '#9fe8ff',
+      tag: '回旋', intro: '甩出月牙刃，去程与回程各切一次。',
+      levels: [
+        { dmg: 26, cd: 1.75, count: 2, speed: 430, spread: 0.55, life: 1.35, size: 7 },
+        { dmg: 32, cd: 1.70, count: 2, speed: 440, spread: 0.55, life: 1.35, size: 7 },
+        { dmg: 32, cd: 1.62, count: 3, speed: 450, spread: 0.62, life: 1.40, size: 7.5 },
+        { dmg: 42, cd: 1.55, count: 3, speed: 460, spread: 0.62, life: 1.40, size: 7.5 },
+        { dmg: 42, cd: 1.48, count: 3, speed: 475, spread: 0.70, life: 1.45, size: 8 },
+        { dmg: 52, cd: 1.40, count: 4, speed: 485, spread: 0.72, life: 1.50, size: 8 },
+        { dmg: 52, cd: 1.32, count: 4, speed: 500, spread: 0.80, life: 1.55, size: 8.5 },
+        { dmg: 64, cd: 1.24, count: 4, speed: 510, spread: 0.80, life: 1.60, size: 9 }
+      ],
+      evolved: {
+        name: '双生月蚀', icon: '☽', dmg: 92, cd: 1.00, count: 6, speed: 540,
+        spread: 0.95, life: 1.75, size: 10, note: '六刃往返，月蚀成环'
+      }
+    },
+    {
+      id: 'bloom', name: '星华绽放', icon: '✿', color: '#ff9f68',
+      tag: '环射', intro: '向四周绽放星华花瓣，绕身清场。',
+      levels: [
+        { dmg: 18, cd: 2.5, count: 8, speed: 285, life: 1.00, pierce: 1, size: 4.6 },
+        { dmg: 23, cd: 2.42, count: 9, speed: 292, life: 1.02, pierce: 1, size: 4.8 },
+        { dmg: 23, cd: 2.34, count: 10, speed: 300, life: 1.04, pierce: 1, size: 5.0 },
+        { dmg: 28, cd: 2.24, count: 11, speed: 306, life: 1.06, pierce: 1, size: 5.2 },
+        { dmg: 28, cd: 2.14, count: 12, speed: 312, life: 1.08, pierce: 2, size: 5.4 },
+        { dmg: 32, cd: 2.04, count: 13, speed: 318, life: 1.10, pierce: 2, size: 5.5 },
+        { dmg: 32, cd: 1.94, count: 14, speed: 325, life: 1.12, pierce: 2, size: 5.6 },
+        { dmg: 38, cd: 1.84, count: 15, speed: 330, life: 1.15, pierce: 2, size: 5.8 }
+      ],
+      evolved: {
+        name: '超新星花园', icon: '❁', dmg: 46, cd: 1.50, count: 22, speed: 350,
+        life: 1.30, pierce: 2, size: 6.2, note: '花园盛开，环身皆刃'
       }
     }
   ];
