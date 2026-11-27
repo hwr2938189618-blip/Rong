@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.2.0';
+  D.VERSION = '1.3.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -455,5 +455,16 @@
     { id: 'win1', name: '回响长存', desc: '击破最终首领，完成一次通关', icon: '✵', color: '#ffd479' },
     { id: 'runs10', name: '老兵', desc: '完成 10 局游戏', icon: '◍', color: '#9fb4ff' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部四名角色', icon: '✺', color: '#7df9ff' }
+  ];
+
+  /* ============================================================
+   * 每日挑战随机扰动
+   * ============================================================ */
+  D.ANOMALIES = [
+    { id: 'swift', name: '疾行之潮', desc: '敌人移速 +20%，经验 +15%', color: '#7df9ff' },
+    { id: 'frenzy', name: '狂暴低语', desc: '敌人伤害 +25%，回响 +20%', color: '#ff5c7a' },
+    { id: 'greed', name: '丰饶裂隙', desc: '击杀掉落经验 +35%', color: '#ffd479' },
+    { id: 'void', name: '虚空稀薄', desc: '敌人生命 -10%，数量 +20%', color: '#b388ff' },
+    { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

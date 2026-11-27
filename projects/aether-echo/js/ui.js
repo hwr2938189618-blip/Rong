@@ -70,6 +70,7 @@
         }
         if (self.mode === 'menu') {
           if (k === 'Enter') { e.preventDefault(); self.action('play'); }
+          else if (k === 'd' || k === 'D') { e.preventDefault(); self.action('daily'); }
           return;
         }
         if (self.mode === 'result') {
@@ -133,6 +134,9 @@
       switch (act) {
         case 'play':
           AE.Game.startRun(S.char);
+          break;
+        case 'daily':
+          AE.Game.startRun(S.char, true);
           break;
         case 'meta':
           this.prev = this.mode === 'result' ? 'result' : 'menu';
@@ -271,6 +275,12 @@
       const S = AE.Save.data;
       const muted = AE.Audio.muted;
       const best = S.best || { time: 0, kills: 0, level: 0 };
+      const daily = AE.Game.dailyInfo ? AE.Game.dailyInfo() : null;
+      const dailyBest = daily && S.dailyBest ? S.dailyBest[daily.key] : null;
+      const dailyNote = daily
+        ? '<div class="daily-note">今日扰动 · ' + daily.anomalies.map(function (a) { return a.name; }).join(' / ') +
+          (dailyBest ? ' · 今日最佳 ' + U.fmtTime(dailyBest.time) : '') + '</div>'
+        : '';
       const html =
         '<div class="screen menu-screen">' +
         '<div class="menu-corner"><button class="icon-btn" data-act="mute" title="' + (muted ? '开启声音' : '静音') + '">' + (muted ? '静' : '声') + '</button></div>' +
@@ -284,9 +294,11 @@
         '<div class="char-row">' + this.charCards() + '</div>' +
         '<div class="menu-actions">' +
         '<button class="btn primary" data-act="play">开始回响<span class="kbd">ENTER</span></button>' +
+        '<button class="btn daily" data-act="daily">每日挑战<span class="kbd">D</span></button>' +
         '<button class="btn ghost" data-act="meta">回响强化</button>' +
         '<button class="btn ghost" data-act="how">玩法</button>' +
         '</div>' +
+        dailyNote +
         '<div class="menu-links">' +
         '<button class="link-btn" data-act="codex">图鉴</button>' +
         '<button class="link-btn" data-act="archive">档案</button>' +
@@ -362,6 +374,8 @@
         '<div><span>击杀</span><b>' + G.kills + '</b></div>' +
         '<div><span>等级</span><b>' + G.level + '</b></div>' +
         '</div>' +
+        (G.daily ? '<div class="pause-daily">每日挑战 · ' + G.daily.key + '<br>' +
+          G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') + '</div>' : '') +
         '<div class="btn-col">' +
         '<button class="btn primary" data-act="resume">继续（ESC）</button>' +
         '<button class="btn ghost" data-act="mute">' + (muted ? '开启声音' : '静音') + '</button>' +
@@ -402,6 +416,9 @@
         '<div class="result-cell gold"><span>获得回响</span><b>◈ ' + r.echoes + '</b></div>' +
         '</div>' +
         (r.newBest ? '<div class="new-best">NEW RECORD · 最久存活</div>' : '') +
+        (r.daily ? '<div class="daily-badge">每日挑战 · ' + r.daily + ' · ' +
+          (r.dailyNew ? '今日新纪录' : ('今日最佳 ' + U.fmtTime(r.dailyBest ? r.dailyBest.time : 0))) +
+          (r.anomalies && r.anomalies.length ? ' · ' + r.anomalies.join(' / ') : '') + '</div>' : '') +
         '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
         '<div class="result-actions">' +
         (victory
@@ -562,6 +579,14 @@
           '</div>';
       }).join('') || '<div class="empty">还没有记录，去打一局吧</div>';
       const winPct = st.runs ? Math.round((st.wins || 0) / st.runs * 100) : 0;
+      const dailyKey = AE.dateKey();
+      const db = (S.dailyBest || {})[dailyKey];
+      const dailyCard = '<div class="daily-card">' +
+        '<div class="daily-card-date">每日挑战 · ' + dailyKey + '</div>' +
+        (db
+          ? '<div class="daily-card-main"><b>' + U.fmtTime(db.time) + '</b><span>Lv' + db.level + ' · ' + db.kills + ' 击杀 · ◈ ' + db.echoes + '</span></div>'
+          : '<div class="daily-card-main"><b>— —</b><span>今天还没有记录，打一局每日挑战</span></div>') +
+        '</div>';
       const html =
         '<div class="screen archive-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -578,6 +603,7 @@
         '<div class="stat-cell"><span>击破首领</span><b>' + (st.bosses || 0) + '</b></div>' +
         '<div class="stat-cell"><span>武器进化</span><b>' + (st.evolves || 0) + '</b></div>' +
         '</div>' +
+        dailyCard +
         '<div class="section-label">成就 · ' + got.length + ' / ' + all.length + '</div>' +
         '<div class="ach-grid">' + achHtml + '</div>' +
         '<div class="section-label">最佳记录</div>' +

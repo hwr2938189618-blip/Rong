@@ -50,6 +50,44 @@
     fmtTime: fmtTime, fmtNum: fmtNum, shuffle: shuffle
   };
 
+  /* ---------- 每日挑战：日期 key / 哈希 / 可复现随机 ---------- */
+  AE.mulberry32 = function (a) {
+    const seed = a >>> 0;
+    let s = seed;
+    return function () {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+  AE.dateKey = function () {
+    const d = new Date();
+    const m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  };
+  AE.hashSeed = function (str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  };
+  AE.RNG = {
+    original: Math.random,
+    seeded: false,
+    set: function (seed) {
+      if (!this.seeded) this.original = Math.random;
+      Math.random = AE.mulberry32(seed);
+      this.seeded = true;
+    },
+    restore: function () {
+      if (this.seeded) Math.random = this.original;
+      this.seeded = false;
+    }
+  };
+
   /* ============================================================
    * 输入
    * ============================================================ */
@@ -168,7 +206,8 @@
         settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1 },
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 },
         achievements: [],
-        bestRuns: []
+        bestRuns: [],
+        dailyBest: {}
       };
     },
     load: function () {
@@ -189,6 +228,7 @@
         });
         if (!Array.isArray(d.achievements)) d.achievements = [];
         if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
+        if (!d.dailyBest || typeof d.dailyBest !== 'object') d.dailyBest = {};
       } else {
         d = base;
       }

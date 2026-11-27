@@ -700,6 +700,42 @@ html, body {
 .run-rank { color: var(--dim2); font-size: 10px; }
 .run-char { color: var(--cyan); }
 .run-row .ok { color: var(--gold); }
+
+/* ---------- 每日挑战 ---------- */
+.btn.daily {
+  background: linear-gradient(135deg, rgba(255, 212, 121, 0.16), rgba(255, 159, 104, 0.1));
+  border-color: rgba(255, 212, 121, 0.48);
+  color: #ffe9b8;
+  font-weight: 700;
+}
+.btn.daily:hover {
+  border-color: rgba(255, 212, 121, 0.78);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 24px rgba(255, 212, 121, 0.16);
+}
+.daily-note {
+  font-size: 10.5px; letter-spacing: 0.1em; color: rgba(255, 212, 121, 0.68);
+  text-align: center; margin-top: -8px;
+}
+.daily-badge {
+  font-size: 10.5px; letter-spacing: 0.12em; color: var(--gold);
+  border: 1px solid rgba(255, 212, 121, 0.32); background: rgba(255, 212, 121, 0.06);
+  border-radius: 20px; padding: 6px 14px; text-align: center;
+}
+.pause-daily {
+  margin-top: 12px; padding: 10px 12px;
+  border: 1px solid rgba(255, 212, 121, 0.25); border-radius: 10px;
+  background: rgba(255, 212, 121, 0.05); color: rgba(255, 212, 121, 0.82);
+  font-size: 11px; line-height: 1.7; text-align: center;
+}
+.daily-card {
+  width: 100%; border: 1px solid rgba(255, 212, 121, 0.28); border-radius: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(90deg, rgba(255, 212, 121, 0.08), rgba(8, 12, 24, 0.7));
+}
+.daily-card-date { font-size: 10px; letter-spacing: 0.24em; color: rgba(255, 212, 121, 0.65); margin-bottom: 6px; }
+.daily-card-main { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.daily-card-main b { font-size: 24px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.daily-card-main span { font-size: 11px; color: var(--dim); }
 @media (max-width: 860px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .ach-grid { grid-template-columns: 1fr; }

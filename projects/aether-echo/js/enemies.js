@@ -20,14 +20,15 @@
       opts = opts || {};
       const hpScale = D.hpScale(G.time, G.loop);
       const dmgScale = D.dmgScale(G.time, G.loop);
+      const mod = G.mod || {};
       const elite = !!opts.elite;
       const e = {
         id: UID++, type: typeId, def: def,
         x: x, y: y, r: def.r * (elite ? 1.45 : 1),
-        maxHp: def.hp * hpScale * (elite ? 6 : 1) * (opts.hpMul || 1),
+        maxHp: def.hp * hpScale * (elite ? 6 : 1) * (opts.hpMul || 1) * (mod.enemyHp || 1),
         hp: 0,
-        speed: def.speed * (elite ? 0.92 : 1),
-        dmg: def.dmg * dmgScale * (elite ? 1.4 : 1),
+        speed: def.speed * (elite ? 0.92 : 1) * (mod.enemySpeed || 1),
+        dmg: def.dmg * dmgScale * (elite ? 1.4 : 1) * (mod.enemyDmg || 1),
         armor: (def.armor || 0) + (elite ? 3 : 0),
         xp: def.xp * (elite ? 8 : 1),
         color: elite ? '#ffd479' : def.color,
@@ -55,7 +56,8 @@
       const e = {
         id: UID++, type: 'boss_' + def.id, def: def,
         x: x, y: y, r: def.r, maxHp: 0, hp: 0,
-        speed: def.speed, dmg: def.dmg * D.dmgScale(G.time, G.loop),
+        speed: def.speed * ((G.mod && G.mod.enemySpeed) || 1),
+        dmg: def.dmg * D.dmgScale(G.time, G.loop) * ((G.mod && G.mod.enemyDmg) || 1),
         armor: 6, xp: def.xp, color: def.color, shape: 'boss',
         behavior: 'boss', elite: false, boss: true,
         bossName: def.name, bossTitle: def.title, ai: def.ai,

@@ -15,7 +15,7 @@
     xp: 0, level: 1, xpNeed: 0, pending: 0,
     spawnT: 0, eliteT: 50, bossIdx: 0, bossWarnT: 0, bossWarned: false,
     draft: null, anns: [], timers: [], echoBonus: 0, winning: false,
-    slowT: 0,
+    slowT: 0, daily: null, mod: null,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -82,6 +82,37 @@
       AE.FX.quality = s.quality || 1;
     },
 
+    dailyInfo: function () {
+      const key = AE.dateKey();
+      if (this._dailyKey === key && this._dailyInfo) return this._dailyInfo;
+      const seed = AE.hashSeed('aether-echo-' + key);
+      const rng = AE.mulberry32(seed ^ 0x9e3779b9);
+      const pool = AE.Data.ANOMALIES.slice();
+      const picked = [];
+      for (let i = 0; i < 2 && pool.length; i++) {
+        const idx = Math.floor(rng() * pool.length) % pool.length;
+        picked.push(pool.splice(idx, 1)[0]);
+      }
+      this._dailyKey = key;
+      this._dailyInfo = { key: key, seed: seed, anomalies: picked };
+      return this._dailyInfo;
+    },
+
+    modFrom: function (list) {
+      const m = {
+        enemySpeed: 1, enemyDmg: 1, enemyHp: 1,
+        xpMul: 1, echoMul: 1, spawnMul: 1, armor: 0, speedMul: 1
+      };
+      (list || []).forEach(function (a) {
+        if (a.id === 'swift') { m.enemySpeed *= 1.2; m.xpMul *= 1.15; }
+        else if (a.id === 'frenzy') { m.enemyDmg *= 1.25; m.echoMul *= 1.2; }
+        else if (a.id === 'greed') { m.xpMul *= 1.35; }
+        else if (a.id === 'void') { m.enemyHp *= 0.9; m.spawnMul *= 1.2; }
+        else if (a.id === 'iron') { m.armor += 3; m.speedMul *= 0.94; }
+      });
+      return m;
+    },
+
     checkAchievements: function (final) {
       const S = AE.Save.data;
       if (!S || !AE.Data.ACHIEVEMENTS) return;
@@ -126,6 +157,8 @@
     startMenu: function () {
       G.state = 'menu';
       G.time = 0; G.loop = 0;
+      G.daily = null; G.mod = null;
+      AE.RNG.restore();
       G.enemies = AE.Enemies.list;
       if (!G.player) {
         AE.Cam.x = AE.Data.CONST.WORLD_W / 2;
@@ -136,12 +169,16 @@
       AE.UI.showMenu();
     },
 
-    startRun: function (charId) {
+    startRun: function (charId, daily) {
       if (G.state === 'playing') return;
       AE.Audio.init();
       const S = AE.Save.data;
       if (charId && AE.Data.CHAR_MAP[charId] && S.chars.indexOf(charId) >= 0) S.char = charId;
       charId = S.char || 'echo';
+      const isDaily = !!daily;
+      G.daily = isDaily ? this.dailyInfo() : null;
+      G.mod = this.modFrom(G.daily ? G.daily.anomalies : []);
+      if (isDaily) AE.RNG.set(G.daily.seed); else AE.RNG.restore();
       AE.Enemies.reset();
       AE.World.reset();
       AE.FX.reset();
@@ -158,6 +195,8 @@
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
+      G.player.armor += G.mod.armor || 0;
+      G.player.speed *= G.mod.speedMul || 1;
       AE.Cam.resize(this.W, this.H);
       AE.Cam.snap(G.player);
       AE.Cam.trauma = 0;
@@ -168,6 +207,12 @@
       AE.FX.flash(0.35, '#ffffff');
       AE.FX.ring(G.player.x, G.player.y, '#7df9ff', 10, 220, 0.8, 3);
       this.announce('第 1 层 · 苏醒', '#7df9ff', 2.0);
+      if (isDaily) {
+        this.announce('每日挑战 · ' + G.daily.key, '#ffd479', 3.0);
+        G.daily.anomalies.forEach(function (a) {
+          this.announce('今日扰动 · ' + a.name, a.color, 2.6);
+        }, this);
+      }
       this.pausedByBlur = false;
     },
 
@@ -362,7 +407,7 @@
         const interval = Math.max(0.34, (1.15 - G.time * 0.0012)) * bossFactor * (1 + pressure * 0.9);
         G.spawnT = interval;
         const table = this.currentTable();
-        const batch = 1 + Math.min(4, Math.floor(G.time / 150)) + (G.loop ? 1 : 0);
+        const batch = Math.max(1, Math.round((1 + Math.min(4, Math.floor(G.time / 150)) + (G.loop ? 1 : 0)) * ((G.mod && G.mod.spawnMul) || 1)));
         for (let i = 0; i < batch; i++) {
           const id = this.pickWeighted(table);
           this.spawnAtRing(id, false);
@@ -470,7 +515,7 @@
     gainXp: function (n) {
       const p = G.player;
       if (!p) return;
-      const v = n * p.xpMul;
+      const v = n * p.xpMul * ((G.mod && G.mod.xpMul) || 1);
       G.xp += v;
       if (n >= 6) AE.FX.text(p.x, p.y - 34, '+' + Math.round(v) + ' XP', '#9fd8ff', 13);
     },
@@ -554,7 +599,7 @@
       const p = G.player;
       const S = AE.Save.data;
       const base = G.kills * 0.35 + G.level * 3 + G.bossKills * 25 + G.time / 6;
-      const echoes = Math.max(0, Math.floor((base + G.echoBonus) * p.echoMul));
+      const echoes = Math.max(0, Math.floor((base + G.echoBonus) * p.echoMul * ((G.mod && G.mod.echoMul) || 1)));
       S.echoes += echoes;
       S.totalEchoes += echoes;
       S.runs = (S.runs || 0) + 1;
@@ -579,6 +624,23 @@
       if (G.kills > (best.kills || 0)) best.kills = G.kills;
       if (G.level > (best.level || 0)) best.level = G.level;
       S.seen = true;
+      let dailyNew = false;
+      let dailyBest = null;
+      if (G.daily) {
+        S.dailyBest = S.dailyBest || {};
+        const rec = {
+          time: Math.round(G.time), kills: G.kills, level: G.level,
+          char: p.char.id, echoes: echoes
+        };
+        const prev = S.dailyBest[G.daily.key];
+        if (!prev || rec.time > prev.time) {
+          S.dailyBest[G.daily.key] = rec;
+          dailyNew = true;
+        }
+        dailyBest = S.dailyBest[G.daily.key];
+        const keys = Object.keys(S.dailyBest).sort();
+        while (keys.length > 14) delete S.dailyBest[keys.shift()];
+      }
       AE.Save.save();
       this.checkAchievements(true);
       G.result = {
@@ -586,9 +648,14 @@
         time: G.time, kills: G.kills, level: G.level,
         damage: Math.floor(G.stats.damage),
         echoes: echoes, bossKills: G.bossKills,
-        char: p.char, loop: G.loop, newBest: newBest
+        char: p.char, loop: G.loop, newBest: newBest,
+        daily: G.daily ? G.daily.key : null,
+        dailyNew: dailyNew,
+        dailyBest: dailyBest,
+        anomalies: G.daily ? G.daily.anomalies.map(function (a) { return a.name; }) : []
       };
       G.state = victory ? 'victory' : 'gameover';
+      AE.RNG.restore();
       AE.Audio.setIntensity(0.12);
       AE.Audio.sfx(victory ? 'victory' : 'roar');
       if (!victory) { AE.FX.flash(0.35, '#ff3355'); AE.FX.shake(0.7); }
@@ -715,6 +782,13 @@
         ctx.fillStyle = 'rgba(160,200,240,0.6)';
         ctx.fillText('连杀', 28, 96);
         ctx.globalAlpha = 1;
+      }
+
+      if (G.daily) {
+        ctx.textAlign = 'left';
+        ctx.font = '600 10px ' + head;
+        ctx.fillStyle = 'rgba(255,212,121,0.72)';
+        ctx.fillText('每日 · ' + G.daily.anomalies.map(function (a) { return a.name; }).join(' / '), 28, 112);
       }
 
       const wx = W - 34, wy = H / 2 - p.weapons.length * 26 + 16;
