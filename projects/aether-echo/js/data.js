@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.13.0';
+  D.VERSION = '1.14.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -471,6 +471,13 @@
       start: 'arc', color: '#ff7fb0', killStack: true,
       intro: '每一次击杀都让它更饥饿，也更强。',
       perk: '每击杀 +0.5% 伤害（上限 +100%）· 生命 -8%'
+    },
+    {
+      id: 'ember', name: '灼星者', title: 'EMBER STAR', cost: 520,
+      hp: 96, speed: 240, dmgMul: 0.92, armor: 0, crit: 0, xpMul: 1.0,
+      start: 'bloom', color: '#ff9f68', burn: true,
+      intro: '把每一次命中都点成火种，让敌群自己烧起来。',
+      perk: '所有命中附加 3 秒灼烧（每秒 4 + 1.1×等级）· 伤害 -8%'
     }
   ];
   D.CHAR_MAP = {};

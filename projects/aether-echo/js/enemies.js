@@ -92,6 +92,20 @@
         if (!e.alive) { list.splice(i, 1); continue; }
         e.t += dt;
         e.flash = Math.max(0, e.flash - dt);
+        // 灼烧：每秒 4 + 1.1×等级，持续 3 秒
+        if (e.burnT > 0) {
+          e.burnT -= dt;
+          e.burnAcc = (e.burnAcc || 0) + dt;
+          if (e.burnAcc >= 0.4) {
+            e.burnAcc = 0;
+            this.damage(e, (e.burnDps || 0) * 0.4, { noBurn: true, noSplash: true, noFrost: true });
+            if (!e.alive) continue;
+          }
+          if (e.t % 0.18 < dt) {
+            AE.FX.spark(e.x + U.rnd(-e.r, e.r) * 0.6, e.y - e.r * 0.4,
+              '#ff9f68', 1, { spd: 40, life: 0.4, size: 2.4, add: true });
+          }
+        }
         e.orbCd = Math.max(0, e.orbCd - dt);
         e.stun = Math.max(0, e.stun - dt);
         if (e.spawning > 0) {
@@ -685,6 +699,11 @@
       const G = AE.G;
       const pl = G.player;
       G.stats.damage += dmg;
+      // 灼星者：命中点燃目标
+      if (pl && pl.burn && !(opts && opts.noBurn) && dmg > 0) {
+        e.burnT = Math.max(e.burnT || 0, 3);
+        e.burnDps = Math.max(e.burnDps || 0, 6 + pl.level * 1.6);
+      }
       // 遗物：霜冻之触
       if (pl && pl.relics && pl.relics.indexOf('frost') >= 0 && Math.random() < 0.12) {
         e.stun = Math.max(e.stun || 0, 0.25);
@@ -779,6 +798,19 @@
         pl.ult = Math.min(pl.ultMax, pl.ult + (e.boss ? 40 : (e.elite ? 10 : 1.2)));
         if (!wasFull && pl.ult >= pl.ultMax && AE.UI && AE.UI.syncDash) AE.UI.syncDash();
       }
+      // 灼星者：燃烧的敌人死亡时引燃周围
+      if (e.burnT > 0 && pl && pl.burn) {
+        e.burnT = 0;
+        const near = AE.World.grid.query(e.x, e.y, 140);
+        for (let k = 0; k < near.length; k++) {
+          const o = near[k];
+          if (o === e || !o.alive || o.spawning > 0) continue;
+          if (U.d2(e.x, e.y, o.x, o.y) > 140 * 140) continue;
+          o.burnT = Math.max(o.burnT || 0, 2.4);
+          o.burnDps = Math.max(o.burnDps || 0, (e.burnDps || 0) * 0.85);
+        }
+        AE.FX.ring(e.x, e.y, '#ff9f68', 8, 140, 0.4, 2.4);
+      }
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));
       AE.World.dropOrbs(e.x, e.y, val, e.elite);
       if (e.elite) {
@@ -865,6 +897,19 @@
 
       ctx.globalCompositeOperation = 'lighter';
       AE.FX.glow(ctx, 0, 0, e.r * 2.1, col, 0.34);
+      if (e.burnT > 0) {
+        AE.FX.glow(ctx, 0, -e.r * 0.1, e.r * (2.4 + Math.sin(time * 14) * 0.3), '#ff9f68', 0.5);
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.fillStyle = '#ffcf8f';
+        for (let bi = 0; bi < 3; bi++) {
+          const fa = time * 5 + bi * 2.1;
+          ctx.beginPath();
+          ctx.arc(Math.cos(fa) * e.r * 0.5, -e.r * 0.5 - (time * 26 % (e.r * 1.4)) * 0.4,
+            2.4 + Math.sin(fa) * 0.8, 0, U.TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = alpha;
+      }
       ctx.globalCompositeOperation = 'source-over';
 
       // 冲角兽的冲锋预警线

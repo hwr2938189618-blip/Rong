@@ -237,9 +237,9 @@ html, body {
 .menu-hint b { color: var(--dim); font-weight: 600; }
 .char-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  width: min(880px, 100%);
+  width: min(1040px, 100%);
 }
 .char-card {
   --c: var(--cyan);

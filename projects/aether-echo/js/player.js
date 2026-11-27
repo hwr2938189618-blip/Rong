@@ -30,6 +30,7 @@
         dashCdMul: char.dashCdMul || 1,
         dashDamage: !!char.dashDamage,
         killStack: !!char.killStack,
+        burn: !!char.burn,
         killStacks: 0, stackBonus: 0,
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),
