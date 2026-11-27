@@ -212,6 +212,18 @@
           this.tone({ f0: 1200 * p, f1: 480 * p, type: 'triangle', dur: 0.12, gain: 0.05 });
           this.noise({ dur: 0.08, gain: 0.04, freq: 5200, filter: 'highpass' });
           break;
+        case 'well':
+          this.tone({ f0: 180, f1: 60, type: 'sawtooth', dur: 0.5, gain: 0.06, filter: 'lowpass', cutoff: 500, verb: 0.4 });
+          this.noise({ dur: 0.5, gain: 0.05, freq: 700, freq2: 120, filter: 'bandpass', q: 1.2, verb: 0.4 });
+          break;
+        case 'lance':
+          this.tone({ f0: 2400 * p, f1: 380, type: 'sawtooth', dur: 0.18, gain: 0.06, filter: 'highpass', cutoff: 700 });
+          this.noise({ dur: 0.22, gain: 0.08, freq: 4800, freq2: 600, filter: 'bandpass', q: 0.8 });
+          break;
+        case 'heal':
+          this.tone({ f0: 660, f1: 990, type: 'sine', dur: 0.28, gain: 0.045, verb: 0.6 });
+          this.tone({ f0: 990, f1: 1320, type: 'sine', dur: 0.22, gain: 0.025, delay: 0.08, verb: 0.6 });
+          break;
         case 'hit':
           this.tone({ f0: 1500, f1: 700, type: 'triangle', dur: 0.035, gain: 0.028 });
           break;

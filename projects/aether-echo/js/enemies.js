@@ -36,11 +36,12 @@
         alive: true, t: 0, phase: U.rnd(0, 100),
         flash: 0, orbCd: 0, stun: 0, kx: 0, ky: 0,
         spawning: 0.42, rot: U.rnd(0, U.TAU), spin: U.rnd(-2, 2),
-        mode: 'chase', modeT: 0, shootT: U.rnd(0.6, 2.0),
-        fuse: 0, scale: elite ? 1.45 : 1
+        mode: 'chase', modeT: 0, shootT: U.rnd(0.6, 2.0), healT: U.rnd(1, 3),
+        chargeDir: { x: 1, y: 0 }, fuse: 0, scale: elite ? 1.45 : 1
       };
       e.hp = e.maxHp;
       if (e.behavior === 'wisp') { e.mode = 'orbit'; e.modeT = U.rnd(1.2, 2.4); }
+      if (e.behavior === 'charger') { e.mode = 'idle'; e.modeT = U.rnd(1.2, 2.2); }
       this.list.push(e);
       if (!opts.silent) {
         AE.FX.ring(x, y, e.color, 2, e.r * 2.4, 0.35, 1.5);
@@ -116,7 +117,8 @@
         if (!p.alive || p.invuln > 0) continue;
         const rr = e.r + p.r - 2;
         if (U.d2(e.x, e.y, p.x, p.y) <= rr * rr) {
-          const mult = (e.boss && e.mode === 'charge') ? 1.5 : 1;
+          const mult = (e.boss && e.mode === 'charge') ? 1.5 :
+            ((e.behavior === 'charger' && e.mode === 'dash') ? 1.6 : 1);
           AE.Player.hurt(p, e.dmg * mult, e.x, e.y);
         }
       }
@@ -171,6 +173,53 @@
           mx = nx; my = ny;
           sp = e.speed * 2.9;
           if (e.modeT <= 0) { e.mode = 'orbit'; e.modeT = 2.2 + Math.random(); }
+        }
+      } else if (e.behavior === 'healer') {
+        if (d > 330) { mx = nx; my = ny; }
+        else if (d < 225) { mx = -nx; my = -ny; }
+        else { mx = -ny * 0.9; my = nx * 0.9; }
+        e.healT -= dt;
+        if (e.healT <= 0) {
+          e.healT = 4.2;
+          const all = AE.Enemies.list;
+          let healed = 0;
+          for (let k = 0; k < all.length; k++) {
+            const o = all[k];
+            if (o === e || !o.alive || o.boss || o.hp >= o.maxHp) continue;
+            if (U.d2(e.x, e.y, o.x, o.y) > 210 * 210) continue;
+            o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.045);
+            healed++;
+            if (healed <= 6) AE.FX.line(e.x, e.y, o.x, o.y, '#8affc1', 0.3, 1.6, false);
+          }
+          if (healed) {
+            AE.FX.ring(e.x, e.y, '#8affc1', 8, 210, 0.45, 2);
+            AE.Audio.sfx('heal');
+          }
+        }
+      } else if (e.behavior === 'charger') {
+        e.modeT -= dt;
+        if (e.mode === 'idle') {
+          mx = nx; my = ny;
+          if (d < 470 && e.modeT <= 0) {
+            e.mode = 'tele'; e.modeT = 0.6;
+            e.chargeDir = { x: nx, y: ny };
+            AE.Audio.sfx('warn');
+          }
+        } else if (e.mode === 'tele') {
+          sp = 0;
+          e.chargeDir = {
+            x: U.lerp(e.chargeDir.x, nx, dt * 2.5),
+            y: U.lerp(e.chargeDir.y, ny, dt * 2.5)
+          };
+          if (e.modeT <= 0) { e.mode = 'dash'; e.modeT = 0.38; AE.Audio.sfx('dash'); }
+        } else if (e.mode === 'dash') {
+          mx = e.chargeDir.x; my = e.chargeDir.y;
+          sp = 560;
+          AE.FX.spark(e.x, e.y, '#ff9f68', 1, { spd: 60, life: 0.25, size: 2.5 });
+          if (e.modeT <= 0) { e.mode = 'recover'; e.modeT = 0.55; }
+        } else {
+          sp = 0;
+          if (e.modeT <= 0) { e.mode = 'idle'; e.modeT = U.rnd(1.4, 2.4); }
         }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
@@ -614,6 +663,23 @@
       AE.FX.glow(ctx, 0, 0, e.r * 2.1, col, 0.34);
       ctx.globalCompositeOperation = 'source-over';
 
+      // 冲角兽的冲锋预警线
+      if (e.shape === 'charger' && e.mode === 'tele') {
+        const ca = Math.atan2(e.chargeDir.y, e.chargeDir.x);
+        ctx.save();
+        ctx.rotate(ca);
+        ctx.globalAlpha = 0.35 + Math.sin(time * 30) * 0.15;
+        ctx.strokeStyle = '#ff9f68';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([12, 10]);
+        ctx.beginPath();
+        ctx.moveTo(e.r * 0.8, 0);
+        ctx.lineTo(300, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
       ctx.scale(sc, sc);
       ctx.rotate(e.rot + (e.elite ? time * 0.4 : 0));
 
@@ -723,6 +789,44 @@
         ctx.globalAlpha = alpha;
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.arc(0, 0, e.r * 0.34, 0, U.TAU); ctx.fill();
+      } else if (s === 'mender') {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, e.r, 0, U.TAU); ctx.stroke();
+        ctx.fillStyle = AE.FX.alpha(col, 0.16);
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.72, 0, U.TAU); ctx.fill();
+        ctx.strokeStyle = '#d8ffe9'; ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.moveTo(-e.r * 0.45, 0); ctx.lineTo(e.r * 0.45, 0);
+        ctx.moveTo(0, -e.r * 0.45); ctx.lineTo(0, e.r * 0.45);
+        ctx.stroke();
+        for (let k = 0; k < 4; k++) {
+          const a = time * 1.2 + k * U.TAU / 4;
+          ctx.fillStyle = col;
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * e.r * 1.18, Math.sin(a) * e.r * 1.18, 2.2, 0, U.TAU);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'charger') {
+        const ang = Math.atan2(AE.G.player.y - e.y, AE.G.player.x - e.x);
+        ctx.rotate(ang - e.rot);
+        ctx.fillStyle = flash ? 'rgba(255,236,246,0.72)' : '#3a1a0a';
+        ctx.strokeStyle = col; ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(e.r * 1.5, 0);
+        ctx.lineTo(e.r * 0.2, -e.r * 0.9);
+        ctx.lineTo(-e.r * 0.95, -e.r * 0.6);
+        ctx.lineTo(-e.r * 0.6, 0);
+        ctx.lineTo(-e.r * 0.95, e.r * 0.6);
+        ctx.lineTo(e.r * 0.2, e.r * 0.9);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffd0a8';
+        ctx.beginPath();
+        ctx.moveTo(e.r * 1.5, 0);
+        ctx.lineTo(e.r * 0.72, -e.r * 0.3);
+        ctx.lineTo(e.r * 0.72, e.r * 0.3);
+        ctx.closePath(); ctx.fill();
       }
 
       // 精英标记

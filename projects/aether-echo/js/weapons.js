@@ -183,6 +183,60 @@
           AE.Audio.sfx('prism');
           break;
         }
+        case 'well': {
+          const target = W.nearestEnemies(p.x, p.y, 1, 760)[0];
+          let cx, cy;
+          if (target) { cx = target.x; cy = target.y; }
+          else { cx = p.x + Math.cos(p.aimAngle) * 260; cy = p.y + Math.sin(p.aimAngle) * 260; }
+          const C = AE.Data.CONST;
+          cx = U.clamp(cx, 40, C.WORLD_W - 40);
+          cy = U.clamp(cy, 40, C.WORLD_H - 40);
+          AE.World.addZone({
+            kind: 'well', x: cx, y: cy, r: s.radius * (0.8 + p.areaMul * 0.2),
+            life: s.duration, max: s.duration, dmg: s.dmg, tick: s.tick,
+            tickT: 0.12, pull: s.pull || 0, color: def.color,
+            implode: s.implode || 0, dmgMul: p.dmgMul,
+            critChance: p.crit, critDmg: p.critDmg
+          });
+          AE.Audio.sfx('well');
+          AE.FX.ring(cx, cy, def.color, 12, s.radius, 0.5, 3);
+          break;
+        }
+        case 'lance': {
+          const boss = AE.Enemies.list.filter(function (e) { return e.boss && e.alive; })[0];
+          const target = boss || W.nearestEnemies(p.x, p.y, 1, s.range)[0];
+          const base = target ? Math.atan2(target.y - p.y, target.x - p.x) : p.aimAngle;
+          const beams = s.beams || 1;
+          for (let i = 0; i < beams; i++) {
+            const k = beams === 1 ? 0 : (i - (beams - 1) / 2);
+            W.fireLance(p, s, base + k * (s.spread || 0), def);
+          }
+          AE.Audio.sfx('lance');
+          AE.FX.shake(0.12);
+          break;
+        }
+      }
+    },
+
+    fireLance: function (p, s, angle, def) {
+      const width = s.width * (0.85 + p.areaMul * 0.15);
+      const len = s.range;
+      const x1 = p.x, y1 = p.y;
+      const x2 = p.x + Math.cos(angle) * len;
+      const y2 = p.y + Math.sin(angle) * len;
+      AE.FX.line(x1, y1, x2, y2, def.color, 0.22, width, false);
+      AE.FX.line(x1, y1, x2, y2, '#ffffff', 0.16, Math.max(2, width * 0.3), false);
+      AE.FX.spark(x1 + Math.cos(angle) * 18, y1 + Math.sin(angle) * 18, def.color, 8,
+        { angle: angle, spread: 0.5, spd: 260, life: 0.3, size: 3 });
+      const list = AE.Enemies.list;
+      for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (!e.alive || e.spawning > 0) continue;
+        const dist = AE.Enemies.pointLineDist(e.x, e.y, x1, y1, x2, y2);
+        if (dist > e.r + width * 0.5) continue;
+        const dot = (e.x - x1) * Math.cos(angle) + (e.y - y1) * Math.sin(angle);
+        if (dot < -20) continue;
+        W.rollCrit(p, e, s.dmg, { x: e.x, y: e.y });
       }
     },
 

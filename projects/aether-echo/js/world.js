@@ -48,12 +48,13 @@
 
   const World = {
     grid: Grid,
-    bullets: [], ebullets: [], orbs: [], pickups: [],
+    bullets: [], ebullets: [], orbs: [], pickups: [], zones: [],
     reset: function () {
       this.bullets.length = 0;
       this.ebullets.length = 0;
       this.orbs.length = 0;
       this.pickups.length = 0;
+      this.zones.length = 0;
       if (!this.grid.cells) this.grid.init();
     },
 
@@ -67,6 +68,12 @@
       if (b.hitIds === undefined) b.hitIds = [];
       this.bullets.push(b);
       return b;
+    },
+
+    addZone: function (z) {
+      if (this.zones.length >= 8) this.zones.shift();
+      this.zones.push(z);
+      return z;
     },
 
     addEBullet: function (b) {
@@ -121,6 +128,50 @@
       this.updateEBullets(dt, p);
       this.updateOrbs(dt, p);
       this.updatePickups(dt, p);
+      this.updateZones(dt, p);
+    },
+
+    updateZones: function (dt, p) {
+      const zs = this.zones;
+      for (let i = zs.length - 1; i >= 0; i--) {
+        const z = zs[i];
+        z.life -= dt;
+        z.tickT -= dt;
+        if (z.tickT <= 0) {
+          z.tickT = z.tick || 0.45;
+          const near = Grid.query(z.x, z.y, z.r);
+          for (let k = 0; k < near.length; k++) {
+            const e = near[k];
+            if (!e.alive || e.spawning > 0) continue;
+            if (U.d2(z.x, z.y, e.x, e.y) > z.r * z.r) continue;
+            const crit = Math.random() < (z.critChance || 0);
+            AE.Enemies.damage(e, z.dmg * (z.dmgMul || 1) * (crit ? (z.critDmg || 1.8) : 1), { crit: crit });
+            if (z.pull && !e.boss) {
+              const n = U.norm(z.x - e.x, z.y - e.y);
+              e.kx = (e.kx || 0) + n.x * z.pull;
+              e.ky = (e.ky || 0) + n.y * z.pull;
+            }
+          }
+          AE.FX.ring(z.x, z.y, z.color, z.r * 0.2, z.r * 0.92, 0.35, 1.6);
+        }
+        if (z.life <= 0) {
+          if (z.implode) {
+            AE.FX.ring(z.x, z.y, '#ffffff', 10, z.r * 1.15, 0.5, 5);
+            AE.FX.ring(z.x, z.y, z.color, z.r * 0.3, z.r * 1.3, 0.7, 3);
+            AE.FX.spark(z.x, z.y, z.color, 34, { spd: 420, life: 0.7, size: 3.6 });
+            AE.FX.flash(0.08, z.color);
+            AE.Audio.sfx('explosion');
+            const near = Grid.query(z.x, z.y, z.r * 1.15);
+            for (let k = 0; k < near.length; k++) {
+              const e = near[k];
+              if (!e.alive || U.d2(z.x, z.y, e.x, e.y) > (z.r * 1.15) * (z.r * 1.15)) continue;
+              const crit = Math.random() < (z.critChance || 0);
+              AE.Enemies.damage(e, z.implode * (z.dmgMul || 1) * (crit ? (z.critDmg || 1.8) : 1), { crit: crit });
+            }
+          }
+          zs.splice(i, 1);
+        }
+      }
     },
 
     updateBullets: function (dt, p) {
@@ -310,6 +361,44 @@
     /* ---------- 绘制 ---------- */
     draw: function (ctx, time) {
       const v = AE.Cam.view();
+
+      // 引力井 / 区域
+      for (let i = 0; i < this.zones.length; i++) {
+        const z = this.zones[i];
+        if (z.x < v.x0 - z.r || z.x > v.x1 + z.r || z.y < v.y0 - z.r || z.y > v.y1 + z.r) continue;
+        const k = z.life / z.max;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        AE.FX.glow(ctx, z.x, z.y, z.r * 1.1, z.color, 0.24 * k);
+        // 旋转的引力环
+        for (let ring = 0; ring < 3; ring++) {
+          const rr = z.r * (0.35 + ring * 0.28) * (0.9 + Math.sin(time * 3 + ring) * 0.05);
+          ctx.globalAlpha = (0.55 - ring * 0.12) * k;
+          ctx.strokeStyle = z.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const a0 = time * (1.6 + ring * 0.7) + ring;
+          ctx.arc(z.x, z.y, rr, a0, a0 + 4.4);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(z.x, z.y, rr, a0 + Math.PI, a0 + Math.PI + 2.2);
+          ctx.stroke();
+        }
+        // 中心黑洞
+        ctx.globalAlpha = k;
+        ctx.fillStyle = '#05040c';
+        ctx.beginPath();
+        ctx.arc(z.x, z.y, z.r * 0.16, 0, U.TAU);
+        ctx.fill();
+        ctx.strokeStyle = z.color;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(z.x, z.y, z.r * 0.16 + 1, 0, U.TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+
       // 经验球
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';

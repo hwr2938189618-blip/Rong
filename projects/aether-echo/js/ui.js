@@ -293,7 +293,7 @@
         '<button class="link-btn" data-act="settings">设置</button>' +
         '</div>' +
         '<div class="menu-feats">' +
-        '<span>6 把可进化武器</span><span>7 种虚空生物</span><span>4 场首领战</span><span>无尽轮次</span>' +
+        '<span>' + D.WEAPONS.length + ' 把可进化武器</span><span>' + Object.keys(D.ENEMIES).length + ' 种虚空生物</span><span>4 场首领战</span><span>无尽轮次</span>' +
         '</div>' +
         '<div class="menu-hint">WASD 移动 · 空格 / Shift 闪避 · 武器自动攻击</div>' +
         '</div>' +
@@ -523,7 +523,7 @@
         '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
         '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、被动、敌人与首领</div></div>' +
         '</div></div>' +
-        '<div class="section-label">武器 · 6 / 6</div>' +
+        '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把</div>' +
         '<div class="codex-grid">' + weapons + '</div>' +
         '<div class="section-label">被动 · ' + D.PASSIVES.length + '</div>' +
         '<div class="codex-grid">' + passives + '</div>' +

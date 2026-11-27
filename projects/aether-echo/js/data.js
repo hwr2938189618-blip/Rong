@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.1.0';
+  D.VERSION = '1.2.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -167,6 +167,42 @@
         name: '棱镜审判', icon: '❈', dmg: 40, cd: 0.58, count: 10, spread: 1.10,
         speed: 850, life: 0.58, pierce: 3, ricochet: 1, note: '光化作裁决，弹射不止'
       }
+    },
+    {
+      id: 'well', name: '引力奇点', icon: '◉', color: '#9f8bff',
+      tag: '控场', intro: '在敌群中心撕开引力井，持续牵引并撕裂其中的敌人。',
+      levels: [
+        { dmg: 10, cd: 3.2, radius: 110, duration: 2.4, tick: 0.50, pull: 150 },
+        { dmg: 14, cd: 3.0, radius: 118, duration: 2.5, tick: 0.50, pull: 160 },
+        { dmg: 14, cd: 2.9, radius: 126, duration: 2.6, tick: 0.48, pull: 170 },
+        { dmg: 19, cd: 2.7, radius: 136, duration: 2.8, tick: 0.46, pull: 180 },
+        { dmg: 19, cd: 2.5, radius: 146, duration: 3.0, tick: 0.44, pull: 195 },
+        { dmg: 25, cd: 2.3, radius: 156, duration: 3.2, tick: 0.42, pull: 210 },
+        { dmg: 25, cd: 2.1, radius: 166, duration: 3.4, tick: 0.40, pull: 225 },
+        { dmg: 33, cd: 1.9, radius: 176, duration: 3.6, tick: 0.38, pull: 240 }
+      ],
+      evolved: {
+        name: '事件视界', icon: '⬤', dmg: 48, cd: 1.15, radius: 240, duration: 4.0,
+        tick: 0.32, pull: 330, implode: 220, note: '引力井坍缩时撕碎一切'
+      }
+    },
+    {
+      id: 'lance', name: '贯穿光矛', icon: '➹', color: '#ffd479',
+      tag: '贯穿', intro: '蓄能后射出贯穿一切的光矛，直线上所有敌人一起贯穿。',
+      levels: [
+        { dmg: 55, cd: 2.3, width: 20, range: 820, beams: 1, spread: 0 },
+        { dmg: 70, cd: 2.2, width: 22, range: 830, beams: 1, spread: 0 },
+        { dmg: 70, cd: 2.1, width: 24, range: 850, beams: 1, spread: 0 },
+        { dmg: 95, cd: 2.0, width: 26, range: 870, beams: 1, spread: 0 },
+        { dmg: 95, cd: 1.9, width: 28, range: 890, beams: 1, spread: 0 },
+        { dmg: 125, cd: 1.75, width: 30, range: 910, beams: 1, spread: 0 },
+        { dmg: 125, cd: 1.6, width: 32, range: 940, beams: 1, spread: 0 },
+        { dmg: 165, cd: 1.45, width: 36, range: 980, beams: 1, spread: 0 }
+      ],
+      evolved: {
+        name: '贯穿星轨', icon: '⇶', dmg: 240, cd: 1.05, width: 46, range: 1050,
+        beams: 3, spread: 0.13, note: '三道星轨同时贯穿战场'
+      }
     }
   ];
 
@@ -192,6 +228,14 @@
     else if (s.count) parts.push('数量 ' + s.count);
     if (s.pierce) parts.push('穿透 ' + s.pierce);
     if (s.chains) parts.push('连锁 ' + s.chains);
+    if (def.id === 'well') {
+      parts.push('半径 ' + s.radius);
+      parts.push('持续 ' + s.duration + 's');
+    }
+    if (def.id === 'lance') {
+      parts.push('宽度 ' + s.width);
+      if (s.beams > 1) parts.push('光束 ' + s.beams);
+    }
     return parts.join(' · ');
   };
 
@@ -284,6 +328,14 @@
     wisp: {
       name: '游魂', hp: 22, speed: 96, dmg: 8, r: 11, xp: 2,
       color: '#c9b6ff', shape: 'wisp', behavior: 'wisp'
+    },
+    mender: {
+      name: '织命者', hp: 34, speed: 66, dmg: 4, r: 13, xp: 3,
+      color: '#8affc1', shape: 'mender', behavior: 'healer'
+    },
+    charger: {
+      name: '冲角兽', hp: 66, speed: 76, dmg: 12, r: 16, xp: 3,
+      color: '#ff9f68', shape: 'charger', behavior: 'charger'
     }
   };
 
@@ -294,10 +346,10 @@
     { t: 70, w: { crawler: 8, stalker: 4, spitter: 3 } },
     { t: 120, w: { crawler: 7, stalker: 4, spitter: 3, bloater: 2 } },
     { t: 175, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2 } },
-    { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2 } },
-    { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3 } },
-    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3 } },
-    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4 } }
+    { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2, mender: 2 } },
+    { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3, mender: 2, charger: 3 } },
+    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3 } },
+    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4 } }
   ];
 
   /* ============================================================
