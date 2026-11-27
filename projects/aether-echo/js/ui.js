@@ -462,14 +462,15 @@
         '<div class="draft-head">' +
         '<div class="draft-kicker">' + (isRelic ? 'RELIC · 遗物' : 'LEVEL UP') + '</div>' +
         '<h2 class="draft-title">' + (isRelic ? '获得遗物 · 三选一' : '等级提升 <em>LV ' + draft.level + '</em>') + '</h2>' +
-        '<div class="draft-sub">按 1 / 2 / 3 选择' + (isRelic ? ' · 本局永久生效' : ' · R 重掷') + '</div>' +
+        '<div class="draft-sub">' + (this._touch ? '点击卡片选择' : '按 1 / 2 / 3 选择') +
+        (isRelic ? ' · 本局永久生效' : (this._touch ? '' : ' · R 重掷')) + '</div>' +
         '</div>' +
         '<div class="draft-cards">' + cards + '</div>' +
         '<div class="draft-foot">' +
         (isRelic ? '' : '<button class="btn ghost small" data-act="reroll"' + (draft.rerolls <= 0 ? ' disabled' : '') + '>重掷 · ' + draft.rerolls + '</button>') +
         '</div>' +
         '</div>';
-      this.setHTML(html);
+      this.setHTML(html, this._touch || window.innerWidth <= 720 || window.innerHeight < 780);
     },
 
     /* ---------- 暂停 ---------- */
@@ -503,12 +504,12 @@
           ' · 回响 ×' + (G.pactMult || 1).toFixed(2) + '</div>' : '') +
         relicRow +
         '<div class="btn-col">' +
-        '<button class="btn primary" data-act="resume">继续（ESC）</button>' +
+        '<button class="btn primary" data-act="resume">继续' + (this._touch ? '' : '（ESC）') + '</button>' +
         '<button class="btn ghost" data-act="mute">' + (muted ? '开启声音' : '静音') + '</button>' +
         '<button class="btn ghost" data-act="restart">重新开始</button>' +
         '<button class="btn ghost danger" data-act="menu">返回主菜单</button>' +
         '</div>' +
-        '<div class="hint">按 ESC 继续 · 结束后仍可获得回响</div>' +
+        '<div class="hint">' + (this._touch ? '点击继续返回战斗' : '按 ESC 继续 · 结束后仍可获得回响') + '</div>' +
         '<div class="pause-links"><button class="link-btn" data-act="codex">图鉴</button>' +
         '<button class="link-btn" data-act="settings">设置</button></div>' +
         '</div>' +

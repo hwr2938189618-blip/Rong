@@ -857,7 +857,7 @@
       ctx.restore();
 
       AE.FX.drawScreen(ctx, AE.Cam, W, H);
-      if (G.state !== 'gameover' && G.state !== 'victory') this.drawHUD(ctx, W, H);
+      if (G.state !== 'gameover' && G.state !== 'victory' && (!AE.UI || !AE.UI.mode)) this.drawHUD(ctx, W, H);
     },
 
     /* ---------- HUD ---------- */

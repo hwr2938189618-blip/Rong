@@ -818,6 +818,7 @@ body.reduce-motion *::after {
 }
 
 @media (pointer: coarse) {
+  .kbd { display: none; }
   .touch-dash { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); right: calc(26px + env(safe-area-inset-right, 0px)); }
   .btn, .link-btn { -webkit-tap-highlight-color: transparent; }
   .pick { min-height: 0; }
