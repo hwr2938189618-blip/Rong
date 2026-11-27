@@ -66,6 +66,7 @@
         spawning: 1.5, rot: 0, spin: 1,
         mode: 'idle', modeT: 0, t1: 1.2, t2: 3.0, t3: 5.0,
         chargeDir: { x: 1, y: 0 }, beams: [], spiral: 0, chaseT: 2.5,
+        orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
         phase2: false, enraged: false, scale: 1
       };
       e.maxHp = def.hp * (1 + (G.time / 60) * 0.55) * (1 + (G.loop || 0) * 0.8);
@@ -434,6 +435,78 @@
           if (e.t2 <= 0) {
             e.t2 = 7.5 / rage;
             this.summon(e, 'spitter', 3, 300);
+          }
+          break;
+        }
+        case 'eclipse': {
+          // 环绕黑星：三颗绕本体旋转，碰到玩家造成伤害
+          e.orbitR = 118 + Math.sin(e.t * 1.3) * 14;
+          for (let i = 0; i < e.orbits.length; i++) {
+            e.orbits[i] += dt * (1.15 + i * 0.14);
+            const oa = e.orbits[i];
+            const ox = e.x + Math.cos(oa) * e.orbitR;
+            const oy = e.y + Math.sin(oa) * e.orbitR;
+            if (p.alive && p.invuln <= 0 && U.d2(ox, oy, p.x, p.y) < (17 + p.r) * (17 + p.r)) {
+              AE.Player.hurt(p, e.dmg * 0.8, ox, oy);
+              AE.FX.spark(ox, oy, e.color, 8, { spd: 180, life: 0.35, size: 2.6 });
+            }
+          }
+          // 中距离游走
+          if (d > 380) { e.x += nx * e.speed * dt; e.y += ny * e.speed * dt; }
+          else if (d < 230) { e.x -= nx * e.speed * dt * 0.8; e.y -= ny * e.speed * dt * 0.8; }
+
+          // 引力牵引
+          if (e.pullT > 0) {
+            e.pullT -= dt;
+            if (p.alive) {
+              const pn = U.norm(e.x - p.x, e.y - p.y);
+              p.x += pn.x * 135 * dt;
+              p.y += pn.y * 135 * dt;
+              if (Math.random() < 0.35) {
+                AE.FX.spark(p.x + U.rnd(-12, 12), p.y + U.rnd(-12, 12), e.color, 1, { spd: 30, life: 0.3, size: 2 });
+              }
+            }
+            if (e.t % 0.4 < dt) AE.FX.ring(e.x, e.y, e.color, e.r * 1.4, e.r * 3.0, 0.45, 1.6);
+          } else if (e.t1 <= 0) {
+            e.t1 = 9.5 / rage;
+            e.pullT = 1.6;
+            AE.Game.announce('星蚀 · 引力牵引', e.color, 1.6);
+            AE.Audio.sfx('warn');
+          }
+
+          // 三道旋转激光
+          if (e.mode === 'beamIdle') {
+            e.modeT -= dt;
+            if (e.modeT <= 0) {
+              e.mode = 'beamTele'; e.modeT = 0.85;
+              e.beamBase = Math.atan2(dy, dx);
+              AE.Audio.sfx('warn');
+            }
+          } else if (e.mode === 'beamTele') {
+            if (e.modeT <= 0) { e.mode = 'beam'; e.modeT = 1.4; AE.Audio.sfx('arc'); }
+          } else if (e.mode === 'beam') {
+            e.beamBase += dt * 1.05 * (e.enraged ? 1.35 : 1);
+            e.beams = [-0.36, 0, 0.36];
+            for (let i = 0; i < e.beams.length; i++) {
+              const a = e.beamBase + e.beams[i];
+              const ex = e.x + Math.cos(a) * 1100, ey = e.y + Math.sin(a) * 1100;
+              if (this.pointLineDist(p.x, p.y, e.x, e.y, ex, ey) < 16 && p.invuln <= 0) {
+                AE.Player.hurt(p, e.dmg * 0.5, e.x, e.y);
+              }
+            }
+            if (e.modeT <= 0) { e.mode = 'beamIdle'; e.modeT = 2.4 / rage; e.beams = []; }
+          } else {
+            e.mode = 'beamIdle'; e.modeT = 2.2;
+            e.beamBase = Math.atan2(dy, dx);
+          }
+
+          if (e.t2 <= 0) {
+            e.t2 = 3.1 / rage;
+            this.bossRadial(e, 12, 185, 0.5);
+          }
+          if (e.t3 <= 0) {
+            e.t3 = 7.8 / rage;
+            this.summon(e, 'wisp', 4, 260);
           }
           break;
         }
@@ -917,6 +990,29 @@
         }
       }
 
+      if (e.ai === 'eclipse' && (e.mode === 'beamTele' || e.mode === 'beam')) {
+        const tele = e.mode === 'beamTele';
+        for (let i = 0; i < 3; i++) {
+          const a = e.beamBase + (i - 1) * 0.36;
+          ctx.save();
+          ctx.rotate(a);
+          const g3 = ctx.createLinearGradient(0, 0, 1100, 0);
+          g3.addColorStop(0, AE.FX.alpha(col, tele ? 0.4 : 0.9));
+          g3.addColorStop(1, AE.FX.alpha(col, 0));
+          ctx.strokeStyle = g3;
+          ctx.lineWidth = tele ? 3 : 14;
+          if (tele) ctx.setLineDash([14, 10]);
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1100, 0); ctx.stroke();
+          ctx.setLineDash([]);
+          if (!tele) {
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1100, 0); ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
       ctx.rotate(e.rot);
       const R = e.r;
       if (e.ai === 'weaver') {
@@ -974,7 +1070,7 @@
         ctx.beginPath(); ctx.arc(Math.cos(e.t * 0.8) * R * 0.12, Math.sin(e.t * 0.8) * R * 0.08, R * 0.17, 0, U.TAU); ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(Math.cos(e.t * 0.8) * R * 0.12 - 2, Math.sin(e.t * 0.8) * R * 0.08 - 3, R * 0.06, 0, U.TAU); ctx.fill();
-      } else {
+      } else if (e.ai === 'final') {
         // final
         const stage = e.stage || 1;
         ctx.fillStyle = '#2a0a16';
@@ -999,6 +1095,40 @@
         ctx.beginPath(); ctx.arc(0, 0, R * 0.3, 0, U.TAU); ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(0, 0, R * 0.13 + Math.sin(time * 5) * 2, 0, U.TAU); ctx.fill();
+      } else {
+        // eclipse：黑星 + 日冕 + 三颗环绕黑星
+        ctx.strokeStyle = AE.FX.alpha(col, 0.55);
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 16; i++) {
+          const a = i * U.TAU / 16 + time * 0.35;
+          const r1 = R * 1.02, r2 = R * (1.3 + Math.sin(time * 2 + i) * 0.08);
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+          ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#0b0718';
+        ctx.strokeStyle = col; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.95, 0, U.TAU); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.72, time * 1.4, time * 1.4 + 4.2); ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.1, 0, U.TAU); ctx.fill();
+        for (let i = 0; i < e.orbits.length; i++) {
+          const oa = e.orbits[i] - e.rot;
+          const ox = Math.cos(oa) * e.orbitR, oy = Math.sin(oa) * e.orbitR;
+          ctx.globalCompositeOperation = 'lighter';
+          AE.FX.glow(ctx, ox, oy, 30, col, 0.55);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = '#07050f';
+          ctx.strokeStyle = col; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(ox, oy, 16, 0, U.TAU); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath(); ctx.arc(ox, oy, 3.2, 0, U.TAU); ctx.fill();
+        }
       }
       ctx.restore();
     },

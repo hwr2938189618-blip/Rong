@@ -114,6 +114,31 @@
       this.dashEl.classList.toggle('hidden', !(touch && playing));
     },
 
+    bossIntro: function (def, dur) {
+      if (!this.enabled || !def) return;
+      const el = document.getElementById('boss-intro');
+      if (!el) return;
+      const hold = dur || 1500;
+      el.innerHTML =
+        '<div class="bi-kicker">WARNING · APEX ENTITY</div>' +
+        '<div class="bi-name" style="--c:' + def.color + '">' + def.name + '</div>' +
+        '<div class="bi-title">' + def.title + '</div>' +
+        '<div class="bi-line" style="--c:' + def.color + '"></div>';
+      el.classList.remove('hidden', 'out');
+      void el.offsetWidth;
+      el.classList.add('show');
+      const self = this;
+      clearTimeout(this._introT1);
+      clearTimeout(this._introT2);
+      this._introT1 = setTimeout(function () {
+        el.classList.add('out');
+        self._introT2 = setTimeout(function () {
+          el.classList.add('hidden');
+          el.classList.remove('show', 'out');
+        }, 600);
+      }, hold);
+    },
+
     toast: function (text, color) {
       if (!this.toastEl) return;
       this.toastEl.textContent = text;
@@ -305,7 +330,7 @@
         '<button class="link-btn" data-act="settings">设置</button>' +
         '</div>' +
         '<div class="menu-feats">' +
-        '<span>' + D.WEAPONS.length + ' 把可进化武器</span><span>' + Object.keys(D.ENEMIES).length + ' 种虚空生物</span><span>4 场首领战</span><span>无尽轮次</span>' +
+        '<span>' + D.WEAPONS.length + ' 把可进化武器</span><span>' + Object.keys(D.ENEMIES).length + ' 种虚空生物</span><span>' + D.BOSSES.length + ' 场首领战</span><span>无尽轮次</span>' +
         '</div>' +
         '<div class="menu-hint">WASD 移动 · 空格 / Shift 闪避 · 武器自动攻击</div>' +
         '</div>' +

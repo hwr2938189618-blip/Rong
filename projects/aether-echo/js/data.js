@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.3.0';
+  D.VERSION = '1.4.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -375,6 +375,11 @@
       id: 'final', name: '终焉回响', title: 'FINAL ECHO', at: 600,
       hp: 4000, r: 76, speed: 118, dmg: 34, xp: 400, echo: 80,
       color: '#ff5c7a', ai: 'final'
+    },
+    {
+      id: 'eclipse', name: '星蚀', title: 'ECLIPSE', at: 780,
+      hp: 4800, r: 68, speed: 96, dmg: 30, xp: 360, echo: 70,
+      color: '#c9b6ff', ai: 'eclipse'
     }
   ];
 

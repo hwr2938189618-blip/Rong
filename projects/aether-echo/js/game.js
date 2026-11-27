@@ -447,7 +447,7 @@
           G.bossIdx++;
           G.bossWarned = false;
           G.bossWarnT = 1.2;
-          this.announce(def.name + ' · ' + def.title, def.color, 3.0);
+          if (AE.UI && AE.UI.bossIntro) AE.UI.bossIntro(def);
         }
       }
     },

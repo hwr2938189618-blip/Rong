@@ -743,3 +743,37 @@ html, body {
   .run-row .run-char, .run-row span:last-child { display: none; }
   .set-label { width: 76px; font-size: 12px; }
 }
+
+/* ---------- 首领登场演出 ---------- */
+.boss-intro {
+  position: absolute; left: 0; right: 0; top: 15%;
+  z-index: 15; display: flex; flex-direction: column;
+  align-items: center; gap: 6px; pointer-events: none; text-align: center;
+}
+.boss-intro.hidden { display: none; }
+.boss-intro.show { animation: biIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.boss-intro.out { animation: biOut 0.55s ease both; }
+.bi-kicker {
+  font-size: 10px; letter-spacing: 0.5em; color: rgba(255, 120, 150, 0.82);
+  text-indent: 0.5em;
+}
+.bi-name {
+  font-size: clamp(36px, 5.4vw, 62px); font-weight: 900; letter-spacing: 0.16em;
+  color: #ffffff;
+  text-shadow: 0 0 30px color-mix(in srgb, var(--c) 70%, transparent), 0 0 80px rgba(0, 0, 0, 0.65);
+}
+.bi-title {
+  font-size: 10px; letter-spacing: 0.5em; color: var(--dim); text-indent: 0.5em;
+}
+.bi-line {
+  width: min(430px, 62vw); height: 1px; margin-top: 8px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+  box-shadow: 0 0 16px var(--c);
+}
+@keyframes biIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes biOut {
+  to { opacity: 0; transform: translateY(-10px); }
+}
