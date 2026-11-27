@@ -1,0 +1,430 @@
+/* ============================================================
+ * ui.js — 主菜单 / 选卡 / 暂停 / 结算 / 强化（DOM 覆盖层）
+ * ============================================================ */
+(function (g) {
+  'use strict';
+  const AE = (g.AE = g.AE || {});
+  const U = AE.U;
+  const D = AE.Data;
+
+  const UI = {
+    el: null,
+    toastEl: null,
+    dashEl: null,
+    mode: null,
+    prev: 'menu',
+    enabled: false,
+    _toastTimer: null,
+    _touch: false,
+
+    init: function () {
+      this.el = document.getElementById('overlay');
+      this.toastEl = document.getElementById('toast');
+      this.dashEl = document.getElementById('touch-dash');
+      if (!this.el) return;
+      this.enabled = true;
+      this._touch = (typeof g.matchMedia === 'function' && g.matchMedia('(pointer: coarse)').matches);
+      const self = this;
+      this.el.addEventListener('click', function (e) {
+        const btn = e.target.closest ? e.target.closest('[data-act]') : null;
+        if (!btn || btn.disabled) return;
+        AE.Audio.init();
+        self.action(btn.getAttribute('data-act'), btn.getAttribute('data-id'), btn.getAttribute('data-i'));
+      });
+      this.el.addEventListener('pointerover', function (e) {
+        const btn = e.target.closest ? e.target.closest('button') : null;
+        if (btn && !btn.disabled) AE.Audio.sfx('hover');
+      });
+      if (this.dashEl) {
+        this.dashEl.addEventListener('pointerdown', function (e) {
+          e.preventDefault();
+          AE.Input.dashPressed = true;
+        });
+      }
+      g.addEventListener('keydown', function (e) {
+        if (!self.enabled) return;
+        const k = e.key;
+        if (self.mode === 'levelup') {
+          if (k === '1' || k === '2' || k === '3') {
+            e.preventDefault();
+            AE.Game.chooseUpgrade(parseInt(k, 10) - 1);
+          } else if (k === 'r' || k === 'R') {
+            e.preventDefault();
+            AE.Game.reroll();
+          }
+          return;
+        }
+        if (self.mode === 'menu') {
+          if (k === 'Enter') { e.preventDefault(); self.action('play'); }
+          return;
+        }
+        if (self.mode === 'result') {
+          if (k === 'Enter') { e.preventDefault(); self.action('restart'); }
+          return;
+        }
+        if (self.mode === 'how' || self.mode === 'meta') {
+          if (k === 'Escape') { e.preventDefault(); self.action('back'); }
+        }
+      });
+    },
+
+    /* ---------- 基础 ---------- */
+    setHTML: function (html, scroll) {
+      if (!this.enabled) return;
+      this.el.className = 'overlay' + (scroll ? ' scroll' : '');
+      this.el.innerHTML = html;
+      if (this.mode === 'levelup') {
+        const first = this.el.querySelector('.pick');
+        if (first) setTimeout(function () { first.focus(); }, 30);
+      }
+      this.syncDash();
+    },
+
+    hideAll: function () {
+      this.mode = null;
+      if (!this.enabled) return;
+      this.el.className = 'overlay hidden';
+      this.el.innerHTML = '';
+      this.syncDash();
+    },
+
+    hideLevelUp: function () { this.hideAll(); },
+    hidePause: function () { this.hideAll(); },
+
+    syncDash: function () {
+      if (!this.dashEl) return;
+      const playing = AE.G && AE.G.state === 'playing';
+      const touch = this._touch || (AE.Input && AE.Input.touch && AE.Input.touch.on);
+      this.dashEl.classList.toggle('hidden', !(touch && playing));
+    },
+
+    toast: function (text, color) {
+      if (!this.toastEl) return;
+      this.toastEl.textContent = text;
+      this.toastEl.style.color = color || '';
+      this.toastEl.classList.add('show');
+      clearTimeout(this._toastTimer);
+      const self = this;
+      this._toastTimer = setTimeout(function () { self.toastEl.classList.remove('show'); }, 1800);
+    },
+
+    scrollTop: function () {
+      if (this.el) this.el.scrollTop = 0;
+    },
+
+    /* ---------- 动作分发 ---------- */
+    action: function (act, id, i) {
+      const S = AE.Save.data;
+      switch (act) {
+        case 'play':
+          AE.Game.startRun(S.char);
+          break;
+        case 'meta':
+          this.prev = this.mode === 'result' ? 'result' : 'menu';
+          this.showMeta();
+          break;
+        case 'how':
+          this.showHow();
+          break;
+        case 'back':
+          if (this.mode === 'how') this.showMenu();
+          else if (this.prev === 'result' && AE.G.result) this.showResult(AE.G.result);
+          else this.showMenu();
+          break;
+        case 'char':
+          if (S.chars.indexOf(id) >= 0) {
+            S.char = id;
+            AE.Save.save();
+            AE.Audio.sfx('ui');
+            this.showMenu();
+            this.toast('已选择 · ' + D.CHAR_MAP[id].name, D.CHAR_MAP[id].color);
+          }
+          break;
+        case 'unlock': {
+          const c = D.CHAR_MAP[id];
+          if (!c) break;
+          if (S.chars.indexOf(id) >= 0) { this.action('char', id); break; }
+          if (S.echoes >= c.cost) {
+            S.echoes -= c.cost;
+            S.chars.push(id);
+            S.char = id;
+            AE.Save.save();
+            AE.Audio.sfx('evolve');
+            this.toast('已解锁 · ' + c.name, c.color);
+            this.showMenu();
+          } else {
+            AE.Audio.sfx('deny');
+            this.toast('回响不足，还需 ' + (c.cost - S.echoes), '#ff8fa3');
+          }
+          break;
+        }
+        case 'buy': {
+          const m = D.META.filter(function (x) { return x.id === id; })[0];
+          if (!m) break;
+          const lv = S.meta[id] || 0;
+          if (lv >= m.max) break;
+          const cost = m.cost(lv);
+          if (S.echoes < cost) {
+            AE.Audio.sfx('deny');
+            this.toast('回响不足', '#ff8fa3');
+            break;
+          }
+          S.echoes -= cost;
+          S.meta[id] = lv + 1;
+          AE.Save.save();
+          AE.Audio.sfx('evolve');
+          this.toast(m.name + ' → Lv' + (lv + 1), '#7df9ff');
+          this.showMeta();
+          break;
+        }
+        case 'pick':
+          AE.Game.chooseUpgrade(parseInt(i, 10));
+          break;
+        case 'reroll':
+          AE.Game.reroll();
+          break;
+        case 'resume':
+          AE.Game.resume();
+          break;
+        case 'restart':
+          AE.Game.restart();
+          break;
+        case 'menu':
+          AE.Game.toMenu();
+          break;
+        case 'endless':
+          AE.Game.continueEndless();
+          break;
+        case 'mute': {
+          const m = AE.Audio.toggle();
+          if (this.mode === 'pause') this.showPause(AE.Game.pausedByBlur);
+          else this.showMenu();
+          this.toast(m ? '已静音' : '声音开启', '#7df9ff');
+          break;
+        }
+      }
+    },
+
+    /* ---------- 菜单 ---------- */
+    charCards: function () {
+      const S = AE.Save.data;
+      return D.CHARS.map(function (c) {
+        const unlocked = S.chars.indexOf(c.id) >= 0;
+        const sel = S.char === c.id;
+        return '<button class="char-card ' + (sel ? 'selected' : '') + (unlocked ? '' : ' locked') +
+          '" style="--c:' + c.color + '" data-act="' + (unlocked ? 'char' : 'unlock') + '" data-id="' + c.id + '">' +
+          '<span class="char-state">' + (unlocked ? (sel ? '已选择' : '选择') : ('◈ ' + c.cost)) + '</span>' +
+          '<span class="char-name">' + c.name + '</span>' +
+          '<span class="char-title">' + c.title + '</span>' +
+          '<span class="char-perk">' + (unlocked ? c.perk : '解锁后可用 · ' + c.intro) + '</span>' +
+          '</button>';
+      }).join('');
+    },
+
+    showMenu: function () {
+      this.mode = 'menu';
+      this.prev = 'menu';
+      const S = AE.Save.data;
+      const muted = AE.Audio.muted;
+      const best = S.best || { time: 0, kills: 0, level: 0 };
+      const html =
+        '<div class="screen menu-screen">' +
+        '<div class="menu-corner"><button class="icon-btn" data-act="mute" title="' + (muted ? '开启声音' : '静音') + '">' + (muted ? '静' : '声') + '</button></div>' +
+        '<div class="menu-top">' +
+        '<div class="brand-deco"></div>' +
+        '<div class="brand-kicker"><span></span>AETHER ECHO<span></span></div>' +
+        '<h1 class="brand-title">星渊回响</h1>' +
+        '<p class="brand-sub">在回响中生存 · 直到终焉</p>' +
+        '</div>' +
+        '<div class="menu-mid">' +
+        '<div class="char-row">' + this.charCards() + '</div>' +
+        '<div class="menu-actions">' +
+        '<button class="btn primary" data-act="play">开始回响<span class="kbd">ENTER</span></button>' +
+        '<button class="btn ghost" data-act="meta">回响强化</button>' +
+        '<button class="btn ghost" data-act="how">玩法</button>' +
+        '</div>' +
+        '<div class="menu-feats">' +
+        '<span>6 把可进化武器</span><span>7 种虚空生物</span><span>4 场首领战</span><span>无尽轮次</span>' +
+        '</div>' +
+        '<div class="menu-hint">WASD 移动 · 空格 / Shift 闪避 · 武器自动攻击</div>' +
+        '</div>' +
+        '<div class="menu-foot">' +
+        '<div>最佳存活 <b>' + U.fmtTime(best.time || 0) + '</b></div>' +
+        '<div>最高击杀 <b>' + (best.kills || 0) + '</b></div>' +
+        '<div>最高等级 <b>' + (best.level || 0) + '</b></div>' +
+        '<div class="echo">◈ 回响 <b>' + S.echoes + '</b></div>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html);
+      this.scrollTop();
+      AE.Audio.setIntensity(0.14);
+    },
+
+    /* ---------- 升级选卡 ---------- */
+    showLevelUp: function (draft) {
+      if (!draft) return;
+      this.mode = 'levelup';
+      const cards = draft.choices.map(function (c, idx) {
+        const info = AE.Upgrades.describe(c);
+        const maxPips = info.kind === 'weapon' ? 8 : (info.kind === 'passive' ? 5 : 0);
+        let pips = '';
+        if (maxPips) {
+          pips = '<div class="pick-pips">';
+          for (let i = 0; i < maxPips; i++) pips += '<i class="' + (i < info.level ? 'on' : '') + '"></i>';
+          pips += '</div>';
+        }
+        return '<button class="pick ' + (info.kind === 'weapon' && info.evolved ? 'evolved' : '') + '" style="--c:' + info.color + '" data-act="pick" data-i="' + idx + '">' +
+          '<div class="pick-top"><span class="pick-icon">' + info.icon + '</span><span class="pick-tag">' + info.tag + '</span></div>' +
+          '<div class="pick-name">' + info.name + '</div>' +
+          '<div class="pick-desc">' + info.desc + '</div>' +
+          pips +
+          '<div class="pick-stats">' + info.stats + '</div>' +
+          '<span class="pick-key">' + (idx + 1) + '</span>' +
+          '</button>';
+      }).join('');
+      const html =
+        '<div class="screen draft-screen">' +
+        '<div class="draft-head">' +
+        '<div class="draft-kicker">LEVEL UP</div>' +
+        '<h2 class="draft-title">等级提升 <em>LV ' + draft.level + '</em></h2>' +
+        '<div class="draft-sub">按 1 / 2 / 3 选择 · R 重掷</div>' +
+        '</div>' +
+        '<div class="draft-cards">' + cards + '</div>' +
+        '<div class="draft-foot">' +
+        '<button class="btn ghost small" data-act="reroll"' + (draft.rerolls <= 0 ? ' disabled' : '') + '>重掷 · ' + draft.rerolls + '</button>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html);
+    },
+
+    /* ---------- 暂停 ---------- */
+    showPause: function (byBlur) {
+      this.mode = 'pause';
+      this.prev = 'pause';
+      const G = AE.G;
+      const muted = AE.Audio.muted;
+      const html =
+        '<div class="screen pause-screen">' +
+        '<div class="panel">' +
+        '<div class="panel-kicker">' + (byBlur ? 'AUTO PAUSED' : 'PAUSED') + '</div>' +
+        '<h2>暂停</h2>' +
+        '<div class="pause-stats">' +
+        '<div><span>存活</span><b>' + U.fmtTime(G.time) + '</b></div>' +
+        '<div><span>击杀</span><b>' + G.kills + '</b></div>' +
+        '<div><span>等级</span><b>' + G.level + '</b></div>' +
+        '</div>' +
+        '<div class="btn-col">' +
+        '<button class="btn primary" data-act="resume">继续（ESC）</button>' +
+        '<button class="btn ghost" data-act="mute">' + (muted ? '开启声音' : '静音') + '</button>' +
+        '<button class="btn ghost" data-act="restart">重新开始</button>' +
+        '<button class="btn ghost danger" data-act="menu">返回主菜单</button>' +
+        '</div>' +
+        '<div class="hint">按 ESC 继续 · 结束后仍可获得回响</div>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html);
+    },
+
+    /* ---------- 结算 ---------- */
+    showResult: function (r) {
+      this.mode = 'result';
+      this.prev = 'result';
+      const victory = r.victory;
+      const title = victory ? '回响长存' : '回响中断';
+      const kicker = victory ? 'AETHER ECHO · RUN COMPLETE' : 'ECHO FADED · RUN OVER';
+      const sub = victory
+        ? '终焉回响已被击破 · ' + r.char.name + (r.loop ? ' · 无尽 ' + (r.loop + 1) : '')
+        : '星渊吞没了这道回响 · 但记忆仍在';
+      const html =
+        '<div class="screen result-screen">' +
+        '<div class="result-head">' +
+        '<div class="result-kicker">' + kicker + '</div>' +
+        '<h1 class="result-title' + (victory ? '' : ' bad') + '">' + title + '</h1>' +
+        '<p class="result-sub">' + sub + '</p>' +
+        '</div>' +
+        '<div class="result-grid">' +
+        '<div class="result-cell"><span>存活时间</span><b>' + U.fmtTime(r.time) + '</b></div>' +
+        '<div class="result-cell"><span>击杀</span><b>' + r.kills + '</b></div>' +
+        '<div class="result-cell"><span>等级</span><b>' + r.level + '</b></div>' +
+        '<div class="result-cell"><span>总伤害</span><b>' + U.fmtNum(r.damage) + '</b></div>' +
+        '<div class="result-cell"><span>击破首领</span><b>' + r.bossKills + '</b></div>' +
+        '<div class="result-cell gold"><span>获得回响</span><b>◈ ' + r.echoes + '</b></div>' +
+        '</div>' +
+        (r.newBest ? '<div class="new-best">NEW RECORD · 最久存活</div>' : '') +
+        '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
+        '<div class="result-actions">' +
+        (victory
+          ? '<button class="btn primary" data-act="endless">继续无尽</button>'
+          : '<button class="btn primary" data-act="restart">再来一局</button>') +
+        '<button class="btn ghost" data-act="meta">回响强化</button>' +
+        '<button class="btn ghost" data-act="menu">主菜单</button>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html);
+    },
+
+    /* ---------- 强化 ---------- */
+    showMeta: function () {
+      this.mode = 'meta';
+      const S = AE.Save.data;
+      const rows = D.META.map(function (m) {
+        const lv = S.meta[m.id] || 0;
+        const maxed = lv >= m.max;
+        const cost = maxed ? 0 : m.cost(lv);
+        let pips = '<div class="meta-pips">';
+        for (let i = 0; i < m.max; i++) pips += '<i class="' + (i < lv ? 'on' : '') + '"></i>';
+        pips += '</div>';
+        return '<div class="meta-row">' +
+          '<div class="m-icon">' + m.icon + '</div>' +
+          '<div><div class="m-name">' + m.name + '</div>' +
+          '<div class="m-desc">' + (maxed ? '已达上限' : m.desc(lv + 1)) + '</div>' + pips + '</div>' +
+          '<button class="btn small m-buy" data-act="buy" data-id="' + m.id + '"' +
+          ((maxed || S.echoes < cost) ? ' disabled' : '') + '>' +
+          (maxed ? 'MAX' : '◈ ' + cost) + '</button>' +
+          '</div>';
+      }).join('');
+      const html =
+        '<div class="screen meta-screen">' +
+        '<div class="meta-head">' +
+        '<div style="display:flex;align-items:center;gap:14px">' +
+        '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
+        '<div><h2>回响强化</h2><div class="sub">PERMANENT ECHO UPGRADES</div></div>' +
+        '</div>' +
+        '<div class="wallet">◈ <span>' + S.echoes + '</span><small>回响</small></div>' +
+        '</div>' +
+        '<div class="meta-cols">' +
+        '<section><div class="section-label">永久强化</div><div class="meta-list">' + rows + '</div></section>' +
+        '<section><div class="section-label">操作角色</div><div class="char-list">' + this.charCards() + '</div></section>' +
+        '</div>' +
+        '<div class="meta-note">回响在每局结束时结算，永久保留。强化对所有角色生效。</div>' +
+        '</div>';
+      this.setHTML(html, true);
+      this.scrollTop();
+    },
+
+    /* ---------- 玩法说明 ---------- */
+    showHow: function () {
+      this.mode = 'how';
+      const html =
+        '<div class="screen" style="max-width:640px">' +
+        '<div class="panel">' +
+        '<div class="panel-kicker">HOW TO PLAY</div>' +
+        '<h2>玩法</h2>' +
+        '<div class="how-grid">' +
+        '<div class="how-item"><h4>操作</h4><p><span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span> 移动<br><span class="keycap">空格</span>/<span class="keycap">Shift</span> 闪避<br><span class="keycap">ESC</span> 暂停 · <span class="keycap">M</span> 静音</p></div>' +
+        '<div class="how-item"><h4>自动战斗</h4><p>武器会自动锁定敌人开火。你只需要走位、拾取经验，在升级时做选择。</p></div>' +
+        '<div class="how-item"><h4>武器进化</h4><p>同一把武器升到 <b style="color:#ffd479">8 级</b>会立刻进化成全新形态，威力大幅提升。</p></div>' +
+        '<div class="how-item"><h4>首领</h4><p>每 2.5 分钟出现一名首领，攻击都有前摇提示。击破后可获得额外强化。</p></div>' +
+        '<div class="how-item"><h4>回响</h4><p>每局结束按表现结算「回响」，可在强化界面购买永久成长与解锁角色。</p></div>' +
+        '<div class="how-item"><h4>目标</h4><p>活到 <b style="color:#ffd479">10:00</b>，击破最终首领「终焉回响」，之后可进入无尽轮次。</p></div>' +
+        '</div>' +
+        '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html, true);
+      this.scrollTop();
+    }
+  };
+
+  AE.UI = UI;
+})(typeof window !== 'undefined' ? window : globalThis);

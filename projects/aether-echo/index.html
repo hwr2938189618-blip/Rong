@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>星渊回响 · Aether Echo</title>
+<meta name="description" content="星渊回响 Aether Echo — 一款可进化武器、四场 BOSS 战的暗黑科幻 Roguelite 生存弹幕游戏。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2305060c'/%3E%3Cpath d='M32 8 38 26 56 32 38 38 32 56 26 38 8 32 26 26Z' fill='%237df9ff'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="星渊回响 游戏画面"></canvas>
+
+  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <button id="touch-dash" class="touch-dash hidden" aria-label="闪避">闪</button>
+
+  <div id="boot" class="boot">
+    <div class="boot-mark">✦</div>
+    <div class="boot-title">星渊回响</div>
+    <div class="boot-sub">AETHER ECHO</div>
+    <div class="boot-bar"><i></i></div>
+  </div>
+
+  <noscript>
+    <div class="noscript">本游戏需要启用 JavaScript 才能运行。</div>
+  </noscript>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/player.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/world.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script>
+(function () {
+  var canvas = document.getElementById('game');
+  var boot = document.getElementById('boot');
+  try {
+    AE.Game.init(canvas);
+    window.AE_READY = true;
+  } catch (err) {
+    console.error(err);
+    var box = document.createElement('pre');
+    box.className = 'fatal';
+    box.textContent = '启动失败：' + (err && err.message ? err.message : err);
+    document.getElementById('app').appendChild(box);
+  }
+  setTimeout(function () {
+    if (boot) boot.classList.add('gone');
+    setTimeout(function () { if (boot && boot.parentNode) boot.parentNode.removeChild(boot); }, 800);
+  }, 520);
+})();
+</script>
+</body>
+</html>
