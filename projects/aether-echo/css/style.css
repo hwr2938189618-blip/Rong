@@ -862,3 +862,23 @@ body.reduce-motion *::after {
 }
 .daily-card.rush .daily-card-date { color: rgba(255, 140, 160, 0.7); }
 .daily-card.rush .daily-card-main b { color: #ff8fa3; }
+
+/* ---------- 遗物 ---------- */
+.pick.relic {
+  border-color: rgba(255, 212, 121, 0.42);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 212, 121, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(22, 28, 52, 0.95), rgba(8, 11, 22, 0.97));
+}
+.pick.relic .pick-tag { color: var(--gold); border-color: rgba(255, 212, 121, 0.32); }
+.pick.relic:hover { border-color: rgba(255, 212, 121, 0.78); }
+.relic-row { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 14px 0 2px; }
+.relic-chip {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--c);
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background: color-mix(in srgb, var(--c) 9%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 12%, transparent);
+  cursor: help;
+}

@@ -371,8 +371,18 @@
     showLevelUp: function (draft) {
       if (!draft) return;
       this.mode = 'levelup';
+      const isRelic = draft.kind === 'relic';
       const cards = draft.choices.map(function (c, idx) {
-        const info = AE.Upgrades.describe(c);
+        let info;
+        if (isRelic) {
+          const r = AE.Relics.describe(c.id);
+          info = {
+            kind: 'relic', tag: '遗物', name: r.name, icon: r.icon, color: r.color,
+            desc: r.desc, stats: '本局永久生效', level: 0
+          };
+        } else {
+          info = AE.Upgrades.describe(c);
+        }
         const maxPips = info.kind === 'weapon' ? 8 : (info.kind === 'passive' ? 5 : 0);
         let pips = '';
         if (maxPips) {
@@ -380,7 +390,8 @@
           for (let i = 0; i < maxPips; i++) pips += '<i class="' + (i < info.level ? 'on' : '') + '"></i>';
           pips += '</div>';
         }
-        return '<button class="pick ' + (info.kind === 'weapon' && info.evolved ? 'evolved' : '') + '" style="--c:' + info.color + '" data-act="pick" data-i="' + idx + '">' +
+        return '<button class="pick ' + (info.kind === 'weapon' && info.evolved ? 'evolved' : '') +
+          (info.kind === 'relic' ? ' relic' : '') + '" style="--c:' + info.color + '" data-act="pick" data-i="' + idx + '">' +
           '<div class="pick-top"><span class="pick-icon">' + info.icon + '</span><span class="pick-tag">' + info.tag + '</span></div>' +
           '<div class="pick-name">' + info.name + '</div>' +
           '<div class="pick-desc">' + info.desc + '</div>' +
@@ -392,13 +403,13 @@
       const html =
         '<div class="screen draft-screen">' +
         '<div class="draft-head">' +
-        '<div class="draft-kicker">LEVEL UP</div>' +
-        '<h2 class="draft-title">等级提升 <em>LV ' + draft.level + '</em></h2>' +
-        '<div class="draft-sub">按 1 / 2 / 3 选择 · R 重掷</div>' +
+        '<div class="draft-kicker">' + (isRelic ? 'RELIC · 遗物' : 'LEVEL UP') + '</div>' +
+        '<h2 class="draft-title">' + (isRelic ? '获得遗物 · 三选一' : '等级提升 <em>LV ' + draft.level + '</em>') + '</h2>' +
+        '<div class="draft-sub">按 1 / 2 / 3 选择' + (isRelic ? ' · 本局永久生效' : ' · R 重掷') + '</div>' +
         '</div>' +
         '<div class="draft-cards">' + cards + '</div>' +
         '<div class="draft-foot">' +
-        '<button class="btn ghost small" data-act="reroll"' + (draft.rerolls <= 0 ? ' disabled' : '') + '>重掷 · ' + draft.rerolls + '</button>' +
+        (isRelic ? '' : '<button class="btn ghost small" data-act="reroll"' + (draft.rerolls <= 0 ? ' disabled' : '') + '>重掷 · ' + draft.rerolls + '</button>') +
         '</div>' +
         '</div>';
       this.setHTML(html);
@@ -410,6 +421,14 @@
       this.prev = 'pause';
       const G = AE.G;
       const muted = AE.Audio.muted;
+      const relics = ((G.player && G.player.relics) || []).map(function (id) {
+        return AE.Data.RELICS.filter(function (r) { return r.id === id; })[0];
+      }).filter(Boolean);
+      const relicRow = relics.length
+        ? '<div class="relic-row">' + relics.map(function (r) {
+            return '<span class="relic-chip" style="--c:' + r.color + '" title="' + r.name + '：' + r.desc + '">' + r.icon + '</span>';
+          }).join('') + '</div>'
+        : '';
       const html =
         '<div class="screen pause-screen">' +
         '<div class="panel">' +
@@ -422,6 +441,7 @@
         '</div>' +
         (G.daily ? '<div class="pause-daily">每日挑战 · ' + G.daily.key + '<br>' +
           G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') + '</div>' : '') +
+        relicRow +
         '<div class="btn-col">' +
         '<button class="btn primary" data-act="resume">继续（ESC）</button>' +
         '<button class="btn ghost" data-act="mute">' + (muted ? '开启声音' : '静音') + '</button>' +
@@ -595,16 +615,25 @@
         return '<div class="codex-row"><b style="color:' + b.color + '">' + b.name + '</b>' +
           '<span>' + U.fmtTime(b.at) + ' 出现 · 生命 ' + b.hp + ' · 伤害 ' + b.dmg + ' · ' + b.title + '</span></div>';
       }).join('');
+      const relics = D.RELICS.map(function (r) {
+        return '<div class="codex-card" style="--c:' + r.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">' + r.icon + '</span><span class="codex-tag">遗物</span></div>' +
+          '<div class="codex-name">' + r.name + '</div>' +
+          '<div class="codex-desc">' + r.desc + '</div>' +
+          '</div>';
+      }).join('');
       const html =
         '<div class="screen codex-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
         '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
-        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、被动、敌人与首领</div></div>' +
+        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、被动、遗物、敌人与首领</div></div>' +
         '</div></div>' +
         '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把</div>' +
         '<div class="codex-grid">' + weapons + '</div>' +
         '<div class="section-label">被动 · ' + D.PASSIVES.length + '</div>' +
         '<div class="codex-grid">' + passives + '</div>' +
+        '<div class="section-label">遗物 · ' + D.RELICS.length + ' 件（击破首领后获得）</div>' +
+        '<div class="codex-grid">' + relics + '</div>' +
         '<div class="section-label">虚空生物</div>' +
         '<div class="codex-rows">' + enemies + '</div>' +
         '<div class="section-label">首领</div>' +

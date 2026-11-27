@@ -31,6 +31,7 @@
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),
         weapons: [], passives: {}, passiveCount: 0,
+        relics: [],
         aimX: 0, aimY: 0, aimAngle: -Math.PI / 2,
         dashT: 0, dashCd: 0, dashDir: { x: 1, y: 0 },
         invuln: 0, flash: 0, hurtT: 0,

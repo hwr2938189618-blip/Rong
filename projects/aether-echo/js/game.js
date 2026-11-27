@@ -17,6 +17,7 @@
     draft: null, anns: [], timers: [], echoBonus: 0, winning: false,
     slowT: 0, daily: null, mod: null,
     rush: false, rushIndex: 0, rushGap: 0,
+    relicLock: false,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -203,6 +204,7 @@
       G.bossWarnT = 0; G.bossWarned = false; G.winning = false;
       G.slowT = 0;
       G.rush = isRush; G.rushIndex = 0; G.rushGap = 1.2;
+      G.relicLock = false;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
@@ -366,7 +368,7 @@
       p.level = G.level;
       if (G.xp >= G.xpNeed && G.level < AE.Data.CONST.LEVEL_MAX) {
         this.levelUp();
-      } else if (G.pending > 0 && G.state === 'playing') {
+      } else if (G.pending > 0 && G.state === 'playing' && !G.relicLock) {
         this.openLevelUp(false);
       }
 
@@ -549,13 +551,32 @@
       AE.Cam.pulse = 0.06;
     },
 
+    openRelicDraft: function () {
+      if (!G.player) return;
+      if (G.state !== 'playing') return;
+      const choices = AE.Relics.roll(G.player, 3);
+      if (!choices.length) { G.relicLock = false; this.openLevelUp(true); return; }
+      G.state = 'levelup';
+      G.draft = { kind: 'relic', choices: choices, rerolls: 0, level: G.level };
+      AE.UI.showLevelUp(G.draft);
+      AE.FX.flash(0.10, '#ffd479');
+      AE.Audio.sfx('ui');
+      AE.Cam.pulse = 0.05;
+    },
+
     chooseUpgrade: function (i) {
       if (!G.draft) return false;
       const c = G.draft.choices[i];
       if (!c) return false;
-      AE.Upgrades.apply(G.player, c);
+      const isRelic = G.draft.kind === 'relic';
+      if (isRelic) {
+        AE.Relics.apply(G.player, c.id);
+        G.relicLock = false;
+      } else {
+        AE.Upgrades.apply(G.player, c);
+        if (G.pending > 0) G.pending--;
+      }
       G.draft = null;
-      if (G.pending > 0) G.pending--;
       G.state = 'playing';
       AE.UI.hideLevelUp();
       AE.Input.pressed = {};
@@ -628,9 +649,13 @@
           this.delay(1.4, function () { self.endRun(true); });
         } else {
           G.pending += 3;
-          this.announce('击破 ' + def.name + ' · 强化 ×3', '#ffd479', 2.4);
+          const hasRelic = AE.Relics.roll(G.player, 1).length > 0;
+          G.relicLock = hasRelic;
+          this.announce('击破 ' + def.name + ' · 遗物 + 强化 ×3', '#ffd479', 2.4);
           this.delay(0.9, function () {
-            if (G.state === 'playing') self.openLevelUp(true);
+            if (G.state !== 'playing') { G.relicLock = false; return; }
+            if (hasRelic) self.openRelicDraft();
+            else self.openLevelUp(true);
           });
         }
         return;
@@ -643,11 +668,15 @@
         this.delay(1.6, function () { self.endRun(true); });
       } else {
         const self = this;
+        const hasRelic = AE.Relics.roll(G.player, 1).length > 0;
+        G.relicLock = hasRelic;
         this.delay(1.0, function () {
           G.pending++;
-          if (G.state === 'playing') self.openLevelUp(true);
+          if (G.state !== 'playing') { G.relicLock = false; return; }
+          if (hasRelic) self.openRelicDraft();
+          else self.openLevelUp(true);
         });
-        this.announce('击破 ' + def.name + ' · 选择强化', '#ffd479', 2.4);
+        this.announce('击破 ' + def.name + ' · 遗物三选一', '#ffd479', 2.4);
       }
     },
 
@@ -1185,6 +1214,39 @@
     }
   };
   AE.Upgrades = Upgrades;
+
+  /* ============================================================
+   * 遗物
+   * ============================================================ */
+  const Relics = {
+    def: function (id) {
+      return AE.Data.RELICS.filter(function (r) { return r.id === id; })[0] || null;
+    },
+    owned: function (p, id) { return p && p.relics && p.relics.indexOf(id) >= 0; },
+    roll: function (p, n) {
+      if (!p) return [];
+      const pool = AE.Data.RELICS.filter(function (r) { return p.relics.indexOf(r.id) < 0; });
+      AE.U.shuffle(pool);
+      return pool.slice(0, n).map(function (r) { return { kind: 'relic', id: r.id }; });
+    },
+    apply: function (p, id) {
+      const def = this.def(id);
+      if (!def || !p || p.relics.indexOf(id) >= 0) return false;
+      p.relics.push(id);
+      if (def.apply) def.apply(p);
+      AE.FX.ring(p.x, p.y, def.color, 8, 120, 0.55, 3);
+      AE.FX.spark(p.x, p.y, def.color, 20, { spd: 240, life: 0.6, size: 3 });
+      AE.Audio.sfx('evolve');
+      Game.announce('遗物 · ' + def.name, def.color, 2.0);
+      return true;
+    },
+    describe: function (id) {
+      const def = this.def(id);
+      if (!def) return { name: id, desc: '', icon: '?', color: '#fff' };
+      return def;
+    }
+  };
+  AE.Relics = Relics;
   AE.Game = Game;
 
   AE.Cam.followMenu = function (dt) {

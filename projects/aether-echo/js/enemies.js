@@ -629,7 +629,24 @@
       e.hp -= dmg;
       e.flash = 0.09;
       const G = AE.G;
+      const pl = G.player;
       G.stats.damage += dmg;
+      // 遗物：霜冻之触
+      if (pl && pl.relics && pl.relics.indexOf('frost') >= 0 && Math.random() < 0.12) {
+        e.stun = Math.max(e.stun || 0, 0.25);
+        AE.FX.spark(e.x, e.y, '#9fe8ff', 3, { spd: 90, life: 0.3, size: 2.2 });
+      }
+      // 遗物：连锁暴击（暴击时溅射）
+      if (opts && opts.crit && !opts.noSplash && pl && pl.relics && pl.relics.indexOf('critchain') >= 0) {
+        const near = AE.World.grid.query(e.x, e.y, 90);
+        for (let k = 0; k < near.length; k++) {
+          const o = near[k];
+          if (o === e || !o.alive || o.spawning > 0) continue;
+          if (U.d2(e.x, e.y, o.x, o.y) > 90 * 90) continue;
+          this.damage(o, dmg * 0.35, { crit: false, noSplash: true, noFrost: true });
+        }
+        AE.FX.ring(e.x, e.y, '#ffd479', 4, 60, 0.25, 1.6);
+      }
       if (AE.FX.dmgText) {
         AE.FX.text(e.x + U.rnd(-4, 4), e.y - e.r - 6, String(Math.round(dmg)),
           opts && opts.crit ? '#ffd479' : '#eaf2ff', opts && opts.crit ? 19 : 13.5, opts && opts.crit);
@@ -652,6 +669,26 @@
       G.kills++;
       G.combo++;
       G.comboT = 2.6;
+      // 遗物：吸血符文 / 爆裂回响
+      const pl = G.player;
+      if (pl && pl.relics) {
+        if (pl.relics.indexOf('leech') >= 0) {
+          pl.hp = Math.min(pl.maxHp, pl.hp + 1.5);
+        }
+        if (pl.relics.indexOf('boom') >= 0 && Math.random() < 0.18 && G.lastBoomFrame !== G.frame) {
+          G.lastBoomFrame = G.frame;
+          AE.FX.ring(e.x, e.y, '#ff9f68', 4, 72, 0.35, 2.4);
+          AE.FX.spark(e.x, e.y, '#ff9f68', 8, { spd: 160, life: 0.35, size: 2.6 });
+          const near = AE.World.grid.query(e.x, e.y, 72);
+          const boomDmg = (30 + G.level * 2) * (pl.dmgMul || 1);
+          for (let k = 0; k < near.length; k++) {
+            const o = near[k];
+            if (o === e || !o.alive || o.spawning > 0) continue;
+            if (U.d2(e.x, e.y, o.x, o.y) > 72 * 72) continue;
+            this.damage(o, boomDmg, { crit: false, noSplash: true, noFrost: true });
+          }
+        }
+      }
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));
       AE.World.dropOrbs(e.x, e.y, val, e.elite);
       if (e.elite) {

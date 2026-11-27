@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.6.0';
+  D.VERSION = '1.7.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -473,5 +473,85 @@
     { id: 'greed', name: '丰饶裂隙', desc: '击杀掉落经验 +35%', color: '#ffd479' },
     { id: 'void', name: '虚空稀薄', desc: '敌人生命 -10%，数量 +20%', color: '#b388ff' },
     { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' }
+  ];
+
+  /* ============================================================
+   * 遗物（击破首领后三选一，本局永久生效）
+   * apply 为即时属性，hook=true 表示由战斗代码读取的被动效果
+   * ============================================================ */
+  D.RELICS = [
+    {
+      id: 'rage', name: '狂怒核心', icon: '✦', color: '#ff5c7a',
+      desc: '全部武器伤害 +12%',
+      apply: function (p) { p.dmgMul += 0.12; }
+    },
+    {
+      id: 'haste_r', name: '时律棱镜', icon: '◈', color: '#7df9ff',
+      desc: '攻击速度 +10%',
+      apply: function (p) { p.atkSpd += 0.10; }
+    },
+    {
+      id: 'blood', name: '血契', icon: '✚', color: '#ff8fa3',
+      desc: '生命上限 +20%，并立即回复 30%',
+      apply: function (p) {
+        p.maxHp = Math.round(p.maxHp * 1.2);
+        p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.3);
+      }
+    },
+    {
+      id: 'crit_r', name: '猎杀本能', icon: '✷', color: '#ffd479',
+      desc: '暴击率 +10%',
+      apply: function (p) { p.crit += 0.10; }
+    },
+    {
+      id: 'regen_r', name: '再生核心', icon: '✜', color: '#8affc1',
+      desc: '每秒回复 1.2 点生命',
+      apply: function (p) { p.regen += 1.2; }
+    },
+    {
+      id: 'magnet_r', name: '引力透镜', icon: '⊙', color: '#ffd479',
+      desc: '拾取范围 +40%，经验获取 +10%',
+      apply: function (p) { p.pickupMul += 0.4; p.xpMul += 0.10; }
+    },
+    {
+      id: 'area_r', name: '巨力弹头', icon: '◎', color: '#b388ff',
+      desc: '技能范围 +15%',
+      apply: function (p) { p.areaMul += 0.15; }
+    },
+    {
+      id: 'armor_r', name: '相位装甲', icon: '⛨', color: '#9fb4ff',
+      desc: '受到伤害减少 4 点',
+      apply: function (p) { p.armor += 4; }
+    },
+    {
+      id: 'dash_r', name: '时之沙', icon: '↯', color: '#7df9ff',
+      desc: '闪避冷却 -25%',
+      apply: function (p) { p.dashCdMul *= 0.75; }
+    },
+    {
+      id: 'pact', name: '猩红契约', icon: '❈', color: '#ff5c7a',
+      desc: '伤害 +22%，但生命上限 -10%',
+      apply: function (p) {
+        p.dmgMul += 0.22;
+        p.maxHp = Math.round(p.maxHp * 0.9);
+        p.hp = Math.min(p.hp, p.maxHp);
+      }
+    },
+    {
+      id: 'leech', name: '吸血符文', icon: '✧', color: '#8affc1', hook: true,
+      desc: '每击杀一个敌人回复 1.5 生命'
+    },
+    {
+      id: 'boom', name: '爆裂回响', icon: '✹', color: '#ff9f68', hook: true,
+      desc: '击杀敌人时 18% 概率引发小范围爆炸'
+    },
+    {
+      id: 'frost', name: '霜冻之触', icon: '❄', color: '#9fe8ff', hook: true,
+      desc: '命中时 12% 概率冻结敌人 0.25 秒'
+    },
+    {
+      id: 'critchain', name: '连锁暴击', icon: '⚡', color: '#ffd479', hook: true,
+      desc: '暴击时对周围敌人溅射 35% 伤害'
+    }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
