@@ -37,6 +37,7 @@
         relics: [],
         aimX: 0, aimY: 0, aimAngle: -Math.PI / 2,
         dashT: 0, dashCd: 0, dashDir: { x: 1, y: 0 },
+        ult: 0, ultMax: 100, ultPulse: 0,
         invuln: 0, flash: 0, hurtT: 0,
         moving: false, alive: true, t: 0,
         levelHpBonus: 0, damageDealt: 0, healed: 0,
@@ -193,6 +194,12 @@
         if (p.after[i].life <= 0) p.after.splice(i, 1);
       }
 
+      // 星核爆发：E / 触屏「爆」
+      if ((Input.hit('KeyE') || Input.ultPressed) && p.ult >= p.ultMax) {
+        Input.ultPressed = false;
+        Player.castUlt(p);
+      }
+
       // 冲刺输入
       const wantDash = Input.hit('Space') || Input.hit('ShiftLeft') || Input.hit('ShiftRight') || Input.dashPressed;
       Input.dashPressed = false;
@@ -211,6 +218,40 @@
 
       p.x = U.clamp(p.x, 24, AE.Data.CONST.WORLD_W - 24);
       p.y = U.clamp(p.y, 24, AE.Data.CONST.WORLD_H - 24);
+    },
+
+    /* 星核爆发：清屏大招，消耗 100 点星核能量 */
+    castUlt: function (p) {
+      if (!p || !p.alive || p.ult < p.ultMax) return false;
+      const G = AE.G, U2 = AE.U;
+      p.ult = 0;
+      p.invuln = Math.max(p.invuln, 1.6);
+      p.ultPulse = 1;
+      const cx = p.x, cy = p.y, R = 760;
+      const dmg = (220 + p.level * 24) * p.dmgMul;
+      AE.FX.flash(0.6, '#7df9ff');
+      AE.FX.shake(1.2);
+      AE.FX.ring(cx, cy, '#7df9ff', 24, R, 0.9, 9);
+      AE.FX.ring(cx, cy, '#ffffff', 12, R * 0.55, 0.7, 5);
+      AE.FX.spark(cx, cy, '#7df9ff', 90, { spd: 640, life: 1.1, size: 4.5 });
+      AE.Audio.sfx('nova');
+      AE.Audio.sfx('explosion');
+      const list = AE.Enemies.list.slice();
+      for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (!e.alive || e.spawning > 0) continue;
+        if (U2.d2(cx, cy, e.x, e.y) > R * R) continue;
+        e.stun = Math.max(e.stun || 0, 0.65);
+        AE.Enemies.damage(e, dmg, { crit: false, noSplash: true, noFrost: true });
+      }
+      const eb = AE.World.ebullets;
+      for (let i = eb.length - 1; i >= 0; i--) {
+        if (U2.d2(cx, cy, eb[i].x, eb[i].y) < R * R) eb.splice(i, 1);
+      }
+      G.slowT = Math.max(G.slowT || 0, 0.42);
+      if (AE.UI && AE.UI.syncDash) AE.UI.syncDash();
+      if (AE.Game && AE.Game.announce) AE.Game.announce('星核爆发 · SUPERNOVA', '#7df9ff', 1.8);
+      return true;
     },
 
     setAim: function (p, x, y) {
@@ -281,6 +322,55 @@
       // 光环
       ctx.globalCompositeOperation = 'lighter';
       AE.FX.glow(ctx, 0, 0, 54 + Math.sin(t * 3) * 4, col, 0.42);
+
+      // 引擎尾焰：沿移动方向拖出双层焰流
+      const spd = Math.hypot(p.vx || 0, p.vy || 0);
+      if (spd > 24 || p.dashT > 0) {
+        const ea = p.dashT > 0 ? Math.atan2(p.dashDir.y, p.dashDir.x) : Math.atan2(p.vy, p.vx);
+        const len = (p.dashT > 0 ? 30 : 12 + Math.min(14, spd * 0.03)) * (0.85 + Math.sin(t * 22) * 0.15);
+        ctx.save();
+        ctx.rotate(ea);
+        for (let fi = 0; fi < 2; fi++) {
+          ctx.fillStyle = fi === 0 ? AE.FX.alpha(col, 0.5) : 'rgba(255,255,255,0.7)';
+          ctx.beginPath();
+          ctx.moveTo(-p.r * 0.6, -p.r * (0.34 - fi * 0.14));
+          ctx.lineTo(-p.r - len * (fi === 0 ? 1 : 0.55), 0);
+          ctx.lineTo(-p.r * 0.6, p.r * (0.34 - fi * 0.14));
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 装甲翼片：三层旋转外框，做出轻微立体感
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.save();
+      ctx.rotate(t * 0.35);
+      for (let wi = 0; wi < 3; wi++) {
+        const rr = p.r + 10 + wi * 5;
+        const a0 = wi * 2.1;
+        ctx.strokeStyle = AE.FX.alpha(col, 0.22 - wi * 0.05);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, rr, a0, a0 + 0.9);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 星核就绪：金色旋转符文环
+      if (p.ult >= p.ultMax) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.rotate(-t * 1.6);
+        ctx.strokeStyle = 'rgba(255,212,121,0.85)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 9]);
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r + 17, 0, U.TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
 
       // 外圈
       ctx.globalCompositeOperation = 'source-over';

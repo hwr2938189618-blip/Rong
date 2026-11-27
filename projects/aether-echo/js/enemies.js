@@ -71,7 +71,7 @@
       };
       e.maxHp = G.rush
         ? def.hp * (1 + (G.rushIndex || 0) * 0.55)
-        : def.hp * (1 + (G.time / 60) * 0.55) * (1 + (G.loop || 0) * 0.8);
+        : def.hp * (1 + (G.time / 60) * 0.42) * (1 + (G.loop || 0) * 0.8);
       e.hp = e.maxHp;
       this.list.push(e);
       AE.FX.ring(x, y, def.color, 10, 140, 0.9, 4);
@@ -726,6 +726,12 @@
           pl.reaperBurst = false;
         }
       }
+      // 星核能量：击杀积攒爆发
+      if (pl && pl.ult < pl.ultMax) {
+        const wasFull = pl.ult >= pl.ultMax;
+        pl.ult = Math.min(pl.ultMax, pl.ult + (e.boss ? 40 : (e.elite ? 10 : 1.2)));
+        if (!wasFull && pl.ult >= pl.ultMax && AE.UI && AE.UI.syncDash) AE.UI.syncDash();
+      }
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));
       AE.World.dropOrbs(e.x, e.y, val, e.elite);
       if (e.elite) {
@@ -1029,6 +1035,21 @@
       ctx.globalCompositeOperation = 'lighter';
       AE.FX.glow(ctx, 0, 0, e.r * 2.9, col, 0.32 + Math.sin(time * 2) * 0.04);
       ctx.globalCompositeOperation = 'source-over';
+
+      // 外环符文：双层反向旋转，强化首领的存在感
+      ctx.save();
+      ctx.rotate(time * 0.22);
+      ctx.strokeStyle = AE.FX.alpha(col, 0.26);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([13, 17]);
+      ctx.beginPath(); ctx.arc(0, 0, e.r + 34, 0, U.TAU); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.rotate(-time * 0.55);
+      ctx.strokeStyle = 'rgba(255,212,121,0.16)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(0, 0, e.r + 54, 0.3, 2.2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, e.r + 54, Math.PI + 0.3, Math.PI + 2.2); ctx.stroke();
+      ctx.restore();
 
       // 前摇提示
       if (e.ai === 'breaker' && e.mode === 'tele') {

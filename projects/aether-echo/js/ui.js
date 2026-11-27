@@ -22,6 +22,7 @@
       this.el = document.getElementById('overlay');
       this.toastEl = document.getElementById('toast');
       this.dashEl = document.getElementById('touch-dash');
+      this.ultEl = document.getElementById('touch-ult');
       this.pauseEl = document.getElementById('touch-pause');
       if (!this.el) return;
       this.enabled = true;
@@ -62,6 +63,12 @@
         this.dashEl.addEventListener('pointerdown', function (e) {
           e.preventDefault();
           AE.Input.dashPressed = true;
+        });
+      }
+      if (this.ultEl) {
+        this.ultEl.addEventListener('pointerdown', function (e) {
+          e.preventDefault();
+          AE.Input.ultPressed = true;
         });
       }
       g.addEventListener('keydown', function (e) {
@@ -127,6 +134,11 @@
       const touch = this._touch || (AE.Input && AE.Input.touch && AE.Input.touch.on);
       const show = !!(touch && playing);
       if (this.dashEl) this.dashEl.classList.toggle('hidden', !show);
+      if (this.ultEl) {
+        this.ultEl.classList.toggle('hidden', !show);
+        const p = AE.G && AE.G.player;
+        this.ultEl.classList.toggle('ready', !!(p && p.ult >= p.ultMax));
+      }
       if (this.pauseEl) this.pauseEl.classList.toggle('hidden', !show);
     },
 

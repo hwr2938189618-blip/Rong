@@ -18,6 +18,24 @@
         if (w.id === 'orbit') {
           w.spin = (w.spin || 0) + s.rot * dt;
           W.orbitHit(p, w, s);
+          // 环刃不再只能近身：定期向附近敌人甩出刃片
+          w.launchT = (w.launchT === undefined ? 0.9 : w.launchT) - dt;
+          if (w.launchT <= 0) {
+            w.launchT = 1.25;
+            const ts = W.nearestEnemies(p.x, p.y, 2, 430);
+            for (let ti = 0; ti < ts.length; ti++) {
+              const t = ts[ti];
+              const a = Math.atan2(t.y - p.y, t.x - p.x);
+              AE.World.addBullet({
+                x: p.x + Math.cos(a) * 16, y: p.y + Math.sin(a) * 16,
+                vx: Math.cos(a) * 430, vy: Math.sin(a) * 430,
+                r: 5, dmg: s.dmg * 0.9 * p.dmgMul, life: 1.3,
+                color: '#b388ff', kind: 'shard', pierce: 1, hitIds: [],
+                critChance: p.crit, critDmg: p.critDmg, size: 5, homing: 0, trailT: 0
+              });
+            }
+            if (ts.length) AE.Audio.sfx('orbit');
+          }
         } else {
           w.t -= dt;
           if (w.t <= 0) {
@@ -256,22 +274,25 @@
       const baseR = s.radius * (0.7 + p.areaMul * 0.3);
       const list = AE.Enemies.list;
       const bladeR = 13;
+      const now = AE.G.time;
+      w.orbT = w.orbT || [];
       for (let b = 0; b < s.count; b++) {
+        if (now - (w.orbT[b] || -9) < s.hitCd) continue;
         const a = w.spin + b * U.TAU / s.count;
         const bx = p.x + Math.cos(a) * baseR;
         const by = p.y + Math.sin(a) * baseR;
         for (let i = 0; i < list.length; i++) {
           const e = list[i];
           if (!e.alive || e.spawning > 0) continue;
-          if ((e.orbCd || 0) > 0) continue;
           const rr = e.r + bladeR;
           if (U.d2(bx, by, e.x, e.y) > rr * rr) continue;
-          e.orbCd = s.hitCd;
+          w.orbT[b] = now;
           W.rollCrit(p, e, s.dmg, { x: bx, y: by });
           e.kx = (e.kx || 0) + Math.cos(a) * 22;
           e.ky = (e.ky || 0) + Math.sin(a) * 22;
           AE.FX.spark(bx, by, '#b388ff', 6, { spd: 180, life: 0.3, size: 2.6 });
           AE.Audio.sfx('orbit');
+          break;
         }
       }
     },

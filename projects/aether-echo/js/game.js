@@ -497,10 +497,10 @@
 
       G.spawnT -= dt;
       if (G.spawnT <= 0 && count < C.MAX_ENEMIES * 0.92) {
-        const interval = Math.max(0.34, (1.15 - G.time * 0.0012)) * bossFactor * (1 + pressure * 0.9);
+        const interval = Math.max(0.42, (1.35 - G.time * 0.0014)) * bossFactor * (1 + pressure * 0.9);
         G.spawnT = interval;
         const table = this.currentTable();
-        const batch = Math.max(1, Math.round((1 + Math.min(4, Math.floor(G.time / 150)) + (G.loop ? 1 : 0)) * ((G.mod && G.mod.spawnMul) || 1)));
+        const batch = Math.max(1, Math.round((2 + Math.min(4, Math.floor(G.time / 110)) + (G.loop ? 1 : 0)) * ((G.mod && G.mod.spawnMul) || 1)));
         for (let i = 0; i < batch; i++) {
           const id = this.pickWeighted(table);
           this.spawnAtRing(id, false);
@@ -922,6 +922,20 @@
       ctx.font = '600 10px ' + head;
       ctx.fillStyle = 'rgba(150,190,235,0.65)';
       ctx.fillText(Math.floor(G.xp) + ' / ' + G.xpNeed, 62, 52);
+
+      // 星核能量条
+      const uw = 118, ux = 62, uy = 63;
+      ctx.fillStyle = 'rgba(8,12,26,0.72)';
+      ctx.fillRect(ux, uy, uw, 5);
+      const upct = U.clamp(p.ult / p.ultMax, 0, 1);
+      ctx.fillStyle = upct >= 1 ? (Math.sin(G.t * 8) > 0 ? '#ffd479' : '#7df9ff') : 'rgba(125,249,255,0.78)';
+      ctx.fillRect(ux, uy, uw * upct, 5);
+      ctx.strokeStyle = upct >= 1 ? 'rgba(255,212,121,0.85)' : 'rgba(125,249,255,0.28)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(ux + 0.5, uy + 0.5, uw - 1, 4);
+      ctx.font = '600 8px ' + head;
+      ctx.fillStyle = upct >= 1 ? '#ffd479' : 'rgba(150,190,235,0.55)';
+      ctx.fillText(upct >= 1 ? '星核就绪 · E' : '星核', ux + uw + 8, uy + 2);
 
       ctx.textAlign = 'center';
       ctx.font = '800 26px ' + head;

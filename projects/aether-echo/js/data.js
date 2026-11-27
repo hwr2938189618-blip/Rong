@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.10.2';
+  D.VERSION = '1.11.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -74,7 +74,7 @@
         { dmg: 38, cd: 0.34, count: 4, speed: 960, pierce: 1, size: 5.6 }
       ],
       evolved: {
-        name: '星屑风暴', icon: '✧', dmg: 50, cd: 0.22, count: 5, speed: 1050,
+        name: '星屑风暴', icon: '✧', dmg: 42, cd: 0.24, count: 5, speed: 1050,
         pierce: 3, size: 6, homing: 2.4, note: '弹幕化作风暴，穿透并追踪'
       }
     },
@@ -89,11 +89,11 @@
         { dmg: 28, count: 3, radius: 86, rot: 3.1, hitCd: 0.48 },
         { dmg: 36, count: 4, radius: 90, rot: 3.1, hitCd: 0.48 },
         { dmg: 36, count: 4, radius: 96, rot: 3.2, hitCd: 0.46 },
-        { dmg: 48, count: 4, radius: 96, rot: 3.2, hitCd: 0.42 }
+        { dmg: 48, count: 4, radius: 130, rot: 3.2, hitCd: 0.46 }
       ],
       evolved: {
-        name: '永寂环带', icon: '❂', dmg: 70, count: 6, radius: 112, rot: 2.5,
-        hitCd: 0.32, note: '六枚环刃，斩尽触界之敌'
+        name: '永寂环带', icon: '❂', dmg: 110, count: 6, radius: 152, rot: 2.5,
+        hitCd: 0.38, note: '六枚环刃，斩尽触界之敌'
       }
     },
     {
@@ -110,8 +110,8 @@
         { dmg: 95, cd: 1.7, radius: 200, kb: 230 }
       ],
       evolved: {
-        name: '奇点爆发', icon: '❃', dmg: 140, cd: 1.05, radius: 250, kb: 320,
-        pull: 280, second: 76, note: '先吸引，再撕裂：双重爆发'
+        name: '奇点爆发', icon: '❃', dmg: 165, cd: 1.05, radius: 250, kb: 320,
+        pull: 280, second: 90, note: '先吸引，再撕裂：双重爆发'
       }
     },
     {
@@ -142,11 +142,11 @@
         { dmg: 36, cd: 1.32, chains: 3, range: 275, falloff: 0.84 },
         { dmg: 36, cd: 1.28, chains: 4, range: 280, falloff: 0.85 },
         { dmg: 48, cd: 1.24, chains: 4, range: 290, falloff: 0.86 },
-        { dmg: 48, cd: 1.20, chains: 5, range: 300, falloff: 0.87 },
-        { dmg: 64, cd: 1.14, chains: 6, range: 310, falloff: 0.88 }
+        { dmg: 72, cd: 1.20, chains: 5, range: 300, falloff: 0.87 },
+        { dmg: 90, cd: 1.10, chains: 6, range: 320, falloff: 0.88 }
       ],
       evolved: {
-        name: '雷暴回廊', icon: '⌁', dmg: 96, cd: 0.66, chains: 9, range: 380,
+        name: '雷暴回廊', icon: '⌁', dmg: 180, cd: 0.55, chains: 9, range: 380,
         falloff: 0.9, stun: 0.22, note: '雷霆成廊，连锁至九'
       }
     },
@@ -164,7 +164,7 @@
         { dmg: 30, cd: 0.74, count: 7, spread: 0.78, speed: 830, life: 0.56, pierce: 2 }
       ],
       evolved: {
-        name: '棱镜审判', icon: '❈', dmg: 40, cd: 0.58, count: 10, spread: 1.10,
+        name: '棱镜审判', icon: '❈', dmg: 50, cd: 0.58, count: 10, spread: 1.10,
         speed: 850, life: 0.58, pierce: 3, ricochet: 1, note: '光化作裁决，弹射不止'
       }
     },
@@ -182,8 +182,8 @@
         { dmg: 33, cd: 1.9, radius: 176, duration: 3.6, tick: 0.38, pull: 240 }
       ],
       evolved: {
-        name: '事件视界', icon: '⬤', dmg: 48, cd: 1.15, radius: 240, duration: 4.0,
-        tick: 0.32, pull: 330, implode: 220, note: '引力井坍缩时撕碎一切'
+        name: '事件视界', icon: '⬤', dmg: 30, cd: 1.35, radius: 220, duration: 4.0,
+        tick: 0.40, pull: 330, implode: 160, note: '引力井坍缩时撕碎一切'
       }
     },
     {

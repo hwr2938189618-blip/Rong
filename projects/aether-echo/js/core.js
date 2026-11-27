@@ -97,6 +97,7 @@
     mouse: { x: 0, y: 0, sx: 0, sy: 0, down: false, active: false, clicked: false },
     touch: { on: false, ox: 0, oy: 0, dx: 0, dy: 0, active: false },
     joy: { active: false, dx: 0, dy: 0, mag: 0 },
+    ultPressed: false,
     enabled: true,
 
     init: function (canvas) {
