@@ -35,6 +35,20 @@
         const btn = e.target.closest ? e.target.closest('button') : null;
         if (btn && !btn.disabled) AE.Audio.sfx('hover');
       });
+      this.el.addEventListener('input', function (e) {
+        const el = e.target;
+        if (!el || !el.getAttribute) return;
+        const key = el.getAttribute('data-set');
+        if (!key) return;
+        const v = Math.max(0, Math.min(1, parseFloat(el.value) / 100));
+        const st = AE.Save.data.settings;
+        if (key === 'music') { st.music = v; AE.Audio.setMusicVolume(v); }
+        else if (key === 'sfx') { st.sfx = v; AE.Audio.setSfxVolume(v); }
+        else if (key === 'shake') { st.shake = v; AE.FX.shakeMul = v; }
+        AE.Save.save();
+        const out = el.parentNode ? el.parentNode.querySelector('.range-val') : null;
+        if (out) out.textContent = Math.round(v * 100) + '%';
+      });
       if (this.dashEl) {
         this.dashEl.addEventListener('pointerdown', function (e) {
           e.preventDefault();
@@ -62,7 +76,8 @@
           if (k === 'Enter') { e.preventDefault(); self.action('restart'); }
           return;
         }
-        if (self.mode === 'how' || self.mode === 'meta') {
+        if (self.mode === 'how' || self.mode === 'meta' || self.mode === 'settings' ||
+            self.mode === 'codex' || self.mode === 'archive') {
           if (k === 'Escape') { e.preventDefault(); self.action('back'); }
         }
       });
@@ -126,8 +141,37 @@
         case 'how':
           this.showHow();
           break;
+        case 'codex':
+          this.settingsFrom = this.mode === 'pause' ? 'pause' : 'menu';
+          this.showCodex();
+          break;
+        case 'archive':
+          this.settingsFrom = this.mode === 'pause' ? 'pause' : 'menu';
+          this.showArchive();
+          break;
+        case 'settings':
+          this.settingsFrom = this.mode === 'pause' ? 'pause' : 'menu';
+          this.showSettings();
+          break;
+        case 'toggle': {
+          const st = AE.Save.data.settings;
+          st[id] = !st[id];
+          AE.Save.save();
+          AE.Game.applySettings();
+          if (this.mode === 'settings') this.showSettings();
+          break;
+        }
+        case 'quality':
+          AE.Save.data.settings.quality = parseFloat(id) || 1;
+          AE.Save.save();
+          AE.Game.applySettings();
+          if (this.mode === 'settings') this.showSettings();
+          break;
         case 'back':
-          if (this.mode === 'how') this.showMenu();
+          if (this.mode === 'settings' || this.mode === 'codex' || this.mode === 'archive') {
+            if (this.settingsFrom === 'pause') this.showPause(AE.Game.pausedByBlur);
+            else this.showMenu();
+          } else if (this.mode === 'how') this.showMenu();
           else if (this.prev === 'result' && AE.G.result) this.showResult(AE.G.result);
           else this.showMenu();
           break;
@@ -243,6 +287,11 @@
         '<button class="btn ghost" data-act="meta">回响强化</button>' +
         '<button class="btn ghost" data-act="how">玩法</button>' +
         '</div>' +
+        '<div class="menu-links">' +
+        '<button class="link-btn" data-act="codex">图鉴</button>' +
+        '<button class="link-btn" data-act="archive">档案</button>' +
+        '<button class="link-btn" data-act="settings">设置</button>' +
+        '</div>' +
         '<div class="menu-feats">' +
         '<span>6 把可进化武器</span><span>7 种虚空生物</span><span>4 场首领战</span><span>无尽轮次</span>' +
         '</div>' +
@@ -320,6 +369,8 @@
         '<button class="btn ghost danger" data-act="menu">返回主菜单</button>' +
         '</div>' +
         '<div class="hint">按 ESC 继续 · 结束后仍可获得回响</div>' +
+        '<div class="pause-links"><button class="link-btn" data-act="codex">图鉴</button>' +
+        '<button class="link-btn" data-act="settings">设置</button></div>' +
         '</div>' +
         '</div>';
       this.setHTML(html);
@@ -397,6 +448,141 @@
         '<section><div class="section-label">操作角色</div><div class="char-list">' + this.charCards() + '</div></section>' +
         '</div>' +
         '<div class="meta-note">回响在每局结束时结算，永久保留。强化对所有角色生效。</div>' +
+        '</div>';
+      this.setHTML(html, true);
+      this.scrollTop();
+    },
+
+    /* ---------- 设置 ---------- */
+    showSettings: function () {
+      this.mode = 'settings';
+      const st = AE.Save.data.settings;
+      const slider = function (key, label, val) {
+        const pct = Math.round(val * 100);
+        return '<div class="set-row"><div class="set-label">' + label + '</div>' +
+          '<input type="range" min="0" max="100" value="' + pct + '" data-set="' + key + '">' +
+          '<span class="range-val">' + pct + '%</span></div>';
+      };
+      const q = st.quality || 1;
+      const html =
+        '<div class="screen settings-screen">' +
+        '<div class="panel wide">' +
+        '<div class="panel-kicker">SETTINGS</div>' +
+        '<h2>设置</h2>' +
+        slider('music', '音乐音量', st.music) +
+        slider('sfx', '音效音量', st.sfx) +
+        slider('shake', '屏幕震动', st.shake) +
+        '<div class="set-row"><div class="set-label">伤害数字</div>' +
+        '<button class="switch ' + (st.dmgText ? 'on' : '') + '" data-act="toggle" data-id="dmgText">' + (st.dmgText ? '开' : '关') + '</button></div>' +
+        '<div class="set-row"><div class="set-label">画质</div><div class="seg">' +
+        [['0.6', '低'], ['1', '中'], ['1.4', '高']].map(function (p) {
+          const on = Math.abs(q - parseFloat(p[0])) < 0.01;
+          return '<button class="seg-btn ' + (on ? 'on' : '') + '" data-act="quality" data-id="' + p[0] + '">' + p[1] + '</button>';
+        }).join('') +
+        '</div></div>' +
+        '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
+        '<div class="hint">设置会自动保存</div>' +
+        '</div></div>';
+      this.setHTML(html, true);
+      this.scrollTop();
+    },
+
+    /* ---------- 图鉴 ---------- */
+    showCodex: function () {
+      this.mode = 'codex';
+      const D = AE.Data;
+      const weapons = D.WEAPONS.map(function (w) {
+        return '<div class="codex-card" style="--c:' + w.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">' + w.icon + '</span><span class="codex-tag">' + w.tag + '</span></div>' +
+          '<div class="codex-name">' + w.name + '</div>' +
+          '<div class="codex-desc">' + w.intro + '</div>' +
+          '<div class="codex-evo">进化 · ' + w.evolved.name + '</div>' +
+          '<div class="codex-stats">Lv1 ' + D.weaponDetail({ id: w.id, evolved: false }, 1) + '<br>Lv8 ' + D.weaponDetail({ id: w.id, evolved: false }, 8) + '</div>' +
+          '</div>';
+      }).join('');
+      const passives = D.PASSIVES.map(function (p) {
+        return '<div class="codex-card" style="--c:' + p.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">' + p.icon + '</span><span class="codex-tag">5 级</span></div>' +
+          '<div class="codex-name">' + p.name + '</div>' +
+          '<div class="codex-desc">' + p.desc(1) + '</div>' +
+          '<div class="codex-stats">满级 ' + p.desc(5) + '</div>' +
+          '</div>';
+      }).join('');
+      const enemies = Object.keys(D.ENEMIES).map(function (k) {
+        const e = D.ENEMIES[k];
+        return '<div class="codex-row"><b style="color:' + e.color + '">' + e.name + '</b>' +
+          '<span>生命 ' + e.hp + ' · 接触伤害 ' + e.dmg + ' · 经验 ' + e.xp + '</span></div>';
+      }).join('');
+      const bosses = D.BOSSES.map(function (b) {
+        return '<div class="codex-row"><b style="color:' + b.color + '">' + b.name + '</b>' +
+          '<span>' + U.fmtTime(b.at) + ' 出现 · 生命 ' + b.hp + ' · 伤害 ' + b.dmg + ' · ' + b.title + '</span></div>';
+      }).join('');
+      const html =
+        '<div class="screen codex-screen">' +
+        '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
+        '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
+        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、被动、敌人与首领</div></div>' +
+        '</div></div>' +
+        '<div class="section-label">武器 · 6 / 6</div>' +
+        '<div class="codex-grid">' + weapons + '</div>' +
+        '<div class="section-label">被动 · ' + D.PASSIVES.length + '</div>' +
+        '<div class="codex-grid">' + passives + '</div>' +
+        '<div class="section-label">虚空生物</div>' +
+        '<div class="codex-rows">' + enemies + '</div>' +
+        '<div class="section-label">首领</div>' +
+        '<div class="codex-rows">' + bosses + '</div>' +
+        '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
+        '</div>';
+      this.setHTML(html, true);
+      this.scrollTop();
+    },
+
+    /* ---------- 档案 ---------- */
+    showArchive: function () {
+      this.mode = 'archive';
+      const S = AE.Save.data;
+      const st = S.stats || {};
+      const got = S.achievements || [];
+      const all = AE.Data.ACHIEVEMENTS;
+      const achHtml = all.map(function (a) {
+        const has = got.indexOf(a.id) >= 0;
+        return '<div class="ach ' + (has ? 'got' : 'locked') + '" style="--c:' + a.color + '">' +
+          '<span class="ach-icon">' + (has ? a.icon : '?') + '</span>' +
+          '<div><div class="ach-name">' + a.name + '</div><div class="ach-desc">' + a.desc + '</div></div>' +
+          '</div>';
+      }).join('');
+      const runs = (S.bestRuns || []).map(function (r, i) {
+        const c = AE.Data.CHAR_MAP[r.char];
+        return '<div class="run-row">' +
+          '<span class="run-rank">#' + (i + 1) + '</span>' +
+          '<b>' + U.fmtTime(r.time) + '</b>' +
+          '<span>Lv' + r.level + ' · ' + r.kills + ' 击杀</span>' +
+          '<span class="run-char">' + (c ? c.name : r.char) + '</span>' +
+          '<span class="' + (r.victory ? 'ok' : '') + '">' + (r.victory ? '通关' : '陨落') + '</span>' +
+          '</div>';
+      }).join('') || '<div class="empty">还没有记录，去打一局吧</div>';
+      const winPct = st.runs ? Math.round((st.wins || 0) / st.runs * 100) : 0;
+      const html =
+        '<div class="screen archive-screen">' +
+        '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
+        '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
+        '<div><h2>档案</h2><div class="sub">ARCHIVE · 生涯统计、成就与最佳记录</div></div>' +
+        '</div><div class="wallet">◈ <span>' + S.echoes + '</span><small>回响</small></div></div>' +
+        '<div class="stat-grid">' +
+        '<div class="stat-cell"><span>总局数</span><b>' + (st.runs || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>通关</span><b>' + (st.wins || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>通关率</span><b>' + winPct + '%</b></div>' +
+        '<div class="stat-cell"><span>总击杀</span><b>' + U.fmtNum(st.kills || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>总生存</span><b>' + U.fmtTime(st.time || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>总伤害</span><b>' + U.fmtNum(st.damage || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>击破首领</span><b>' + (st.bosses || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>武器进化</span><b>' + (st.evolves || 0) + '</b></div>' +
+        '</div>' +
+        '<div class="section-label">成就 · ' + got.length + ' / ' + all.length + '</div>' +
+        '<div class="ach-grid">' + achHtml + '</div>' +
+        '<div class="section-label">最佳记录</div>' +
+        '<div class="run-list">' + runs + '</div>' +
+        '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
         '</div>';
       this.setHTML(html, true);
       this.scrollTop();

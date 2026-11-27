@@ -504,8 +504,10 @@
       e.flash = 0.09;
       const G = AE.G;
       G.stats.damage += dmg;
-      AE.FX.text(e.x + U.rnd(-4, 4), e.y - e.r - 6, String(Math.round(dmg)),
-        opts && opts.crit ? '#ffd479' : '#eaf2ff', opts && opts.crit ? 19 : 13.5, opts && opts.crit);
+      if (AE.FX.dmgText) {
+        AE.FX.text(e.x + U.rnd(-4, 4), e.y - e.r - 6, String(Math.round(dmg)),
+          opts && opts.crit ? '#ffd479' : '#eaf2ff', opts && opts.crit ? 19 : 13.5, opts && opts.crit);
+      }
       if (opts && opts.crit) AE.FX.spark(e.x, e.y, '#ffd479', 3, { spd: 120, life: 0.25, size: 2.2 });
       AE.Audio.sfx('hit');
       if (e.hp <= 0) this.kill(e);

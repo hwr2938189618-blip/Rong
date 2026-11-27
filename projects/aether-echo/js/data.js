@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.0.0';
+  D.VERSION = '1.1.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -381,5 +381,27 @@
     '同一种武器升到 8 级会自动进化。',
     '金色精英会掉落大量经验。',
     'BOSS 的行动都有前摇，提前绕开。'
+  ];
+
+  /* ============================================================
+   * 成就（永久记录）
+   * ============================================================ */
+  D.ACHIEVEMENTS = [
+    { id: 'first_blood', name: '初次回响', desc: '击杀第一个敌人', icon: '✦', color: '#7df9ff' },
+    { id: 'kills_100', name: '猎手', desc: '累计击杀 100 个敌人', icon: '✧', color: '#7df9ff' },
+    { id: 'kills_1000', name: '清道夫', desc: '累计击杀 1,000 个敌人', icon: '❂', color: '#b388ff' },
+    { id: 'kills_10000', name: '星渊屠夫', desc: '累计击杀 10,000 个敌人', icon: '❈', color: '#ff5c7a' },
+    { id: 'run_300', name: '单局清场', desc: '单局击杀 300 个敌人', icon: '✹', color: '#ff9f68' },
+    { id: 'run_600', name: '势不可挡', desc: '单局击杀 600 个敌人', icon: '⌁', color: '#ffd479' },
+    { id: 'lv20', name: '渐入佳境', desc: '单局达到 20 级', icon: '◈', color: '#8affc1' },
+    { id: 'lv40', name: '回响共鸣', desc: '单局达到 40 级', icon: '✷', color: '#ffd479' },
+    { id: 'boss1', name: '弑神者', desc: '击破任意首领', icon: '⛨', color: '#ff8fa3' },
+    { id: 'boss10', name: '首领猎人', desc: '累计击破 10 名首领', icon: '❃', color: '#ffd479' },
+    { id: 'evolve1', name: '第一次进化', desc: '让任意武器进化一次', icon: '✧', color: '#b388ff' },
+    { id: 'evolve6', name: '全副武装', desc: '累计完成 6 次武器进化', icon: '✺', color: '#b388ff' },
+    { id: 'time10', name: '坚持到底', desc: '单局存活 10 分钟', icon: '⊙', color: '#8affc1' },
+    { id: 'win1', name: '回响长存', desc: '击破最终首领，完成一次通关', icon: '✵', color: '#ffd479' },
+    { id: 'runs10', name: '老兵', desc: '完成 10 局游戏', icon: '◍', color: '#9fb4ff' },
+    { id: 'allchar', name: '全员集结', desc: '解锁全部四名角色', icon: '✺', color: '#7df9ff' }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

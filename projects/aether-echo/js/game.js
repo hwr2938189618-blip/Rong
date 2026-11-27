@@ -15,6 +15,7 @@
     xp: 0, level: 1, xpNeed: 0, pending: 0,
     spawnT: 0, eliteT: 50, bossIdx: 0, bossWarnT: 0, bossWarned: false,
     draft: null, anns: [], timers: [], echoBonus: 0, winning: false,
+    slowT: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -29,6 +30,7 @@
       this.headless = !!AE.HEADLESS;
       AE.Save.load();
       AE.Audio.muted = !!AE.Save.data.muted;
+      this.applySettings();
       G.enemies = AE.Enemies.list;
       this.resize();
       if (!this.headless) {
@@ -71,6 +73,55 @@
       AE.FX.init(w, h, this.dpr);
     },
 
+    applySettings: function () {
+      const s = (AE.Save.data && AE.Save.data.settings) || {};
+      AE.Audio.setMusicVolume(s.music === undefined ? 0.7 : s.music);
+      AE.Audio.setSfxVolume(s.sfx === undefined ? 0.85 : s.sfx);
+      AE.FX.shakeMul = s.shake === undefined ? 1 : s.shake;
+      AE.FX.dmgText = s.dmgText !== false;
+      AE.FX.quality = s.quality || 1;
+    },
+
+    checkAchievements: function (final) {
+      const S = AE.Save.data;
+      if (!S || !AE.Data.ACHIEVEMENTS) return;
+      if (!Array.isArray(S.achievements)) S.achievements = [];
+      if (!S.stats) S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 };
+      const st = S.stats;
+      const runActive = !!G.player && (G.state === 'playing' || G.state === 'levelup' || G.state === 'paused' || G.state === 'gameover' || G.state === 'victory');
+      const runKills = runActive ? G.kills : 0;
+      const runBosses = runActive ? G.bossKills : 0;
+      const runLevel = runActive ? G.level : 0;
+      const runTime = runActive ? G.time : 0;
+      const totalKills = (st.kills || 0) + (final ? 0 : runKills);
+      const totalBosses = (st.bosses || 0) + (final ? 0 : runBosses);
+      const list = AE.Data.ACHIEVEMENTS;
+      const unlock = function (id) {
+        if (S.achievements.indexOf(id) >= 0) return;
+        S.achievements.push(id);
+        AE.Save.save();
+        const a = list.filter(function (x) { return x.id === id; })[0];
+        if (a && AE.UI) AE.UI.toast('成就解锁 · ' + a.name, a.color || '#ffd479');
+        if (AE.Audio) AE.Audio.sfx('evolve');
+      };
+      if (totalKills >= 1) unlock('first_blood');
+      if (totalKills >= 100) unlock('kills_100');
+      if (totalKills >= 1000) unlock('kills_1000');
+      if (totalKills >= 10000) unlock('kills_10000');
+      if (runKills >= 300) unlock('run_300');
+      if (runKills >= 600) unlock('run_600');
+      if (runLevel >= 20) unlock('lv20');
+      if (runLevel >= 40) unlock('lv40');
+      if (totalBosses >= 1) unlock('boss1');
+      if (totalBosses >= 10) unlock('boss10');
+      if ((st.evolves || 0) >= 1) unlock('evolve1');
+      if ((st.evolves || 0) >= 6) unlock('evolve6');
+      if (runTime >= 600) unlock('time10');
+      if ((st.wins || 0) >= 1) unlock('win1');
+      if ((st.runs || 0) >= 10) unlock('runs10');
+      if (S.chars.length >= 4) unlock('allchar');
+    },
+
     /* ---------- 场景 ---------- */
     startMenu: function () {
       G.state = 'menu';
@@ -103,6 +154,7 @@
       G.pending = 0; G.draft = null;
       G.spawnT = 0.6; G.eliteT = 55; G.bossIdx = 0; G.boss = null;
       G.bossWarnT = 0; G.bossWarned = false; G.winning = false;
+      G.slowT = 0;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
@@ -164,6 +216,7 @@
       this.last = now;
       if (dt > 0.08) dt = 0.08;
       if (dt < 0) dt = 0;
+      if (G.slowT > 0) { G.slowT -= dt; dt *= 0.35; }
 
       G.t += dt;
       if (G.state === 'playing') {
@@ -217,6 +270,7 @@
 
       AE.FX.update(dt);
       AE.Cam.follow(p, dt, p.aimX, p.aimY);
+      if (G.frame % 120 === 0) this.checkAchievements(false);
 
       if (G.frame % 30 === 0) {
         const density = AE.Enemies.list.length / 120;
@@ -366,6 +420,7 @@
       AE.FX.ring(p.x, p.y, '#ffd479', 6, 120, 0.6, 3);
       AE.FX.spark(p.x, p.y, '#ffd479', 20, { spd: 260, life: 0.7, size: 3 });
       AE.Audio.sfx('levelup');
+      this.checkAchievements(false);
       if (G.state === 'playing') this.openLevelUp(false);
     },
 
@@ -383,6 +438,7 @@
       AE.FX.flash(0.12, '#ffd479');
       AE.Audio.sfx('ui');
       AE.Cam.addShake(0.12);
+      AE.Cam.pulse = 0.06;
     },
 
     chooseUpgrade: function (i) {
@@ -450,8 +506,10 @@
     onBossKilled: function (boss) {
       const def = boss.def;
       G.boss = null;
+      G.slowT = 0.85;
       G.echoBonus += def.echo || 20;
       AE.Player.heal(G.player, G.player.maxHp * 0.25);
+      this.checkAchievements(false);
       if (def.id === 'final' && !G.loop) {
         G.winning = true;
         G.player.invuln = 6;
@@ -500,6 +558,21 @@
       S.echoes += echoes;
       S.totalEchoes += echoes;
       S.runs = (S.runs || 0) + 1;
+      const st = S.stats || (S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 });
+      st.kills = (st.kills || 0) + G.kills;
+      st.time = (st.time || 0) + G.time;
+      st.damage = (st.damage || 0) + G.stats.damage;
+      st.bosses = (st.bosses || 0) + G.bossKills;
+      st.runs = (st.runs || 0) + 1;
+      if (victory) st.wins = (st.wins || 0) + 1;
+      S.bestRuns = (S.bestRuns || []);
+      S.bestRuns.push({
+        time: Math.round(G.time), kills: G.kills, level: G.level,
+        victory: !!victory, char: p.char.id, echo: echoes,
+        date: new Date().toISOString().slice(0, 10)
+      });
+      S.bestRuns.sort(function (a, b) { return b.time - a.time; });
+      S.bestRuns = S.bestRuns.slice(0, 8);
       const best = S.best || (S.best = { time: 0, kills: 0, level: 0 });
       let newBest = false;
       if (G.time > (best.time || 0)) { best.time = G.time; newBest = true; }
@@ -507,6 +580,7 @@
       if (G.level > (best.level || 0)) best.level = G.level;
       S.seen = true;
       AE.Save.save();
+      this.checkAchievements(true);
       G.result = {
         victory: !!victory,
         time: G.time, kills: G.kills, level: G.level,

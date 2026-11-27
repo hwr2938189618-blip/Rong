@@ -82,6 +82,11 @@
       AE.FX.shake(0.5);
       AE.Audio.sfx('evolve');
       if (AE.Game) AE.Game.announce('武器进化 · ' + (def.evolved ? def.evolved.name : def.name), def.color, 2.6);
+      if (AE.Save && AE.Save.data && AE.Save.data.stats) {
+        AE.Save.data.stats.evolves = (AE.Save.data.stats.evolves || 0) + 1;
+        AE.Save.save();
+      }
+      if (AE.Game && AE.Game.checkAchievements) AE.Game.checkAchievements();
     },
 
     addPassive: function (p, id) {

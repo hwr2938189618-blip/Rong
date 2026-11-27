@@ -164,7 +164,11 @@
         chars: ['echo'], char: 'echo',
         meta: {}, muted: false,
         best: { time: 0, kills: 0, level: 0, score: 0 },
-        seen: false
+        seen: false,
+        settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1 },
+        stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 },
+        achievements: [],
+        bestRuns: []
       };
     },
     load: function () {
@@ -179,6 +183,12 @@
         if (!Array.isArray(d.chars) || !d.chars.length) d.chars = ['echo'];
         if (!d.best) d.best = base.best;
         if (!d.meta) d.meta = {};
+        ['settings', 'stats'].forEach(function (key) {
+          if (!d[key] || typeof d[key] !== 'object') d[key] = base[key];
+          else for (const sk in base[key]) if (d[key][sk] === undefined) d[key][sk] = base[key][sk];
+        });
+        if (!Array.isArray(d.achievements)) d.achievements = [];
+        if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
       } else {
         d = base;
       }
@@ -212,7 +222,7 @@
    * ============================================================ */
   const Cam = {
     x: 0, y: 0, zoom: 1, baseZoom: 1, targetZoom: 1,
-    sx: 0, sy: 0, trauma: 0, t: 0,
+    sx: 0, sy: 0, trauma: 0, t: 0, pulse: 0,
     W: 1280, H: 720,
     init: function (w, h) { this.W = w; this.H = h; this.resize(w, h); },
     resize: function (w, h) {
@@ -234,7 +244,9 @@
       if (halfW * 2 < 2800) this.x = clamp(this.x, halfW - 30, 2800 - halfW + 30);
       if (halfH * 2 < 1900) this.y = clamp(this.y, halfH - 30, 1900 - halfH + 30);
       this.t += dt;
-      this.targetZoom = this.baseZoom * (AE.G && AE.G.boss ? 0.965 : 1);
+      this.pulse *= Math.pow(0.01, dt);
+      if (this.pulse < 0.001) this.pulse = 0;
+      this.targetZoom = this.baseZoom * (AE.G && AE.G.boss ? 0.965 : 1) + this.pulse;
       this.zoom += (this.targetZoom - this.zoom) * Math.min(1, dt * 3);
       this.trauma = Math.max(0, this.trauma - dt * 1.45);
       const s = this.trauma * this.trauma;

@@ -11,6 +11,8 @@
     ctx: null,
     ready: false,
     muted: false,
+    musicVol: 0.7,
+    sfxVol: 0.85,
     master: null,
     sfxBus: null,
     musicBus: null,
@@ -43,11 +45,11 @@
       comp.connect(ctx.destination);
 
       this.sfxBus = ctx.createGain();
-      this.sfxBus.gain.value = 0.9;
+      this.sfxBus.gain.value = 0.9 * this.sfxVol;
       this.sfxBus.connect(this.master);
 
       this.musicBus = ctx.createGain();
-      this.musicBus.gain.value = 0.34;
+      this.musicBus.gain.value = 0.34 * this.musicVol;
       this.musicBus.connect(this.master);
 
       // 简易卷积混响
@@ -86,6 +88,26 @@
         this.master.gain.setTargetAtTime(m ? 0 : 0.85, t, 0.05);
       }
       if (AE.Save && AE.Save.data) { AE.Save.data.muted = !!m; AE.Save.save(); }
+    },
+
+    setMusicVolume: function (v) {
+      this.musicVol = U.clamp(v, 0, 1);
+      if (this.musicBus && this.ctx) {
+        this.musicBus.gain.setTargetAtTime(0.34 * this.musicVol, this.ctx.currentTime, 0.05);
+      }
+      if (AE.Save && AE.Save.data && AE.Save.data.settings) {
+        AE.Save.data.settings.music = this.musicVol;
+      }
+    },
+
+    setSfxVolume: function (v) {
+      this.sfxVol = U.clamp(v, 0, 1);
+      if (this.sfxBus && this.ctx) {
+        this.sfxBus.gain.setTargetAtTime(0.9 * this.sfxVol, this.ctx.currentTime, 0.03);
+      }
+      if (AE.Save && AE.Save.data && AE.Save.data.settings) {
+        AE.Save.data.settings.sfx = this.sfxVol;
+      }
     },
     toggle: function () {
       this.setMuted(!this.muted);

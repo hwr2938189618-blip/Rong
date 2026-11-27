@@ -10,6 +10,7 @@
     particles: [], rings: [], texts: [], lines: [], flashes: [],
     t: 0, W: 1280, H: 720, dpr: 1,
     hitstop: 0,
+    shakeMul: 1, dmgText: true, quality: 1,
     vignette: null, lowHp: 0,
     glows: {}, stars: null, nebulae: [],
 
@@ -150,8 +151,9 @@
     spark: function (x, y, color, n, o) {
       o = o || {};
       n = n || 4;
+      const cap = (AE.Data.CONST.MAX_PARTICLES || 600) * (this.quality || 1);
       for (let i = 0; i < n; i++) {
-        if (this.particles.length >= (AE.Data.CONST.MAX_PARTICLES || 600)) this.particles.shift();
+        if (this.particles.length >= cap) this.particles.shift();
         const ang = o.angle !== undefined ? o.angle + U.rnd(-(o.spread || 0.6), o.spread || 0.6) : U.rnd(0, U.TAU);
         const spd = U.rnd((o.spd || 60) * 0.4, o.spd || 160);
         const life = U.rnd((o.life || 0.4) * 0.6, o.life || 0.4);
@@ -193,7 +195,7 @@
       if (this.flashes.length > 6) this.flashes.shift();
     },
 
-    shake: function (v) { if (AE.Cam) AE.Cam.addShake(v); },
+    shake: function (v) { if (AE.Cam) AE.Cam.addShake(v * this.shakeMul); },
 
     hitStop: function (t) { this.hitstop = Math.max(this.hitstop, t); },
 
