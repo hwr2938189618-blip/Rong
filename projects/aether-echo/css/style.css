@@ -896,3 +896,49 @@ body.reduce-motion *::after {
   box-shadow: 0 0 14px color-mix(in srgb, var(--c) 12%, transparent);
   cursor: help;
 }
+
+/* ---------- 深渊契约 ---------- */
+.pact-screen { max-width: 940px; gap: 14px; }
+.pact-head { display: flex; align-items: center; gap: 14px; width: 100%; }
+.pact-head h2 { margin: 0; font-size: clamp(24px, 3.4vw, 32px); letter-spacing: 0.14em; font-weight: 900; }
+.pact-head .sub { font-size: 10px; letter-spacing: 0.32em; color: var(--dim2); margin-top: 6px; }
+.pact-sub { margin: 0; font-size: 12px; color: var(--dim); text-align: center; line-height: 1.6; }
+.pact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.pact-card {
+  --c: var(--cyan);
+  appearance: none; text-align: left; position: relative;
+  background: linear-gradient(180deg, rgba(17, 25, 48, 0.82), rgba(7, 11, 22, 0.88));
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px 12px 62px; color: var(--ink); cursor: pointer;
+  transition: 0.16s; min-height: 96px;
+}
+.pact-card:hover { border-color: color-mix(in srgb, var(--c) 52%, transparent); }
+.pact-card.on {
+  border-color: var(--c);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 12%, rgba(17, 25, 48, 0.9)), rgba(7, 11, 22, 0.9));
+  box-shadow: 0 0 26px color-mix(in srgb, var(--c) 16%, transparent);
+}
+.pact-icon {
+  position: absolute; left: 14px; top: 14px; width: 36px; height: 36px;
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--c);
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+}
+.pact-name { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 800; letter-spacing: 0.06em; }
+.pact-name em { font-style: normal; font-size: 10px; color: var(--gold); font-weight: 700; letter-spacing: 0.08em; }
+.pact-desc { display: block; margin-top: 6px; font-size: 12px; color: var(--dim); line-height: 1.55; }
+.pact-mark { display: block; margin-top: 8px; font-size: 9px; letter-spacing: 0.22em; color: var(--dim2); }
+.pact-card.on .pact-mark { color: var(--c); }
+.pact-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; margin-top: 4px; }
+.pact-mult { font-size: 12px; color: var(--dim); }
+.pact-mult b { color: var(--gold); font-size: 20px; margin-left: 6px; font-variant-numeric: tabular-nums; }
+.pact-mult small { display: block; font-size: 9px; letter-spacing: 0.2em; color: var(--dim2); margin-top: 2px; }
+.pact-best { font-size: 10px; letter-spacing: 0.16em; color: var(--dim2); }
+.pact-badge { margin-top: 8px; }
+@media (max-width: 720px) {
+  .pact-grid { grid-template-columns: 1fr; }
+  .pact-foot { flex-direction: column; align-items: stretch; }
+  .pact-foot .btn { width: 100%; }
+  .pact-card { min-height: 0; }
+}

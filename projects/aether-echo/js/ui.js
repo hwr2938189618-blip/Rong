@@ -81,6 +81,11 @@
           if (k === 'Enter') { e.preventDefault(); self.action('play'); }
           else if (k === 'd' || k === 'D') { e.preventDefault(); self.action('daily'); }
           else if (k === 'b' || k === 'B') { e.preventDefault(); self.action('rush'); }
+          else if (k === 'c' || k === 'C') { e.preventDefault(); self.action('pact'); }
+          return;
+        }
+        if (self.mode === 'pact') {
+          if (k === 'Escape') { e.preventDefault(); self.action('back'); }
           return;
         }
         if (self.mode === 'result') {
@@ -180,6 +185,24 @@
         case 'rushagain':
           AE.Game.startRun(S.char, false, true);
           break;
+        case 'pact':
+          this.pactSel = this.pactSel || [];
+          this.showPact();
+          break;
+        case 'pact-toggle': {
+          this.pactSel = this.pactSel || [];
+          const pi = this.pactSel.indexOf(id);
+          if (pi >= 0) this.pactSel.splice(pi, 1);
+          else if (this.pactSel.length < 4) this.pactSel.push(id);
+          AE.Audio.sfx('ui');
+          this.showPact();
+          break;
+        }
+        case 'pact-start':
+          if (this.pactSel && this.pactSel.length) {
+            AE.Game.startRun(S.char, false, false, this.pactSel.slice());
+          }
+          break;
         case 'meta':
           this.prev = this.mode === 'result' ? 'result' : 'menu';
           this.showMeta();
@@ -217,7 +240,7 @@
           if (this.mode === 'settings' || this.mode === 'codex' || this.mode === 'archive') {
             if (this.settingsFrom === 'pause') this.showPause(AE.Game.pausedByBlur);
             else this.showMenu();
-          } else if (this.mode === 'how') this.showMenu();
+          } else if (this.mode === 'how' || this.mode === 'pact') this.showMenu();
           else if (this.prev === 'result' && AE.G.result) this.showResult(AE.G.result);
           else this.showMenu();
           break;
@@ -345,6 +368,7 @@
         '<div class="menu-links">' +
         '<button class="link-btn" data-act="codex">图鉴</button>' +
         '<button class="link-btn" data-act="archive">档案</button>' +
+        '<button class="link-btn" data-act="pact">契约</button>' +
         '<button class="link-btn" data-act="settings">设置</button>' +
         '</div>' +
         '<div class="menu-feats">' +
@@ -359,12 +383,45 @@
         '<div>最高击杀 <b>' + (best.kills || 0) + '</b></div>' +
         '<div>最高等级 <b>' + (best.level || 0) + '</b></div>' +
         '<div>连战最佳 <b>' + (S.bestRush && S.bestRush.time ? U.fmtTime(S.bestRush.time) : '--:--') + '</b></div>' +
+        '<div>契约最佳 <b>' + (S.bestPact && S.bestPact.tier ? ('×' + S.bestPact.tier + ' · ' + U.fmtTime(S.bestPact.time)) : '--') + '</b></div>' +
         '<div class="echo">◈ 回响 <b>' + S.echoes + '</b></div>' +
         '</div>' +
         '</div>';
       this.setHTML(html);
       this.scrollTop();
       AE.Audio.setIntensity(0.14);
+    },
+
+    /* ---------- 深渊契约 ---------- */
+    showPact: function () {
+      this.mode = 'pact';
+      const sel = this.pactSel || (this.pactSel = []);
+      const cards = D.PACTS.map(function (p) {
+        const on = sel.indexOf(p.id) >= 0;
+        return '<button class="pact-card' + (on ? ' on' : '') + '" data-act="pact-toggle" data-id="' + p.id + '" style="--c:' + p.color + '">' +
+          '<span class="pact-icon">' + p.icon + '</span>' +
+          '<span class="pact-name">' + p.name + '<em>回响 +' + Math.round(p.mult * 100) + '%</em></span>' +
+          '<span class="pact-desc">' + p.desc + '</span>' +
+          '<span class="pact-mark">' + (on ? '已签订' : '签订契约') + '</span>' +
+          '</button>';
+      }).join('');
+      const mult = 1 + sel.reduce(function (s, id) {
+        return s + (D.PACT_MAP[id] ? D.PACT_MAP[id].mult : 0);
+      }, 0);
+      const best = AE.Save.data.bestPact;
+      const html =
+        '<div class="screen pact-screen">' +
+        '<div class="pact-head"><button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
+        '<div><h2>深渊契约</h2><div class="sub">ABYSS CONTRACT · 自选难度</div></div></div>' +
+        '<p class="pact-sub">每签订一条契约，敌人更强，结算回响 +20%；最多同时签订 4 条。</p>' +
+        '<div class="pact-grid">' + cards + '</div>' +
+        '<div class="pact-foot"><div class="pact-mult">回响倍率 <b>×' + mult.toFixed(2) + '</b>' +
+        '<small>' + sel.length + ' / 4 条</small></div>' +
+        '<button class="btn primary" data-act="pact-start"' + (sel.length ? '' : ' disabled') + '>开始契约</button></div>' +
+        (best && best.tier ? '<div class="pact-best">契约最佳 · ×' + best.tier + ' 条 · ' + U.fmtTime(best.time) + '</div>' : '') +
+        '</div>';
+      this.setHTML(html, window.innerWidth <= 720);
+      this.scrollTop();
     },
 
     /* ---------- 升级选卡 ---------- */
@@ -441,6 +498,9 @@
         '</div>' +
         (G.daily ? '<div class="pause-daily">每日挑战 · ' + G.daily.key + '<br>' +
           G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') + '</div>' : '') +
+        (G.pacts && G.pacts.length ? '<div class="pause-daily pact-badge">深渊契约 · ' +
+          G.pacts.map(function (id) { return AE.Data.PACT_MAP[id] ? AE.Data.PACT_MAP[id].name : id; }).join(' / ') +
+          ' · 回响 ×' + (G.pactMult || 1).toFixed(2) + '</div>' : '') +
         relicRow +
         '<div class="btn-col">' +
         '<button class="btn primary" data-act="resume">继续（ESC）</button>' +
@@ -494,6 +554,9 @@
         (r.rush ? '<div class="rush-badge">首领连战 · 最佳 ' +
           (r.rushBest && r.rushBest.time ? U.fmtTime(r.rushBest.time) : '--:--') +
           (r.rushNew ? ' · 新纪录' : '') + '</div>' : '') +
+        (r.pacts && r.pacts.length ? '<div class="rush-badge pact-badge">深渊契约 · ' +
+          r.pacts.join(' / ') + ' · 回响 ×' + (r.pactMult || 1).toFixed(2) +
+          (r.pactNew ? ' · 新纪录' : '') + '</div>' : '') +
         '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
         '<div class="result-actions">' +
         (r.rush

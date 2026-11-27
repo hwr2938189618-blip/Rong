@@ -208,7 +208,8 @@
         achievements: [],
         bestRuns: [],
         dailyBest: {},
-        bestRush: { time: 0, char: '', date: '' }
+        bestRush: { time: 0, char: '', date: '' },
+        bestPact: { tier: 0, time: 0, char: '', date: '' }
       };
     },
     load: function () {
@@ -221,7 +222,8 @@
       if (d && typeof d === 'object') {
         for (const k in base) if (d[k] === undefined) d[k] = base[k];
         if (!Array.isArray(d.chars) || !d.chars.length) d.chars = ['echo'];
-        if (!d.best) d.best = base.best;
+        if (!d.best || typeof d.best !== 'object') d.best = base.best;
+        else for (const bk in base.best) if (d.best[bk] === undefined) d.best[bk] = base.best[bk];
         if (!d.meta) d.meta = {};
         ['settings', 'stats'].forEach(function (key) {
           if (!d[key] || typeof d[key] !== 'object') d[key] = base[key];
@@ -231,6 +233,8 @@
         if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
         if (!d.dailyBest || typeof d.dailyBest !== 'object') d.dailyBest = {};
         if (!d.bestRush || typeof d.bestRush !== 'object') d.bestRush = { time: 0, char: '', date: '' };
+        if (!d.bestPact || typeof d.bestPact !== 'object') d.bestPact = base.bestPact;
+        else for (const pk in base.bestPact) if (d.bestPact[pk] === undefined) d.bestPact[pk] = base.bestPact[pk];
       } else {
         d = base;
       }

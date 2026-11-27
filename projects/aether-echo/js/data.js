@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.9.0';
+  D.VERSION = '1.10.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -479,6 +479,8 @@
     { id: 'relic4', name: '遗物收藏家', desc: '单局获得 4 件遗物', icon: '✧', color: '#ffd479' },
     { id: 'relic5', name: '遗物猎人', desc: '单局获得 5 件遗物', icon: '✺', color: '#ffd479' },
     { id: 'rush_win', name: '五连破晓', desc: '完成一次首领连战', icon: '⛨', color: '#ff8fa3' },
+    { id: 'pact2', name: '契约行者', desc: '以至少 2 条深渊契约通关', icon: '⟡', color: '#b388ff' },
+    { id: 'pact4', name: '深渊主宰', desc: '以 4 条深渊契约通关', icon: '❖', color: '#ff5c7a' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 
@@ -492,6 +494,18 @@
     { id: 'void', name: '虚空稀薄', desc: '敌人生命 -10%，数量 +20%', color: '#b388ff' },
     { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' }
   ];
+
+  /* ============================================================
+   * 深渊契约（开局可选难度词条，提高回响收益）
+   * ============================================================ */
+  D.PACTS = [
+    { id: 'horde', name: '兽潮', icon: '≋', color: '#ff9f68', mult: 0.2, desc: '敌人数量 +35%' },
+    { id: 'frenzy', name: '狂怒', icon: '✹', color: '#ff5c7a', mult: 0.2, desc: '敌人伤害 +30%' },
+    { id: 'swift', name: '疾行', icon: '⌁', color: '#7df9ff', mult: 0.2, desc: '敌人移速 +25%' },
+    { id: 'elite', name: '精锐', icon: '✦', color: '#ffd479', mult: 0.2, desc: '精英出现频率翻倍，精英生命 +25%' }
+  ];
+  D.PACT_MAP = {};
+  D.PACTS.forEach(function (p) { D.PACT_MAP[p.id] = p; });
 
   /* ============================================================
    * 遗物（击破首领后三选一，本局永久生效）

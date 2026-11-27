@@ -163,6 +163,8 @@
       if (runActive && G.player.relics && G.player.relics.length >= 4) unlock('relic4');
       if (runActive && G.player.relics && G.player.relics.length >= 5) unlock('relic5');
       if (S.bestRush && S.bestRush.time > 0) unlock('rush_win');
+      if ((G.pactWinTier || 0) >= 2) unlock('pact2');
+      if ((G.pactWinTier || 0) >= 4) unlock('pact4');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
@@ -183,7 +185,7 @@
       AE.UI.showMenu();
     },
 
-    startRun: function (charId, daily, rush) {
+    startRun: function (charId, daily, rush, pacts) {
       if (G.state === 'playing') return;
       AE.Audio.init();
       const S = AE.Save.data;
@@ -193,6 +195,15 @@
       const isRush = !!rush;
       G.daily = isDaily ? this.dailyInfo() : null;
       G.mod = this.modFrom(G.daily ? G.daily.anomalies : []);
+      G.pacts = Array.isArray(pacts) ? pacts.filter(function (id) {
+        return AE.Data.PACT_MAP && AE.Data.PACT_MAP[id];
+      }).slice(0, 4) : [];
+      G.pactMult = 1 + G.pacts.reduce(function (s, id) {
+        return s + (AE.Data.PACT_MAP[id].mult || 0.2);
+      }, 0);
+      if (G.pacts.indexOf('horde') >= 0) G.mod.spawnMul *= 1.35;
+      if (G.pacts.indexOf('frenzy') >= 0) G.mod.enemyDmg *= 1.3;
+      if (G.pacts.indexOf('swift') >= 0) G.mod.enemySpeed *= 1.25;
       if (isDaily) AE.RNG.set(G.daily.seed); else AE.RNG.restore();
       AE.Enemies.reset();
       AE.World.reset();
@@ -204,12 +215,15 @@
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
-      G.spawnT = 0.6; G.eliteT = 55; G.bossIdx = 0; G.boss = null;
+      G.spawnT = 0.6;
+      G.eliteT = (G.pacts.indexOf('elite') >= 0 ? 27 : 55);
+      G.bossIdx = 0; G.boss = null;
       G.bossWarnT = 0; G.bossWarned = false; G.winning = false;
       G.slowT = 0;
       G.rush = isRush; G.rushIndex = 0; G.rushGap = 1.2;
       G.relicLock = false;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
+      G.pactWinTier = 0;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
       G.player.armor += G.mod.armor || 0;
@@ -266,7 +280,7 @@
 
     restart: function () {
       G.state = 'menu';
-      this.startRun(AE.Save.data.char);
+      this.startRun(AE.Save.data.char, !!G.daily, !!G.rush, (G.pacts || []).slice());
     },
 
     continueEndless: function () {
@@ -275,6 +289,9 @@
       G.bossIdx = 0; G.boss = null; G.bossWarned = false;
       G.winning = false;
       G.spawnT = 0.5;
+      // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避免“固定种子”假象
+      G.daily = null;
+      AE.RNG.restore();
       G.state = 'playing';
       AE.UI.hideAll();
       AE.FX.flash(0.3, '#b388ff');
@@ -419,7 +436,14 @@
       }
       x = U.clamp(x, 30, C.WORLD_W - 30);
       y = U.clamp(y, 30, C.WORLD_H - 30);
-      if (elite) return AE.Enemies.spawn(defId, x, y, { elite: true });
+      if (elite) {
+        const e = AE.Enemies.spawn(defId, x, y, { elite: true });
+        if (e && G.pacts && G.pacts.indexOf('elite') >= 0) {
+          e.maxHp = Math.round(e.maxHp * 1.25);
+          e.hp = e.maxHp;
+        }
+        return e;
+      }
       return AE.Enemies.spawn(defId, x, y);
     },
 
@@ -485,7 +509,7 @@
 
       G.eliteT -= dt;
       if (G.eliteT <= 0 && !G.boss) {
-        G.eliteT = 46 + Math.random() * 10;
+        G.eliteT = (46 + Math.random() * 10) * (G.pacts && G.pacts.indexOf('elite') >= 0 ? 0.5 : 1);
         if (count < C.MAX_ENEMIES - 4) {
           const table = this.currentTable();
           const id = this.pickWeighted(table);
@@ -712,7 +736,8 @@
       const p = G.player;
       const S = AE.Save.data;
       const base = G.kills * 0.35 + G.level * 3 + G.bossKills * 25 + G.time / 6;
-      const echoes = Math.max(0, Math.floor((base + G.echoBonus) * p.echoMul * ((G.mod && G.mod.echoMul) || 1)));
+      const echoes = Math.max(0, Math.floor((base + G.echoBonus) * p.echoMul *
+        ((G.mod && G.mod.echoMul) || 1) * (G.pactMult || 1)));
       S.echoes += echoes;
       S.totalEchoes += echoes;
       S.runs = (S.runs || 0) + 1;
@@ -764,6 +789,19 @@
         }
         rushBest = S.bestRush;
       }
+      let pactNew = false;
+      let pactBest = null;
+      if (victory && G.pacts && G.pacts.length) G.pactWinTier = G.pacts.length;
+      if (victory && G.pacts && G.pacts.length) {
+        S.bestPact = S.bestPact || { tier: 0, time: 0, char: '', date: '' };
+        const tier = G.pacts.length;
+        if (tier > (S.bestPact.tier || 0) ||
+            (tier === (S.bestPact.tier || 0) && (!S.bestPact.time || G.time < S.bestPact.time))) {
+          S.bestPact = { tier: tier, time: Math.round(G.time), char: p.char.id, date: AE.dateKey() };
+          pactNew = true;
+        }
+        pactBest = S.bestPact;
+      }
       AE.Save.save();
       this.checkAchievements(true);
       G.result = {
@@ -776,7 +814,12 @@
         dailyNew: dailyNew,
         dailyBest: dailyBest,
         anomalies: G.daily ? G.daily.anomalies.map(function (a) { return a.name; }) : [],
-        rush: !!G.rush, rushNew: rushNew, rushBest: rushBest
+        rush: !!G.rush, rushNew: rushNew, rushBest: rushBest,
+        pacts: (G.pacts || []).map(function (id) {
+          const d = AE.Data.PACT_MAP[id];
+          return d ? d.name : id;
+        }),
+        pactMult: G.pactMult || 1, pactNew: pactNew, pactBest: pactBest
       };
       G.state = victory ? 'victory' : 'gameover';
       AE.RNG.restore();
@@ -922,6 +965,13 @@
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(255,127,176,0.82)';
         ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks, 28, G.daily ? 128 : 112);
+      }
+      if (G.pacts && G.pacts.length) {
+        ctx.textAlign = 'left';
+        ctx.font = '600 10px ' + head;
+        ctx.fillStyle = 'rgba(179,136,255,0.9)';
+        ctx.fillText('深渊契约 ×' + G.pacts.length + ' · 回响 ×' + (G.pactMult || 1).toFixed(2),
+          28, 112 + (G.daily ? 16 : 0) + (p.killStack ? 16 : 0));
       }
 
       const wx = W - 34, wy = H / 2 - p.weapons.length * 26 + 16;
