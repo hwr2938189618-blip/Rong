@@ -943,3 +943,12 @@ body.reduce-motion *::after {
   .pact-foot .btn { width: 100%; }
   .pact-card { min-height: 0; }
 }
+
+/* 横屏小高度：所有覆盖层可滚动，保证菜单/结算/选卡可完成闭环 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .overlay { overflow-y: auto; align-items: flex-start; padding: 10px 14px; }
+  .screen { padding-bottom: 10px; }
+  .menu-screen { height: auto; min-height: 100%; }
+  .brand-title { font-size: clamp(30px, 5vw, 44px); }
+  .touch-dash { right: calc(104px + env(safe-area-inset-right, 0px)); bottom: calc(34px + env(safe-area-inset-bottom, 0px)); }
+}

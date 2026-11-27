@@ -387,7 +387,7 @@
         '<div class="echo">◈ 回响 <b>' + S.echoes + '</b></div>' +
         '</div>' +
         '</div>';
-      this.setHTML(html);
+      this.setHTML(html, this._touch || window.innerHeight < 600);
       this.scrollTop();
       AE.Audio.setIntensity(0.14);
     },
@@ -514,7 +514,7 @@
         '<button class="link-btn" data-act="settings">设置</button></div>' +
         '</div>' +
         '</div>';
-      this.setHTML(html);
+      this.setHTML(html, this._touch || window.innerHeight < 600);
     },
 
     /* ---------- 结算 ---------- */
@@ -569,7 +569,7 @@
         '<button class="btn ghost" data-act="menu">主菜单</button>' +
         '</div>' +
         '</div>';
-      this.setHTML(html);
+      this.setHTML(html, this._touch || window.innerHeight < 600);
     },
 
     /* ---------- 强化 ---------- */
