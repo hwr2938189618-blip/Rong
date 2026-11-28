@@ -27,7 +27,7 @@
         critDmg: D.CONST.BASE_CRITDMG,
         armor: char.armor || 0,
         regen: 0,
-        dashCdMul: char.dashCdMul || 1,
+        dashCdMul: (char.dashCdMul || 1) * (1 - lv('tempo') * 0.04),
         dashDamage: !!char.dashDamage,
         killStack: !!char.killStack,
         burn: !!char.burn,
