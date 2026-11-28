@@ -68,6 +68,7 @@
         chargeDir: { x: 1, y: 0 }, beams: [], spiral: 0, chaseT: 2.5,
         orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
         sweepCd: 8.5, sweepTele: 0, sweepActive: 0, sweepAng: 0, sweepSeen: false,
+        gravT: 5, gravTele: 0, gravPull: 0,
         phase2: false, enraged: false, scale: 1
       };
       e.maxHp = G.rush
@@ -352,6 +353,7 @@
 
     /* ---------- BOSS ---------- */
     updateBoss: function (e, dt, p) {
+      const G = AE.G;
       const dx = p.x - e.x, dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
       const nx = dx / d, ny = dy / d;
@@ -754,6 +756,40 @@
           e.summonT = 6 / rage;
           this.summon(e, 'wisp', 2, 240);
           AE.FX.ring(e.x, e.y, e.affix.color, 8, 120, 0.5, 2);
+        }
+      }
+      if (e.affix && e.affix.id === 'gravity') {
+        if (e.gravTele > 0) {
+          e.gravTele -= dt;
+          if (G.frame % 5 === 0) {
+            AE.FX.line(e.x, e.y, p.x, p.y, '#9f8bff', 0.28, 2.2, false);
+            AE.FX.spark(p.x, p.y, '#9f8bff', 1, { spd: 40, life: 0.2, size: 2, add: true });
+          }
+          if (e.gravTele <= 0) {
+            e.gravPull = 0.7;
+            AE.FX.ring(e.x, e.y, '#9f8bff', 20, 160, 0.45, 3);
+            AE.Audio.sfx('dash', { pitch: 0.65 });
+          }
+        } else if (e.gravPull > 0) {
+          e.gravPull -= dt;
+          const gd = Math.hypot(p.x - e.x, p.y - e.y) || 1;
+          if (gd > 90) {
+            p.x += (e.x - p.x) / gd * 210 * dt;
+            p.y += (e.y - p.y) / gd * 210 * dt;
+            p.x = U.clamp(p.x, 30, AE.Data.CONST.WORLD_W - 30);
+            p.y = U.clamp(p.y, 30, AE.Data.CONST.WORLD_H - 30);
+          }
+          if (e.gravPull <= 0) e.gravT = 7 / rage;
+        } else {
+          e.gravT -= dt;
+          if (e.gravT <= 0) {
+            e.gravTele = 0.7;
+            if (!e.gravSeen) {
+              e.gravSeen = true;
+              AE.Game.announce('引力 · 牵引预警', e.affix.color, 1.8);
+            }
+            AE.Audio.sfx('warn', { pitch: 0.75 });
+          }
         }
       }
       if (e.enraged) {
