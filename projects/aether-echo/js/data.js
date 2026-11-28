@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.65.0';
+  D.VERSION = '1.66.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -716,7 +716,9 @@
     { id: 'surge', name: '星核涌动', icon: '⚡', color: '#ffd479', dur: 10, weight: 2,
       desc: '攻速与星核充能大幅提升' },
     { id: 'hunt', name: '精英狩猎', icon: '✦', color: '#ff5c7a', dur: 8, weight: 2,
-      desc: '三名精英同时出现' }
+      desc: '三名精英同时出现' },
+    { id: 'storm', name: '星核风暴', icon: '⚡', color: '#ffd479', dur: 8, weight: 2,
+      desc: '星核闪电连续轰击敌群' }
   ];
   D.EVENT_MAP = {};
   D.EVENTS.forEach(function (e) { D.EVENT_MAP[e.id] = e; });
