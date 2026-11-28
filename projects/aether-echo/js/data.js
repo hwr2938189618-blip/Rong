@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.50.0';
+  D.VERSION = '1.51.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -837,6 +837,10 @@
       id: 'resonator', name: '共鸣棱镜', icon: '❖', color: '#7df9ff', requiresResonance: true,
       desc: '武器共鸣的伤害与宽度增幅 +50%',
       apply: function (p) { p.resonanceMul = (p.resonanceMul || 1) * 1.5; }
+    },
+    {
+      id: 'cinder', name: '余烬之心', icon: '✹', color: '#ff9f68', hook: true, requiresBurn: true,
+      desc: '被灼烧的敌人死亡时，向周围 160 扩散余烬并点燃'
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
