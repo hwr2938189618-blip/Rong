@@ -65,7 +65,8 @@
           w.t -= dt;
           if (w.t <= 0) {
             const surge = (AE.G.event && AE.G.event.id === 'surge') ? 1.35 : 1;
-            w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd * surge));
+            w.t = Math.max(0.08, s.cd / Math.max(0.25,
+              p.atkSpd * surge * AE.Player.attackSpeedMul(p)));
             W.fire(p, w, def, s);
           }
         }
@@ -340,7 +341,7 @@
         return;
       }
       if (w.t <= 0) {
-        w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd));
+        w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd * AE.Player.attackSpeedMul(p)));
         W.startBeam(p, w, s, def);
       }
     },
