@@ -776,6 +776,14 @@
         return '<div class="codex-row"><b style="color:' + b.color + '">' + b.name + '</b>' +
           '<span>' + U.fmtTime(b.at) + ' 出现 · 生命 ' + b.hp + ' · 伤害 ' + b.dmg + ' · ' + b.title + '</span></div>';
       }).join('');
+      const affixes = D.BOSS_AFFIXES.map(function (a) {
+        return '<div class="codex-card affix-card" style="--c:' + a.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">◈</span><span class="codex-tag">词缀</span></div>' +
+          '<div class="codex-name">' + a.name + '</div>' +
+          '<div class="codex-desc">' + a.desc + '</div>' +
+          '<div class="codex-stats">无尽轮首领随机附带</div>' +
+          '</div>';
+      }).join('');
       const relics = D.RELICS.map(function (r) {
         const seen = (S.relicsSeen || []).indexOf(r.id) >= 0;
         return '<div class="codex-card relic-card ' + (seen ? 'relic-seen' : 'relic-locked') +
@@ -818,6 +826,8 @@
         '<div class="codex-rows">' + enemies + '</div>' +
         '<div class="section-label">首领</div>' +
         '<div class="codex-rows">' + bosses + '</div>' +
+        '<div class="section-label">首领词缀 · ' + D.BOSS_AFFIXES.length + ' 种</div>' +
+        '<div class="codex-grid">' + affixes + '</div>' +
         '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
         '</div>';
       this.setHTML(html, true);
