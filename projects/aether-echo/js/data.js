@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.23.0';
+  D.VERSION = '1.24.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -382,6 +382,10 @@
     charger: {
       name: '冲角兽', hp: 66, speed: 76, dmg: 12, r: 16, xp: 3,
       color: '#ff9f68', shape: 'charger', behavior: 'charger'
+    },
+    priest: {
+      name: '虚空祭司', hp: 74, speed: 62, dmg: 11, r: 15, xp: 5,
+      color: '#d9a6ff', shape: 'priest', behavior: 'priest'
     }
   };
 
@@ -394,8 +398,8 @@
     { t: 175, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2 } },
     { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2, mender: 2 } },
     { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3, mender: 2, charger: 3 } },
-    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3 } },
-    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4 } }
+    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1 } },
+    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2 } }
   ];
 
   /* ============================================================

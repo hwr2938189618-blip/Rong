@@ -310,6 +310,14 @@
       for (let i = bs.length - 1; i >= 0; i--) {
         const b = bs[i];
         b.life -= dt;
+        // 追踪法球
+        if (b.homing && p.alive) {
+          const cur = Math.atan2(b.vy, b.vx);
+          const want = Math.atan2(p.y - b.y, p.x - b.x);
+          const na = U.angLerp(cur, want, Math.min(1, b.homing * dt));
+          const sp = Math.hypot(b.vx, b.vy) || 1;
+          b.vx = Math.cos(na) * sp; b.vy = Math.sin(na) * sp;
+        }
         b.x += b.vx * dt;
         b.y += b.vy * dt;
         if (b.life <= 0 || b.x < -60 || b.x > AE.Data.CONST.WORLD_W + 60 || b.y < -60 || b.y > AE.Data.CONST.WORLD_H + 60) {

@@ -248,6 +248,36 @@
           sp = 0;
           if (e.modeT <= 0) { e.mode = 'idle'; e.modeT = U.rnd(1.4, 2.4); }
         }
+      } else if (e.behavior === 'priest') {
+        // 保持中远距离，读条后发射追踪法球
+        if (d > 420) { mx = nx; my = ny; }
+        else if (d < 250) { mx = -nx; my = -ny; }
+        else { mx = -ny * 0.7; my = nx * 0.7; }
+        e.castT = (e.castT === undefined ? 2.2 : e.castT) - dt;
+        if (e.castT <= 0 && d < 640) {
+          e.castT = 3.2;
+          const a = Math.atan2(dy, dx);
+          AE.World.addEBullet({
+            x: e.x, y: e.y,
+            vx: Math.cos(a) * 125, vy: Math.sin(a) * 125,
+            r: 7, dmg: e.dmg * 0.8, life: 4.8, color: e.color,
+            kind: 'orb', homing: 1.35
+          });
+          AE.FX.ring(e.x, e.y, e.color, 5, 34, 0.3, 2);
+          AE.FX.spark(e.x, e.y, e.color, 5, { spd: 90, life: 0.3, size: 2.4, add: true });
+          AE.Audio.sfx('arc');
+        }
+        e.blinkT = (e.blinkT === undefined ? 6.5 : e.blinkT) - dt;
+        if (e.blinkT <= 0) {
+          e.blinkT = 7.5;
+          const CW = AE.Data.CONST.WORLD_W, CH = AE.Data.CONST.WORLD_H;
+          AE.FX.ring(e.x, e.y, e.color, 6, 60, 0.35, 2);
+          const ba = Math.random() * U.TAU;
+          e.x = U.clamp(p.x + Math.cos(ba) * 330, 60, CW - 60);
+          e.y = U.clamp(p.y + Math.sin(ba) * 330, 60, CH - 60);
+          AE.FX.ring(e.x, e.y, e.color, 6, 60, 0.35, 2);
+          AE.FX.spark(e.x, e.y, e.color, 8, { spd: 120, life: 0.35, size: 2.6 });
+        }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
         if (e.def.explode && d < 58 && e.fuse <= 0) {
@@ -1085,9 +1115,36 @@
           ctx.fill();
         }
         ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'priest') {
+        // 虚空祭司：兜帽长袍 + 悬浮符文
+        ctx.fillStyle = flash ? 'rgba(255,240,255,0.72)' : '#22102e';
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -e.r * 1.05);
+        ctx.lineTo(e.r * 0.92, e.r * 0.82);
+        ctx.quadraticCurveTo(0, e.r * 1.1, -e.r * 0.92, e.r * 0.82);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#150a1e';
+        ctx.beginPath(); ctx.arc(0, -e.r * 0.42, e.r * 0.52, 0, U.TAU); ctx.fill();
+        ctx.strokeStyle = AE.FX.alpha(col, 0.8); ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(0, -e.r * 0.42, e.r * 0.52, 0, U.TAU); ctx.stroke();
+        ctx.fillStyle = '#ffe6ff';
+        ctx.beginPath(); ctx.arc(-e.r * 0.18, -e.r * 0.45, 1.9, 0, U.TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(e.r * 0.18, -e.r * 0.45, 1.9, 0, U.TAU); ctx.fill();
+        ctx.strokeStyle = AE.FX.alpha(col, 0.55);
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 1.3, -time * 0.9, -time * 0.9 + U.TAU); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 3; k++) {
+          const oa = time * 1.4 + k * U.TAU / 3;
+          const ox = Math.cos(oa) * e.r * 1.35, oy = Math.sin(oa) * e.r * 0.8 - e.r * 0.2;
+          AE.FX.glow(ctx, ox, oy, e.r * 0.42, col, 0.5);
+        }
+        ctx.globalCompositeOperation = 'source-over';
       } else if (s === 'charger') {
-        const ang = Math.atan2(AE.G.player.y - e.y, AE.G.player.x - e.x);
-        ctx.rotate(ang - e.rot);
+        const ang = Math.atan2(AE.G.player.y - e.y, AE.G.player.x - e.x);        ctx.rotate(ang - e.rot);
         ctx.fillStyle = flash ? 'rgba(255,236,246,0.72)' : '#3a1a0a';
         ctx.strokeStyle = col; ctx.lineWidth = 2.2;
         ctx.beginPath();
