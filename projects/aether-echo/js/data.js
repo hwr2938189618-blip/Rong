@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.20.0';
+  D.VERSION = '1.21.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -502,7 +502,9 @@
     { id: 'swift', name: '掠影基质', icon: '⌁', max: 5, cost: function (l) { return 12 + l * 12; }, per: 0.03, stat: 'spd', desc: function (l) { return '移动速度 +' + (l * 3) + '%'; } },
     { id: 'haste', name: '时律基质', icon: '◈', max: 5, cost: function (l) { return 18 + l * 18; }, per: 0.04, stat: 'atk', desc: function (l) { return '攻击速度 +' + (l * 4) + '%'; } },
     { id: 'fortune', name: '回响基质', icon: '⊙', max: 5, cost: function (l) { return 20 + l * 20; }, per: 0.05, stat: 'xp', desc: function (l) { return '经验与回响获取 +' + (l * 5) + '%'; } },
-    { id: 'revive', name: '回响之种', icon: '✷', max: 2, cost: function (l) { return 140 + l * 160; }, per: 1, stat: 'revive', desc: function (l) { return '每局复活 ' + l + ' 次'; } }
+    { id: 'revive', name: '回响之种', icon: '✷', max: 2, cost: function (l) { return 140 + l * 160; }, per: 1, stat: 'revive', desc: function (l) { return '每局复活 ' + l + ' 次'; } },
+    { id: 'core', name: '星核基质', icon: '⚡', max: 3, cost: function (l) { return 40 + l * 30; }, per: 20, stat: 'ult', desc: function (l) { return '开局星核 +' + (l * 20) + ' 点'; } },
+    { id: 'ignis', name: '炽焰基质', icon: '✹', max: 3, cost: function (l) { return 50 + l * 40; }, per: 0.15, stat: 'burn', desc: function (l) { return '灼烧伤害 +' + (l * 15) + '%'; } }
   ];
 
   /* 首次进入游戏的操作提示 */
