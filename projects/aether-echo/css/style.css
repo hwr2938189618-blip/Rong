@@ -1038,6 +1038,8 @@ button:focus-visible,
 
 .lb-tabs { margin: 0 0 8px; }
 .lb-tabs .seg-btn { min-width: 58px; }
+.daily-row { grid-template-columns: 82px 58px 1fr 70px 48px; }
+.daily-row .run-rank { color: var(--dim2); font-size: 9px; letter-spacing: 0; }
 body.left-hand .touch-dash {
   left: calc(26px + env(safe-area-inset-left, 0px)); right: auto;
 }
