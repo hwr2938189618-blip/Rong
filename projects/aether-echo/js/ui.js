@@ -356,6 +356,9 @@
       const dailyBest = daily && S.dailyBest ? S.dailyBest[daily.key] : null;
       const dailyNote = daily
         ? '<div class="daily-note">今日扰动 · ' + daily.anomalies.map(function (a) { return a.name; }).join(' / ') +
+          (daily.events && daily.events.length ? ' · 星象 ' + daily.events.map(function (id) {
+            return AE.Data.EVENT_MAP[id] ? AE.Data.EVENT_MAP[id].name : id;
+          }).join(' / ') : '') +
           (dailyBest ? ' · 今日最佳 ' + U.fmtTime(dailyBest.time) : '') + '</div>'
         : '';
       const html =

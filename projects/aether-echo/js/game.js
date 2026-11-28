@@ -20,7 +20,7 @@
     relicLock: false,
     event: null, eventT: 0, eventLeft: 0, meteorT: 0,
     eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false, stage: 1,
-    affixKills: 0,
+    affixKills: 0, dailyWin: false, dailyEvents: null, dailyEventsDone: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -106,7 +106,13 @@
         picked.push(pool.splice(idx, 1)[0]);
       }
       this._dailyKey = key;
-      this._dailyInfo = { key: key, seed: seed, anomalies: picked };
+      const epool = AE.Data.EVENTS.slice();
+      const pev = [];
+      for (let i = 0; i < 2 && epool.length; i++) {
+        const idx = Math.floor(rng() * epool.length) % epool.length;
+        pev.push(epool.splice(idx, 1)[0].id);
+      }
+      this._dailyInfo = { key: key, seed: seed, anomalies: picked, events: pev };
       return this._dailyInfo;
     },
 
@@ -173,6 +179,7 @@
       if ((G.burnKills || 0) >= 300) unlock('burn300');
       if ((G.ultCasts || 0) >= 20) unlock('ult20');
       if ((G.affixKills || 0) >= 3) unlock('affix3');
+      if (G.dailyWin) unlock('daily_win');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
@@ -235,6 +242,9 @@
       G.event = null; G.eventLeft = 0; G.meteorT = 0;
       G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
       G.affixKills = 0;
+      G.dailyWin = false;
+      G.dailyEvents = G.daily && G.daily.events ? G.daily.events.slice() : null;
+      G.dailyEventsDone = 0;
       G.stage = 1;
       G.eventT = 55 + Math.random() * 25;
       G.player = AE.Player.create(charId);
@@ -577,6 +587,14 @@
     /* ---------- 星象事件 ---------- */
     updateEvents: function (dt) {
       if (G.rush) return;
+      // 每日挑战：固定星象日程
+      if (G.dailyEvents && G.dailyEventsDone < G.dailyEvents.length && !G.event) {
+        const at = [90, 260];
+        if (G.time >= at[G.dailyEventsDone]) {
+          this.startEvent(G.dailyEvents[G.dailyEventsDone]);
+          G.dailyEventsDone++;
+        }
+      }
       if (G.event) {
         G.eventLeft -= dt;
         if (G.event.id === 'meteor') {
@@ -596,7 +614,7 @@
         return;
       }
       G.eventT -= dt;
-      if (G.eventT <= 0 && G.time > 36 && !G.winning) this.startEvent();
+      if (G.eventT <= 0 && G.time > 36 && !G.winning && !G.dailyEvents) this.startEvent();
     },
 
     startEvent: function (id) {
@@ -919,6 +937,7 @@
       let pactNew = false;
       let pactBest = null;
       if (victory && G.pacts && G.pacts.length) G.pactWinTier = G.pacts.length;
+      if (victory && G.daily) G.dailyWin = true;
       if (victory && G.pacts && G.pacts.length) {
         S.bestPact = S.bestPact || { tier: 0, time: 0, char: '', date: '' };
         const tier = G.pacts.length;
