@@ -207,6 +207,8 @@
 
     flash: function (a, color) {
       if (!this.motion) return;
+      if (AE.Save && AE.Save.data && AE.Save.data.settings &&
+          AE.Save.data.settings.flash === false) return;
       this.flashes.push({ a: a, color: color || '#ffffff', life: 0.22, max: 0.22 });
       if (this.flashes.length > 6) this.flashes.shift();
     },
