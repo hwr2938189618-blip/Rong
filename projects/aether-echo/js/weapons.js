@@ -96,7 +96,8 @@
       const crit = Math.random() < p.crit;
       const dmg = base * p.dmgMul * (crit ? p.critDmg : 1);
       return AE.Enemies.damage(e, dmg, {
-        crit: crit, x: opts && opts.x, y: opts && opts.y
+        crit: crit, x: opts && opts.x, y: opts && opts.y,
+        forceBurn: !!(opts && opts.forceBurn)
       });
     },
 
@@ -291,6 +292,34 @@
             });
           }
           AE.Audio.sfx('pulse');
+          break;
+        }
+        case 'flame': {
+          const half = s.angle / 2;
+          const range = s.range * (0.9 + p.areaMul * 0.1);
+          const aim = p.aimAngle;
+          const list = AE.Enemies.list;
+          for (let i = 0; i < list.length; i++) {
+            const e = list[i];
+            if (!e.alive || e.spawning > 0) continue;
+            const dx = e.x - p.x, dy = e.y - p.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > range + e.r) continue;
+            let da = Math.atan2(dy, dx) - aim;
+            da = Math.atan2(Math.sin(da), Math.cos(da));
+            const edge = Math.atan2(e.r, Math.max(12, dist));
+            if (Math.abs(da) > half + edge) continue;
+            W.rollCrit(p, e, s.dmg, { x: e.x, y: e.y, forceBurn: true });
+          }
+          for (let k = 0; k < 11; k++) {
+            const a = aim + U.rnd(-half, half);
+            const rr = U.rnd(20, range);
+            AE.FX.spark(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr,
+              k % 3 === 0 ? '#ffd479' : def.color, 2,
+              { spd: 150, life: 0.32, size: 2.8, add: true });
+          }
+          AE.FX.ring(p.x, p.y, def.color, 8, 52, 0.22, 2);
+          AE.Audio.sfx('arc', { pitch: 0.62 });
           break;
         }
       }
