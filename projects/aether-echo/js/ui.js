@@ -564,6 +564,35 @@
       this.mode = 'result';
       this.prev = 'result';
       const victory = r.victory;
+      const D = AE.Data;
+      const build = r.build;
+      const buildHtml = build ? (function () {
+        const wChips = (build.weapons || []).map(function (w) {
+          const def = D.WEAPON_MAP[w.id];
+          if (!def) return '';
+          const name = w.evolved && def.evolved ? def.evolved.name : def.name;
+          return '<span class="build-chip" style="--c:' + def.color + '">' +
+            (w.evolved && def.evolved ? def.evolved.icon : def.icon) + ' ' + name +
+            ' <b>' + (w.level >= 8 ? 'MAX' : 'Lv' + w.level) + '</b></span>';
+        }).join('');
+        const pChips = (build.passives || []).map(function (p) {
+          const def = D.PASSIVE_MAP[p.id];
+          if (!def) return '';
+          return '<span class="build-chip" style="--c:' + def.color + '">' +
+            def.icon + ' ' + def.name + ' <b>Lv' + p.level + '</b></span>';
+        }).join('');
+        const rChips = (build.relics || []).map(function (id) {
+          const def = D.RELICS.filter(function (x) { return x.id === id; })[0];
+          if (!def) return '';
+          return '<span class="build-chip relic" style="--c:' + def.color + '" title="' +
+            def.name + '：' + def.desc + '">' + def.icon + ' ' + def.name + '</span>';
+        }).join('');
+        return '<div class="result-build">' +
+          (wChips ? '<div class="build-line"><span class="build-label">武器</span>' + wChips + '</div>' : '') +
+          (pChips ? '<div class="build-line"><span class="build-label">被动</span>' + pChips + '</div>' : '') +
+          (rChips ? '<div class="build-line"><span class="build-label">遗物</span>' + rChips + '</div>' : '') +
+          '</div>';
+      })() : '';
       const title = r.rush
         ? (victory ? '六连战 · 全破' : '连战中断')
         : (victory ? '回响长存' : '回响中断');
@@ -607,6 +636,7 @@
         (r.pacts && r.pacts.length ? '<div class="rush-badge pact-badge">深渊契约 · ' +
           r.pacts.join(' / ') + ' · 回响 ×' + (r.pactMult || 1).toFixed(2) +
           (r.pactNew ? ' · 新纪录' : '') + '</div>' : '') +
+        buildHtml +
         '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
         '<div class="result-actions">' +
         (r.rush
