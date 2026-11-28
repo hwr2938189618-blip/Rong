@@ -280,6 +280,23 @@
           AE.FX.ring(e.x, e.y, e.color, 6, 60, 0.35, 2);
           AE.FX.spark(e.x, e.y, e.color, 8, { spd: 120, life: 0.35, size: 2.6 });
         }
+      } else if (e.behavior === 'binder') {
+        // 保持中距离，用锁链连接玩家；距离过远或死亡即断链
+        if (d > 430) {
+          mx = nx; my = ny;
+        } else if (d < 250) {
+          mx = -nx; my = -ny;
+        } else {
+          mx = -ny * 0.55; my = nx * 0.55; sp *= 0.55;
+        }
+        e.tethering = d < 400;
+        if (e.tethering) {
+          p.tetherT = 0.28;
+          if (G.frame % 45 === 0) {
+            AE.FX.spark(p.x, p.y, e.color, 2, { spd: 70, life: 0.28, size: 2.2, add: true });
+            AE.Audio.sfx('arc', { pitch: 1.35 });
+          }
+        }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
         if (e.def.explode && d < 58 && e.fuse <= 0) {
@@ -1032,6 +1049,30 @@
       ctx.globalAlpha = alpha;
       ctx.translate(e.x, e.y);
 
+      // 缚者的锁链：从本体连向玩家，断链时自动消失
+      if (e.behavior === 'binder' && e.tethering) {
+        const lp = AE.G.player;
+        const tx = lp.x - e.x, ty = lp.y - e.y;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = alpha * (0.42 + Math.sin(time * 9) * 0.14);
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([9, 7]);
+        ctx.lineDashOffset = -time * 42;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(tx, ty); ctx.stroke();
+        ctx.setLineDash([]);
+        for (let k = 1; k <= 3; k++) {
+          const t = k / 4;
+          ctx.globalAlpha = alpha * (0.5 + Math.sin(time * 8 + k) * 0.2);
+          ctx.fillStyle = '#f0e6ff';
+          ctx.beginPath();
+          ctx.arc(tx * t, ty * t, 2.2 + Math.sin(time * 10 + k) * 1.1, 0, U.TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
       // 地面阴影
       ctx.globalAlpha = alpha * 0.3;
       ctx.fillStyle = '#000000';
@@ -1200,6 +1241,30 @@
           ctx.beginPath();
           ctx.arc(Math.cos(a) * e.r * 1.18, Math.sin(a) * e.r * 1.18, 2.2, 0, U.TAU);
           ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'binder') {
+        // 缚者：菱形锁体 + 三枚环绕符文
+        ctx.fillStyle = flash ? 'rgba(255,240,255,0.72)' : '#1a1030';
+        ctx.strokeStyle = col; ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(0, -e.r * 1.1);
+        ctx.lineTo(e.r * 0.95, 0);
+        ctx.lineTo(0, e.r * 1.1);
+        ctx.lineTo(-e.r * 0.95, 0);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = AE.FX.alpha(col, 0.8);
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.56, 0, U.TAU); ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.2, 0, U.TAU); ctx.fill();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 3; k++) {
+          const oa = time * 1.5 + k * U.TAU / 3;
+          const ox = Math.cos(oa) * e.r * 1.42, oy = Math.sin(oa) * e.r * 0.95;
+          AE.FX.glow(ctx, ox, oy, e.r * 0.34, col, 0.55);
+          ctx.fillStyle = '#f0e6ff';
+          ctx.beginPath(); ctx.arc(ox, oy, 2.2, 0, U.TAU); ctx.fill();
         }
         ctx.globalCompositeOperation = 'source-over';
       } else if (s === 'priest') {
