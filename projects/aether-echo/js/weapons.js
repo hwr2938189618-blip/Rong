@@ -21,8 +21,9 @@
         }
         if (!hasAll) continue;
         if (out === s) out = Object.assign({}, s);
-        if (r.dmg) out.dmg = (out.dmg || 0) * r.dmg;
-        if (r.width) out.width = (out.width || 0) * r.width;
+        const rm = p.resonanceMul || 1;
+        if (r.dmg) out.dmg = (out.dmg || 0) * (1 + (r.dmg - 1) * rm);
+        if (r.width) out.width = (out.width || 0) * (1 + (r.width - 1) * rm);
       }
       return out;
     },
