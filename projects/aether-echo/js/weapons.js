@@ -229,6 +229,25 @@
           AE.Audio.sfx('prism');
           break;
         }
+        case 'refract': {
+          const targets = W.nearestEnemies(p.x, p.y, s.count, 820);
+          for (let i = 0; i < s.count; i++) {
+            const t = targets[i % Math.max(1, targets.length)] || null;
+            const a = t ? Math.atan2(t.y - p.y, t.x - p.x) : p.aimAngle;
+            AE.World.addBullet({
+              x: p.x + Math.cos(a) * 12, y: p.y + Math.sin(a) * 12,
+              vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
+              r: 6, dmg: s.dmg * p.dmgMul, life: 2.2,
+              color: def.color, kind: 'refract', pierce: 0,
+              ricochet: s.bounces, falloff: s.falloff, jumpRange: s.jumpRange,
+              hitIds: [], critChance: p.crit, critDmg: p.critDmg,
+              size: 6, trailT: 0
+            });
+          }
+          AE.Audio.sfx('prism', { pitch: 0.92 });
+          AE.FX.ring(p.x, p.y, def.color, 4, 30, 0.2, 2);
+          break;
+        }
         case 'well': {
           const target = W.nearestEnemies(p.x, p.y, 1, 760)[0];
           let cx, cy;

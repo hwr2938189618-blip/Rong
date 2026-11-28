@@ -260,11 +260,14 @@
             const nxt = this.findRicochet(b, e);
             if (nxt) {
               b.ricochet--;
+              if (b.falloff) b.dmg *= b.falloff;
               b.hitIds = [e.id];
               const ang = Math.atan2(nxt.y - b.y, nxt.x - b.x);
               const sp = Math.hypot(b.vx, b.vy);
               b.vx = Math.cos(ang) * sp; b.vy = Math.sin(ang) * sp;
-              b.life = 0.5;
+              b.life = 0.7;
+              AE.FX.line(b.x, b.y, nxt.x, nxt.y, b.color, 0.16, 2.6, true);
+              AE.FX.spark(nxt.x, nxt.y, b.color, 3, { spd: 110, life: 0.25, size: 2.2, add: true });
             } else {
               bs.splice(i, 1);
             }
@@ -277,7 +280,9 @@
     },
 
     findRicochet: function (b, exclude) {
-      let best = null, bd = 240 * 240;
+      let best = null;
+      const range = b.jumpRange || 240;
+      let bd = range * range;
       const list = AE.Enemies.list;
       for (let i = 0; i < list.length; i++) {
         const e = list[i];
@@ -538,6 +543,22 @@
           ctx.fillStyle = '#ffe9c9';
           ctx.beginPath();
           ctx.moveTo(8, 0); ctx.lineTo(-5, -4); ctx.lineTo(-2, 0); ctx.lineTo(-5, 4);
+          ctx.closePath(); ctx.fill();
+          ctx.restore();
+        } else if (b.kind === 'refract') {
+          const ang = Math.atan2(b.vy, b.vx);
+          AE.FX.glow(ctx, b.x, b.y, 20, b.color, 0.75);
+          ctx.save();
+          ctx.translate(b.x, b.y); ctx.rotate(ang + time * 3);
+          ctx.fillStyle = AE.FX.alpha(b.color, 0.42);
+          ctx.strokeStyle = b.color;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(8, 0); ctx.lineTo(0, -6); ctx.lineTo(-7, 0); ctx.lineTo(0, 6);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(4, 0); ctx.lineTo(0, -2.6); ctx.lineTo(-2.5, 0); ctx.lineTo(0, 2.6);
           ctx.closePath(); ctx.fill();
           ctx.restore();
         } else if (b.kind === 'shard') {

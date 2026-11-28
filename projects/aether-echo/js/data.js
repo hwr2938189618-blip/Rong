@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.77.0';
+  D.VERSION = '1.78.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -169,6 +169,24 @@
       }
     },
     {
+      id: 'refract', name: '棱镜折射', icon: '◇', color: '#c9a6ff', tag: '折射',
+      intro: '射出一枚棱镜晶弹，命中后在附近敌人之间折射，每次跳跃伤害递减。',
+      levels: [
+        { dmg: 30, cd: 1.35, count: 1, speed: 680, bounces: 3, falloff: 0.78, jumpRange: 280 },
+        { dmg: 38, cd: 1.30, count: 1, speed: 690, bounces: 3, falloff: 0.79, jumpRange: 285 },
+        { dmg: 38, cd: 1.24, count: 1, speed: 700, bounces: 4, falloff: 0.79, jumpRange: 290 },
+        { dmg: 48, cd: 1.18, count: 1, speed: 710, bounces: 4, falloff: 0.80, jumpRange: 295 },
+        { dmg: 48, cd: 1.12, count: 2, speed: 720, bounces: 4, falloff: 0.80, jumpRange: 300 },
+        { dmg: 58, cd: 1.06, count: 2, speed: 730, bounces: 5, falloff: 0.81, jumpRange: 305 },
+        { dmg: 58, cd: 1.00, count: 2, speed: 740, bounces: 5, falloff: 0.81, jumpRange: 310 },
+        { dmg: 70, cd: 0.92, count: 2, speed: 750, bounces: 6, falloff: 0.82, jumpRange: 320 }
+      ],
+      evolved: {
+        name: '万棱归一', icon: '❖', dmg: 105, cd: 0.58, count: 3, speed: 800,
+        bounces: 8, falloff: 0.88, jumpRange: 350, note: '三枚晶弹，八连折射'
+      }
+    },
+    {
       id: 'well', name: '引力奇点', icon: '◉', color: '#9f8bff',
       tag: '控场', intro: '在敌群中心撕开引力井，持续牵引并撕裂其中的敌人。',
       levels: [
@@ -317,6 +335,11 @@
       id: 'pyro', name: '焚星', color: '#ff9f68',
       weapons: ['flame', 'nova'], dmg: 1.18,
       desc: '焰流喷射与虚空新星伤害 +18%'
+    },
+    {
+      id: 'prismrefract', name: '万棱同调', color: '#c9a6ff',
+      weapons: ['refract', 'prism'], dmg: 1.18,
+      desc: '棱镜折射与破碎明光伤害 +18%'
     }
   ];
 
@@ -355,6 +378,10 @@
     if (def.id === 'flame') {
       parts.push('射程 ' + s.range);
       parts.push('扇角 ' + Math.round(s.angle * 57.3) + '°');
+    }
+    if (def.id === 'refract') {
+      if (s.bounces) parts.push('折射 ' + s.bounces);
+      if (s.jumpRange) parts.push('跳跃 ' + s.jumpRange);
     }
     return parts.join(' · ');
   };
@@ -665,6 +692,7 @@
     '食星者会主动吞经验球回血，别把经验球留太久。',
     '棱镜哨兵蓄力后会打出旋转的三棱激光，看准缝隙横穿。',
     '同时携带脉冲 + 相位链、环刃 + 引力井等组合会触发武器共鸣。',
+    '棱镜折射会在敌人之间弹射，敌群越密收益越高。',
     'BOSS 的行动都有前摇，提前绕开。'
   ];
 
@@ -704,7 +732,7 @@
     { id: 'top1', name: '榜首', desc: '本地排行榜登顶', icon: '☗', color: '#ffd479' },
     { id: 'resonance2', name: '共鸣回响', desc: '单局同时激活 2 组武器共鸣', icon: '✧', color: '#7df9ff' },
     { id: 'resonance3', name: '三重协奏', desc: '单局同时激活 3 组武器共鸣', icon: '❖', color: '#b388ff' },
-    { id: 'evolve12', name: '万象归一', desc: '解锁全部 12 种武器进化', icon: '✺', color: '#ffd479' },
+    { id: 'evolve12', name: '万象归一', desc: '解锁全部 13 种武器进化', icon: '✺', color: '#ffd479' },
     { id: 'relic26', name: '万象遗珍', desc: '收集全部 26 件遗物', icon: '❖', color: '#b388ff' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
