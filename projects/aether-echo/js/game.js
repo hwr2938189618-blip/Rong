@@ -161,7 +161,7 @@
       const S = AE.Save.data;
       if (!S || !AE.Data.ACHIEVEMENTS) return;
       if (!Array.isArray(S.achievements)) S.achievements = [];
-      if (!S.stats) S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 };
+      if (!S.stats) S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0, healed: 0, ults: 0, relics: 0, maxCombo: 0 };
       const st = S.stats;
       const runActive = !!G.player && (G.state === 'playing' || G.state === 'levelup' || G.state === 'paused' || G.state === 'gameover' || G.state === 'victory');
       const runKills = runActive ? G.kills : 0;
@@ -990,12 +990,16 @@
       S.echoes += echoes;
       S.totalEchoes += echoes;
       S.runs = (S.runs || 0) + 1;
-      const st = S.stats || (S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 });
+      const st = S.stats || (S.stats = { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0, healed: 0, ults: 0, relics: 0, maxCombo: 0 });
       st.kills = (st.kills || 0) + G.kills;
       st.time = (st.time || 0) + G.time;
       st.damage = (st.damage || 0) + G.stats.damage;
       st.bosses = (st.bosses || 0) + G.bossKills;
       st.runs = (st.runs || 0) + 1;
+      st.healed = (st.healed || 0) + (p.healed || 0);
+      st.ults = (st.ults || 0) + (G.ultCasts || 0);
+      st.relics = (st.relics || 0) + (p.relics || []).length;
+      st.maxCombo = Math.max(st.maxCombo || 0, G.maxCombo || 0);
       if (victory) st.wins = (st.wins || 0) + 1;
       S.bestRuns = (S.bestRuns || []);
       S.bestRuns.push({
