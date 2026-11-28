@@ -31,6 +31,8 @@
         dashDamage: !!char.dashDamage,
         killStack: !!char.killStack,
         burn: !!char.burn,
+        timeWarp: !!char.timeWarp,
+        warpT: 0,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
         tetherT: 0,
         beamWidth: 1, beamGuard: false, channeling: false,
@@ -135,9 +137,14 @@
         ((p.tetherT || 0) > 0 ? 0.72 : 1);
     },
 
+    attackSpeedMul: function (p) {
+      return (p && (p.warpT || 0) > 0) ? 1.3 : 1;
+    },
+
     update: function (p, dt) {
       if (!p.alive) return;
       p.tetherT = Math.max(0, (p.tetherT || 0) - dt);
+      p.warpT = Math.max(0, (p.warpT || 0) - dt);
       const Input = AE.Input;
       p.t += dt;
       p.invuln = Math.max(0, p.invuln - dt);
@@ -234,7 +241,7 @@
       if (p.avatarT > 0) {
         const av = p.avatar || AE.Data.AVATARS.echo;
         p.avatarT -= dt;
-        p.avatarAtk -= dt;
+        p.avatarAtk -= dt * Player.attackSpeedMul(p);
         p.avatarAura -= dt;
         if (p.avatarAtk <= 0) {
           p.avatarAtk = av.cadence || 0.5;
@@ -312,6 +319,11 @@
         p.dashT = AE.Data.CONST.DASH_TIME;
         p.dashCd = AE.Data.CONST.DASH_CD * p.dashCdMul;
         p.invuln = Math.max(p.invuln, 0.36);
+        if (p.timeWarp) {
+          p.warpT = 1.6;
+          AE.FX.ring(p.x, p.y, p.char.color, 8, 70, 0.35, 2.5);
+          AE.FX.text(p.x, p.y - 24, '时隙超频', '#d9c6ff', 12);
+        }
         AE.Audio.sfx('dash');
         AE.FX.ring(p.x, p.y, p.char.color, 6, 46, 0.35, 2);
         AE.FX.spark(p.x, p.y, p.char.color, 8, { spd: 160, life: 0.35, size: 2.4 });
