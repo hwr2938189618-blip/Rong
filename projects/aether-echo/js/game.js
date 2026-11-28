@@ -272,7 +272,8 @@
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
       G.maxCombo = 0; G.lastRank = 0;
       G.orbsPicked = 0; G.dashes = 0; G.eliteKills = 0; G.runEvolves = 0;
-      G.bounty = null; G.bountyHistory = []; G.bountyChoice = null;
+      G.bounty = null; G.bountyHistory = []; G.bountyChoice = null; G.bountyQueue = null;
+      G.bossRewardLock = false;
       G.comboAwarded = {};
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
@@ -417,6 +418,29 @@
       };
     },
 
+    canOpenBountyChain: function () {
+      return G.state === 'playing' && !G.relicLock && !G.bossRewardLock &&
+        !G.draft && !G.winning && (G.pending || 0) <= 0;
+    },
+
+    openBountyChain: function (options, tier) {
+      if (!options || !options.length || !AE.UI || !AE.UI.showBountyChain) return false;
+      G.bountyChoice = { options: options, tier: tier };
+      G.state = 'bounty';
+      G.bountyQueue = null;
+      this.acc = 0;
+      AE.UI.showBountyChain(options, tier);
+      return true;
+    },
+
+    flushBountyChain: function () {
+      if (!G.bountyQueue) return false;
+      if (!this.canOpenBountyChain()) return false;
+      const q = G.bountyQueue;
+      G.bountyQueue = null;
+      return this.openBountyChain(q.options, q.tier);
+    },
+
     updateBounty: function () {
       const b = G.bounty;
       if (!b || b.done) return false;
@@ -441,11 +465,10 @@
         G.echoBonus += 30;
         this.announce('悬赏链全破 · 额外 +30 回响', '#ffd479', 3.2);
         if (AE.UI && AE.UI.toast) AE.UI.toast('悬赏链全破 · 额外 +30 回响', '#ffd479');
-      } else if (p && p.alive && !G.winning && G.state === 'playing' && AE.UI && AE.UI.showBountyChain) {
-        G.bountyChoice = { options: this.bountyChoices(b.def.id), tier: b.tier + 1 };
-        G.state = 'bounty';
-        this.acc = 0;
-        AE.UI.showBountyChain(G.bountyChoice.options, b.tier + 1);
+      } else if (p && p.alive && !G.winning) {
+        // 三选一延后到升级 / 首领遗物结算之后，避免同时触发导致遗物丢失
+        G.bountyQueue = { options: this.bountyChoices(b.def.id), tier: b.tier + 1 };
+        this.flushBountyChain();
         return true;
       }
       if (AE.UI && AE.UI.toast && b.tier < 3) AE.UI.toast('悬赏完成 · +' + reward + ' 回响', b.def.color);
@@ -577,6 +600,8 @@
         return;
       }
 
+      if (this.flushBountyChain()) return;
+
       G.time += dt;
       // 层级转场：每 150 秒切换星域背景与演出
       const stg = G.time >= 600 ? 5 : (G.time >= 450 ? 4 : (G.time >= 300 ? 3 : (G.time >= 150 ? 2 : 1)));
@@ -624,7 +649,7 @@
       }
       if (G.state === 'playing' && G.xp >= G.xpNeed && G.level < AE.Data.CONST.LEVEL_MAX) {
         this.levelUp();
-      } else if (G.state === 'playing' && G.pending > 0 && !G.relicLock) {
+      } else if (G.state === 'playing' && G.pending > 0 && !G.relicLock && !G.bossRewardLock) {
         this.openLevelUp(false);
       }
     },
@@ -1064,6 +1089,27 @@
       G.timers.push({ t: t, fn: fn });
     },
 
+    /* 首领奖励（遗物 / 强化）在升级、暂停或悬赏弹层之后补发，避免被状态检查吞掉 */
+    queueBossReward: function (hasRelic) {
+      const self = this;
+      G.bossRewardLock = true;
+      const tryOpen = function () {
+        if (G.state === 'gameover' || G.state === 'victory') {
+          G.bossRewardLock = false;
+          G.relicLock = false;
+          return;
+        }
+        if (G.state !== 'playing') {
+          self.delay(0.25, tryOpen);
+          return;
+        }
+        G.bossRewardLock = false;
+        if (hasRelic) self.openRelicDraft();
+        else self.openLevelUp(true);
+      };
+      tryOpen();
+    },
+
     updateTimers: function (dt) {
       for (let i = G.timers.length - 1; i >= 0; i--) {
         const tm = G.timers[i];
@@ -1096,12 +1142,9 @@
           G.pending += 3;
           const hasRelic = AE.Relics.roll(G.player, 1).length > 0;
           G.relicLock = hasRelic;
+          G.bossRewardLock = true;
           this.announce('击破 ' + def.name + ' · 遗物 + 强化 ×3', '#ffd479', 2.4);
-          this.delay(0.9, function () {
-            if (G.state !== 'playing') { G.relicLock = false; return; }
-            if (hasRelic) self.openRelicDraft();
-            else self.openLevelUp(true);
-          });
+          this.delay(0.9, function () { self.queueBossReward(hasRelic); });
         }
         return;
       }
@@ -1115,11 +1158,10 @@
         const self = this;
         const hasRelic = AE.Relics.roll(G.player, 1).length > 0;
         G.relicLock = hasRelic;
+        G.bossRewardLock = true;
         this.delay(1.0, function () {
           G.pending++;
-          if (G.state !== 'playing') { G.relicLock = false; return; }
-          if (hasRelic) self.openRelicDraft();
-          else self.openLevelUp(true);
+          self.queueBossReward(hasRelic);
         });
         this.announce('击破 ' + def.name + ' · 遗物三选一', '#ffd479', 2.4);
       }
@@ -1152,6 +1194,7 @@
 
     endRun: function (victory) {
       if (G.state === 'gameover' || G.state === 'victory') return;
+      G.bountyQueue = null;
       const p = G.player;
       const S = AE.Save.data;
       const base = G.kills * 0.35 + G.level * 3 + G.bossKills * 25 + G.time / 6;
