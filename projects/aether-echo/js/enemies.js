@@ -984,7 +984,7 @@
             this.damage(o, boomDmg, { crit: false, noSplash: true, noFrost: true, noCombo: true });
           }
         }
-        if (pl.relics.indexOf('cinder') >= 0 && (e.burnT > 0 || e.burnDps > 0)) {
+        if (pl.relics.indexOf('cinder') >= 0 && (e.burnT > 0 || opts.burnKill)) {
           const near = AE.World.grid.query(e.x, e.y, 160);
           let spread = 0;
           for (let k = 0; k < near.length; k++) {
