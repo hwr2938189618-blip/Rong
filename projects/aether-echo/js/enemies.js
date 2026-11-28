@@ -918,7 +918,8 @@
       if (pl && !(opts && opts.noBurn) && dmg > 0) {
         if (pl.burn || (opts && opts.forceBurn)) {
           e.burnT = Math.max(e.burnT || 0, 3);
-          e.burnDps = Math.max(e.burnDps || 0, (5 + pl.level * 1.35) * (pl.burnMul || 1));
+          const burnBase = pl.burn ? (6 + pl.level * 1.6) : (5 + pl.level * 1.35);
+          e.burnDps = Math.max(e.burnDps || 0, burnBase * (pl.burnMul || 1));
         } else if (pl.igniteChance > 0 && Math.random() < pl.igniteChance) {
           e.burnT = Math.max(e.burnT || 0, 2.5);
           e.burnDps = Math.max(e.burnDps || 0, (4 + pl.level * 1.2) * (pl.burnMul || 1));
@@ -982,6 +983,21 @@
             if (U.d2(e.x, e.y, o.x, o.y) > 72 * 72) continue;
             this.damage(o, boomDmg, { crit: false, noSplash: true, noFrost: true, noCombo: true });
           }
+        }
+        if (pl.relics.indexOf('cinder') >= 0 && (e.burnT > 0 || e.burnDps > 0)) {
+          const near = AE.World.grid.query(e.x, e.y, 160);
+          let spread = 0;
+          for (let k = 0; k < near.length; k++) {
+            const o = near[k];
+            if (o === e || !o.alive || o.spawning > 0) continue;
+            if (U.d2(e.x, e.y, o.x, o.y) > 160 * 160) continue;
+            o.burnT = Math.max(o.burnT || 0, 2.4);
+            o.burnDps = Math.max(o.burnDps || 0, Math.max(5, (e.burnDps || 0) * 0.8));
+            spread++;
+          }
+          AE.FX.ring(e.x, e.y, '#ff9f68', 8, 160, 0.5, 3);
+          AE.FX.spark(e.x, e.y, '#ffd479', 14, { spd: 260, life: 0.5, size: 3 });
+          if (spread) AE.FX.text(e.x, e.y - 20, '余烬扩散', '#ff9f68', 11);
         }
       }
       // 噬星者：击杀永久叠伤（上限 +100%）
