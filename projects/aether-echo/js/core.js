@@ -160,7 +160,6 @@
       }, { passive: false });
 
       const endTouch = function (e) {
-        self.touch.on = false;
         self.joy.active = false; self.joy.mag = 0; self.joy.dx = 0; self.joy.dy = 0;
         self.touch.active = false;
         e.preventDefault();
