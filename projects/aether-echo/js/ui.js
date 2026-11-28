@@ -763,7 +763,9 @@
         '<div class="screen codex-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
         '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
-        '<div><h2>图鉴</h2><div class="sub">CODEX · 武器进化、共鸣、遗物与敌群收集</div></div>' +
+        '<div><h2>图鉴</h2><div class="sub">CODEX · 进化 ' +
+        (S.evolvedSeen || []).length + ' / ' + D.WEAPONS.length + ' · 遗物 ' +
+        (S.relicsSeen || []).length + ' / ' + D.RELICS.length + '</div></div>' +
         '</div></div>' +
         '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把 · 进化 ' +
         (S.evolvedSeen || []).length + ' / ' + D.WEAPONS.length + '</div>' +
