@@ -680,6 +680,8 @@
         '<button class="switch ' + (st.motion !== false ? 'on' : '') + '" data-act="toggle" data-id="motion">' + (st.motion !== false ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">屏幕闪光</div>' +
         '<button class="switch ' + (st.flash !== false ? 'on' : '') + '" data-act="toggle" data-id="flash">' + (st.flash !== false ? '开' : '关') + '</button></div>' +
+        '<div class="set-row"><div class="set-label">左手模式</div>' +
+        '<button class="switch ' + (st.leftHand ? 'on' : '') + '" data-act="toggle" data-id="leftHand">' + (st.leftHand ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">高对比</div>' +
         '<button class="switch ' + (st.contrast ? 'on' : '') + '" data-act="toggle" data-id="contrast">' + (st.contrast ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">画质</div><div class="seg">' +
