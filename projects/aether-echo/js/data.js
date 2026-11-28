@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.49.0';
+  D.VERSION = '1.50.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -257,6 +257,24 @@
         name: '终焉光路', icon: '⇶', dmg: 120, cd: 1.35, duration: 1.0,
         width: 26, range: 700, note: '一道光路，贯穿前方一切'
       }
+    },
+    {
+      id: 'flame', name: '焰流喷射', icon: '♨', color: '#ff9f68',
+      tag: '近喷', intro: '朝前方喷出短程火流，整片扇形同时灼烧并点燃。',
+      levels: [
+        { dmg: 22, cd: 0.42, range: 210, angle: 0.85 },
+        { dmg: 28, cd: 0.40, range: 215, angle: 0.88 },
+        { dmg: 28, cd: 0.38, range: 225, angle: 0.92 },
+        { dmg: 36, cd: 0.36, range: 235, angle: 0.96 },
+        { dmg: 36, cd: 0.34, range: 245, angle: 1.00 },
+        { dmg: 46, cd: 0.32, range: 255, angle: 1.04 },
+        { dmg: 46, cd: 0.30, range: 265, angle: 1.08 },
+        { dmg: 58, cd: 0.28, range: 280, angle: 1.12 }
+      ],
+      evolved: {
+        name: '日冕喷流', icon: '❂', dmg: 130, cd: 0.18, range: 330, angle: 1.25,
+        note: '火流化作日冕，扫尽前方'
+      }
     }
   ];
 
@@ -328,6 +346,10 @@
       parts.push('引导 ' + s.duration + 's');
       parts.push('宽度 ' + s.width);
       parts.push('射程 ' + s.range);
+    }
+    if (def.id === 'flame') {
+      parts.push('射程 ' + s.range);
+      parts.push('扇角 ' + Math.round(s.angle * 57.3) + '°');
     }
     return parts.join(' · ');
   };
