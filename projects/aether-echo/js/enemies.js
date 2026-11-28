@@ -801,7 +801,8 @@
       // 星核能量：击杀积攒爆发
       if (pl && pl.ult < pl.ultMax) {
         const wasFull = pl.ult >= pl.ultMax;
-        const gain = (e.boss ? 40 : (e.elite ? 10 : 1.2)) * (1 + (pl.ultGain || 0));
+        const gain = (e.boss ? 40 : (e.elite ? 10 : 1.2)) * (1 + (pl.ultGain || 0)) *
+          (G.event && G.event.id === 'surge' ? 2 : 1);
         pl.ult = Math.min(pl.ultMax, pl.ult + gain);
         if (!wasFull && pl.ult >= pl.ultMax && AE.UI && AE.UI.syncDash) AE.UI.syncDash();
       }

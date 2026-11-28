@@ -39,7 +39,8 @@
         } else {
           w.t -= dt;
           if (w.t <= 0) {
-            w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd));
+            const surge = (AE.G.event && AE.G.event.id === 'surge') ? 1.35 : 1;
+            w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd * surge));
             W.fire(p, w, def, s);
           }
         }

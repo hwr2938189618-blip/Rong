@@ -18,6 +18,7 @@
     slowT: 0, daily: null, mod: null,
     rush: false, rushIndex: 0, rushGap: 0,
     relicLock: false,
+    event: null, eventT: 0, eventLeft: 0, meteorT: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -224,6 +225,8 @@
       G.relicLock = false;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.pactWinTier = 0;
+      G.event = null; G.eventLeft = 0; G.meteorT = 0;
+      G.eventT = 55 + Math.random() * 25;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
       G.player.armor += G.mod.armor || 0;
@@ -363,11 +366,13 @@
       this.updateAim();
       AE.Player.update(p, dt);
       AE.Weapons.update(p, dt);
-      AE.Enemies.update(dt);
+      const edt = (G.event && G.event.id === 'tide') ? dt * 0.55 : dt;
+      AE.Enemies.update(edt);
       AE.World.grid.build(AE.Enemies.list);
       AE.World.update(dt, p);
 
       this.updateDirector(dt);
+      this.updateEvents(dt);
       this.updateTimers(dt);
       this.updateAnns(dt);
 
@@ -543,6 +548,97 @@
           if (AE.UI && AE.UI.bossIntro) AE.UI.bossIntro(def);
         }
       }
+    },
+
+    /* ---------- 星象事件 ---------- */
+    updateEvents: function (dt) {
+      if (G.rush) return;
+      if (G.event) {
+        G.eventLeft -= dt;
+        if (G.event.id === 'meteor') {
+          G.meteorT -= dt;
+          if (G.meteorT <= 0) { G.meteorT = 0.72; this.dropMeteor(); }
+        }
+        if (G.eventLeft <= 0) {
+          this.announce('星象平息 · ' + G.event.name, G.event.color, 1.6);
+          G.event = null;
+          G.eventT = 60 + Math.random() * 25;
+        }
+        return;
+      }
+      G.eventT -= dt;
+      if (G.eventT <= 0 && G.time > 36 && !G.winning) this.startEvent();
+    },
+
+    startEvent: function (id) {
+      let def = id ? AE.Data.EVENT_MAP[id] : null;
+      if (!def) {
+        const pool = AE.Data.EVENTS;
+        let total = 0;
+        for (let i = 0; i < pool.length; i++) total += pool[i].weight || 1;
+        let r = Math.random() * total;
+        for (let i = 0; i < pool.length; i++) {
+          r -= pool[i].weight || 1;
+          if (r <= 0) { def = pool[i]; break; }
+        }
+        if (!def) def = pool[0];
+      }
+      if (!def) return null;
+      G.event = def;
+      G.eventLeft = def.dur;
+      G.meteorT = 0.45;
+      if (def.id === 'hunt') {
+        const p = G.player;
+        for (let i = 0; i < 3; i++) {
+          const a = Math.random() * U.TAU;
+          const x = U.clamp(p.x + Math.cos(a) * 330, 50, AE.Data.CONST.WORLD_W - 50);
+          const y = U.clamp(p.y + Math.sin(a) * 330, 50, AE.Data.CONST.WORLD_H - 50);
+          AE.Enemies.spawn('stalker', x, y, { elite: true });
+        }
+        AE.FX.shake(0.4);
+      }
+      this.announce('星象 · ' + def.name, def.color, 2.4);
+      AE.Audio.sfx(def.id === 'meteor' ? 'warn' : 'evolve');
+      AE.FX.flash(0.06, def.color);
+      return def;
+    },
+
+    dropMeteor: function (fx, fy) {
+      const p = G.player;
+      const alive = AE.Enemies.list.filter(function (e) {
+        return e.alive && e.spawning <= 0 && !e.boss;
+      });
+      let tx, ty;
+      if (typeof fx === 'number' && typeof fy === 'number') {
+        tx = fx; ty = fy;
+      } else if (alive.length && Math.random() < 0.75) {
+        const t = alive[Math.floor(Math.random() * alive.length)];
+        tx = t.x; ty = t.y;
+      } else {
+        const a = Math.random() * U.TAU;
+        const r = 120 + Math.random() * 460;
+        tx = p.x + Math.cos(a) * r;
+        ty = p.y + Math.sin(a) * r;
+      }
+      tx = U.clamp(tx, 40, AE.Data.CONST.WORLD_W - 40);
+      ty = U.clamp(ty, 40, AE.Data.CONST.WORLD_H - 40);
+      AE.FX.ring(tx, ty, '#ff9f68', 6, 34, 0.42, 2);
+      const self = this;
+      this.delay(0.42, function () {
+        AE.FX.ring(tx, ty, '#ff9f68', 12, 155, 0.5, 4);
+        AE.FX.ring(tx, ty, '#ffffff', 5, 70, 0.3, 2);
+        AE.FX.spark(tx, ty, '#ff9f68', 18, { spd: 300, life: 0.6, size: 3 });
+        AE.FX.shake(0.16);
+        AE.Audio.sfx('explosion');
+        const dmg = (90 + G.level * 10) * (p.dmgMul || 1);
+        const near = AE.World.grid.query(tx, ty, 155);
+        for (let i = 0; i < near.length; i++) {
+          const e = near[i];
+          if (!e.alive || e.spawning > 0) continue;
+          if (U.d2(tx, ty, e.x, e.y) > 155 * 155) continue;
+          AE.Enemies.damage(e, dmg, { crit: false, noSplash: true, noFrost: true });
+        }
+      });
     },
 
     /* ---------- 升级 ---------- */
@@ -953,6 +1049,14 @@
           AE.Data.RUSH_ORDER.length + ' · 用时 ' + U.fmtTime(G.time), W / 2, 56);
       } else if (!G.boss) {
         ctx.fillText(stage + (G.loop ? ' · 无尽 ' + (G.loop + 1) : '') + ' · 击杀 ' + G.kills, W / 2, 56);
+      }
+      if (G.event) {
+        ctx.textAlign = 'center';
+        ctx.font = '700 11px ' + head;
+        ctx.fillStyle = G.event.color;
+        ctx.globalAlpha = 0.85 + Math.sin(G.t * 5) * 0.15;
+        ctx.fillText('★ ' + G.event.name + ' · ' + Math.max(0, G.eventLeft).toFixed(1) + 's', W / 2, 74);
+        ctx.globalAlpha = 1;
       }
 
       if (G.combo > 1 && G.comboT > 0) {

@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.15.0';
+  D.VERSION = '1.16.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -552,6 +552,22 @@
     { id: 'void', name: '虚空稀薄', desc: '敌人生命 -10%，数量 +20%', color: '#b388ff' },
     { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' }
   ];
+
+  /* ============================================================
+   * 星象事件（局内随机，每 60~90 秒一次）
+   * ============================================================ */
+  D.EVENTS = [
+    { id: 'meteor', name: '陨星雨', icon: '☄', color: '#ff9f68', dur: 12, weight: 3,
+      desc: '陨星不断砸向战场' },
+    { id: 'tide', name: '虚空潮汐', icon: '≈', color: '#9f8bff', dur: 10, weight: 3,
+      desc: '敌人陷入迟缓' },
+    { id: 'surge', name: '星核涌动', icon: '⚡', color: '#ffd479', dur: 10, weight: 2,
+      desc: '攻速与星核充能大幅提升' },
+    { id: 'hunt', name: '精英狩猎', icon: '✦', color: '#ff5c7a', dur: 8, weight: 2,
+      desc: '三名精英同时出现' }
+  ];
+  D.EVENT_MAP = {};
+  D.EVENTS.forEach(function (e) { D.EVENT_MAP[e.id] = e; });
 
   /* ============================================================
    * 深渊契约（开局可选难度词条，提高回响收益）

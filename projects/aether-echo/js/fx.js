@@ -114,6 +114,20 @@
         x.globalCompositeOperation = 'source-over';
         return c;
       });
+      // 预缩放：每帧按 760 / 600 两种尺寸双线性重采样 2.5M 像素很贵，
+      // 这里一次性把两种目标尺寸烘焙好，绘制时 1:1 拷贝（视觉一致，省掉每帧缩放）。
+      const prescale = function (src, size) {
+        const c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        const x = c.getContext('2d');
+        if (!x) return src;
+        x.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in x) x.imageSmoothingQuality = 'high';
+        x.drawImage(src, 0, 0, size, size);
+        return c;
+      };
+      this.nebulaeBig = this.nebulae.map(function (c) { return prescale(c, 760); });
+      this.nebulaeSmall = this.nebulae.map(function (c) { return prescale(c, 600); });
     },
 
     glowSprite: function (color) {
@@ -248,38 +262,43 @@
     /* ---------- 背景 ---------- */
     drawBackground: function (ctx, cam, w, h) {
       const t = this.t;
-      // 底色
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, '#060812');
-      grad.addColorStop(0.55, '#080c1c');
-      grad.addColorStop(1, '#05060f');
-      ctx.fillStyle = grad;
+      // 底色渐变：只在尺寸变化时创建（原先每帧 createLinearGradient）
+      if (!this._bgGrad || this._bgW !== w || this._bgH !== h) {
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, '#060812');
+        grad.addColorStop(0.55, '#080c1c');
+        grad.addColorStop(1, '#05060f');
+        this._bgGrad = grad; this._bgW = w; this._bgH = h;
+      }
+      ctx.fillStyle = this._bgGrad;
       ctx.fillRect(0, 0, w, h);
 
       // 星云（低画质时跳过，节省填充率）
       if (this.quality > 0.65) {
+        const big = this.nebulaeBig, small = this.nebulaeSmall;
         ctx.globalCompositeOperation = 'lighter';
         for (let i = 0; i < this.nebulae.length; i++) {
           const p = 0.015 + i * 0.012;
           const nx = ((-cam.x * p) % 900) - 200 + i * 260;
           const ny = ((-cam.y * p) % 700) - 150 + i * 190;
           ctx.globalAlpha = 0.62 + Math.sin(t * 0.12 + i) * 0.08;
-          ctx.drawImage(this.nebulae[i], nx, ny, 760, 760);
-          ctx.drawImage(this.nebulae[i], nx + 900, ny + 300, 600, 600);
+          ctx.drawImage(big ? big[i] : this.nebulae[i], nx, ny, 760, 760);
+          ctx.drawImage(small ? small[i] : this.nebulae[i], nx + 900, ny + 300, 600, 600);
         }
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
       }
 
-      // 星层
+      // 星层：只画与视口相交的瓦片（原先每层多画 1 列 + 1 行，纯属浪费调用）
       if (this.stars) {
+        const cw = Math.ceil(w / 640), chh = Math.ceil(h / 640);
         for (let l = 0; l < this.stars.length; l++) {
           const p = 0.06 + l * 0.09;
           const ox = ((-cam.x * p) % 640 + 640) % 640;
           const oy = ((-cam.y * p) % 640 + 640) % 640;
           ctx.globalAlpha = 0.72 + l * 0.09;
-          for (let gx = -1; gx <= Math.ceil(w / 640); gx++) {
-            for (let gy = -1; gy <= Math.ceil(h / 640); gy++) {
+          for (let gx = 0; gx <= cw; gx++) {
+            for (let gy = 0; gy <= chh; gy++) {
               ctx.drawImage(this.stars[l], gx * 640 + ox - 640, gy * 640 + oy - 640);
             }
           }
@@ -373,15 +392,20 @@
     },
 
     drawWorld: function (ctx) {
-      // 粒子
+      // 粒子：视口裁剪 + 合并重复的状态设置（同色/同混合模式不重复赋值）
+      const v = AE.Cam.view();
+      const mx = v.x0 - 60, my = v.y0 - 60, Mx = v.x1 + 60, My = v.y1 + 60;
       ctx.save();
+      let lastOp = '', lastFill = '', lastStroke = '';
       for (let i = 0; i < this.particles.length; i++) {
         const p = this.particles[i];
+        if (p.x < mx || p.x > Mx || p.y < my || p.y > My) continue;
         const a = Math.max(0, p.life / p.max);
         ctx.globalAlpha = a;
-        ctx.globalCompositeOperation = p.add ? 'lighter' : 'source-over';
+        const op = p.add ? 'lighter' : 'source-over';
+        if (op !== lastOp) { ctx.globalCompositeOperation = op; lastOp = op; }
         if (p.kind === 'spark') {
-          ctx.strokeStyle = p.color;
+          if (p.color !== lastStroke) { ctx.strokeStyle = p.color; lastStroke = p.color; }
           ctx.lineWidth = Math.max(0.6, p.size * a);
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
@@ -394,14 +418,15 @@
           ctx.fillStyle = p.color;
           ctx.fillRect(-p.size, -p.size * 0.35, p.size * 2, p.size * 0.7);
           ctx.restore();
+          lastFill = '';
         } else if (p.kind === 'ring') {
-          ctx.strokeStyle = p.color;
+          if (p.color !== lastStroke) { ctx.strokeStyle = p.color; lastStroke = p.color; }
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * (2 - a), 0, U.TAU);
           ctx.stroke();
         } else {
-          ctx.fillStyle = p.color;
+          if (p.color !== lastFill) { ctx.fillStyle = p.color; lastFill = p.color; }
           ctx.beginPath();
           ctx.arc(p.x, p.y, Math.max(0.4, p.size * (0.4 + a * 0.8)), 0, U.TAU);
           ctx.fill();
@@ -447,13 +472,15 @@
       ctx.save();
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      let lastFont = '';
       for (let i = 0; i < this.texts.length; i++) {
         const t = this.texts[i];
         const s = cam.toScreen(t.x, t.y);
         const k = t.life / t.max;
         const sz = t.size * (t.crit ? 1.35 : 1) * (0.75 + 0.25 * Math.min(1, (1 - k) * 6));
         ctx.globalAlpha = Math.min(1, k * 2.2);
-        ctx.font = '800 ' + sz.toFixed(0) + 'px "Segoe UI", system-ui, sans-serif';
+        const fkey = '800 ' + sz.toFixed(0) + 'px "Segoe UI", system-ui, sans-serif';
+        if (fkey !== lastFont) { lastFont = fkey; ctx.font = fkey; }
         ctx.lineWidth = 3;
         ctx.strokeStyle = 'rgba(4,6,14,0.85)';
         ctx.strokeText(t.str, s.x, s.y);
@@ -474,31 +501,50 @@
       // 暗角
       if (this.vignette) ctx.drawImage(this.vignette, 0, 0, w, h);
 
-      // 低血量红边
+      // 低血量红边：渐变几何固定，缓存一次，用 globalAlpha 调制强度
       if (this.lowHp > 0.02) {
         const pulse = 0.55 + 0.45 * Math.sin(this.t * 7);
-        const gr = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.28, w / 2, h / 2, Math.max(w, h) * 0.62);
-        gr.addColorStop(0, 'rgba(255,40,80,0)');
-        gr.addColorStop(1, 'rgba(255,30,70,' + (0.42 * this.lowHp * pulse).toFixed(3) + ')');
-        ctx.fillStyle = gr;
+        if (!this._lowGrad || this._lowW !== w || this._lowH !== h) {
+          const gr = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.28, w / 2, h / 2, Math.max(w, h) * 0.62);
+          gr.addColorStop(0, 'rgba(255,40,80,0)');
+          gr.addColorStop(1, 'rgba(255,30,70,1)');
+          this._lowGrad = gr; this._lowW = w; this._lowH = h;
+        }
+        ctx.globalAlpha = 0.42 * this.lowHp * pulse;
+        ctx.fillStyle = this._lowGrad;
         ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
       }
 
       // BOSS 战：屏幕边缘的压迫感
       if (AE.G && AE.G.boss && AE.G.boss.alive) {
         const p2 = 0.5 + 0.5 * Math.sin(this.t * 2.2);
-        const gr2 = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.6);
-        gr2.addColorStop(0, 'rgba(140,20,50,0)');
-        gr2.addColorStop(1, 'rgba(150,20,55,' + (0.1 + p2 * 0.07).toFixed(3) + ')');
-        ctx.fillStyle = gr2;
+        if (!this._bossGrad || this._bossW !== w || this._bossH !== h) {
+          const gr2 = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.6);
+          gr2.addColorStop(0, 'rgba(140,20,50,0)');
+          gr2.addColorStop(1, 'rgba(150,20,55,1)');
+          this._bossGrad = gr2; this._bossW = w; this._bossH = h;
+        }
+        ctx.globalAlpha = 0.1 + p2 * 0.07;
+        ctx.fillStyle = this._bossGrad;
         ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
       }
 
       // 扫描线（极淡，质感；低动态 / 低画质时关闭）
+      // 用 1×4 图案一次性填充替代 h/4 次 fillRect
       if (this.motion && this.quality > 0.75) {
+        if (!this._scanPat) {
+          const c = document.createElement('canvas');
+          c.width = 1; c.height = 4;
+          const sx = c.getContext('2d');
+          if (sx) { sx.fillStyle = '#9fd8ff'; sx.fillRect(0, 0, 1, 1); }
+          this._scanPat = ctx.createPattern(c, 'repeat');
+        }
         ctx.globalAlpha = 0.035;
-        ctx.fillStyle = '#9fd8ff';
-        for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
+        ctx.fillStyle = this._scanPat || '#9fd8ff';
+        if (this._scanPat) ctx.fillRect(0, 0, w, h);
+        else for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
         ctx.globalAlpha = 1;
       }
     }
