@@ -201,7 +201,7 @@ aether-echo/
 │  ├─ fx.js            粒子、伤害数字、星场、屏幕效果
 │  ├─ player.js        玩家移动 / 闪避 / 属性 / 绘制
 │  ├─ weapons.js       八种武器的开火逻辑与环刃判定
-│  ├─ enemies.js       敌群 AI、十二种族、六场 BOSS 战
+│  ├─ enemies.js       敌群 AI、十三种族、六场 BOSS 战
 │  ├─ world.js         空间网格、弹幕、经验球、掉落
 │  ├─ ui.js            菜单 / 选卡 / 暂停 / 结算 / 强化界面
 │  └─ game.js          主循环、波次导演、升级、HUD
