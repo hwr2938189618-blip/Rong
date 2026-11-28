@@ -21,6 +21,7 @@
     event: null, eventT: 0, eventLeft: 0, meteorT: 0,
     eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false, stage: 1,
     affixKills: 0, dailyWin: false, dailyEvents: null, dailyEventsDone: 0,
+    bossWait: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -28,6 +29,7 @@
   const Game = {
     canvas: null, ctx: null, W: 1280, H: 720, dpr: 1,
     acc: 0, last: 0, headless: false, pausedByBlur: false,
+    safe: { l: 0, r: 0, t: 0, b: 0 },
 
     init: function (canvas) {
       this.canvas = canvas;
@@ -36,6 +38,7 @@
       AE.Save.load();
       AE.Audio.muted = !!AE.Save.data.muted;
       this.applySettings();
+      this.detectSafe();
       G.enemies = AE.Enemies.list;
       this.resize();
       if (!this.headless) {
@@ -61,6 +64,24 @@
         const loop = function (now) { self.frame(now); };
         if (typeof g.requestAnimationFrame === 'function') g.requestAnimationFrame(loop);
       }
+    },
+
+    detectSafe: function () {
+      if (typeof document === 'undefined' || !document.body) return;
+      try {
+        const d = document.createElement('div');
+        d.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+          'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+        document.body.appendChild(d);
+        const cs = getComputedStyle(d);
+        this.safe = {
+          t: parseFloat(cs.paddingTop) || 0,
+          r: parseFloat(cs.paddingRight) || 0,
+          b: parseFloat(cs.paddingBottom) || 0,
+          l: parseFloat(cs.paddingLeft) || 0
+        };
+        d.remove();
+      } catch (e) { /* 忽略 */ }
     },
 
     resize: function () {
@@ -234,6 +255,7 @@
       G.spawnT = 0.6;
       G.eliteT = (G.pacts.indexOf('elite') >= 0 ? 27 : 55);
       G.bossIdx = 0; G.boss = null;
+      G.bossWait = 0;
       G.bossWarnT = 0; G.bossWarned = false; G.winning = false;
       G.slowT = 0;
       G.rush = isRush; G.rushIndex = 0; G.rushGap = 1.2;
@@ -311,6 +333,7 @@
       G.loop = (G.loop || 0) + 1;
       G.time = 0;
       G.bossIdx = 0; G.boss = null; G.bossWarned = false;
+      G.bossWait = 0;
       G.winning = false;
       G.spawnT = 0.5;
       // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避免“固定种子”假象
@@ -537,11 +560,13 @@
         G.bossIdx = 0;
         G.bossWarned = false;
         G.bossWarnT = 0;
+        G.bossWait = 3;
         this.announce('深渊再临 · 第 ' + (G.loop + 1) + ' 轮', '#b388ff', 2.8);
         AE.FX.flash(0.16, '#b388ff');
         AE.FX.shake(0.5);
         AE.Audio.sfx('roar');
       }
+      if (G.bossWait > 0) G.bossWait -= dt;
       const C = AE.Data.CONST;
       const count = AE.Enemies.list.length;
       const pressure = count / C.MAX_ENEMIES;
@@ -573,7 +598,7 @@
         }
       }
 
-      if (!G.boss && G.bossIdx < AE.Data.BOSSES.length) {
+      if (!G.boss && G.bossWait <= 0 && G.bossIdx < AE.Data.BOSSES.length) {
         const def = AE.Data.BOSSES[G.bossIdx];
         if (!G.bossWarned && G.time >= def.at - 3.5) {
           G.bossWarned = true;
@@ -830,6 +855,7 @@
     onBossKilled: function (boss) {
       const def = boss.def;
       G.boss = null;
+      if (G.loop > 0 && !G.rush) G.bossWait = 4.5;
       if (def.id === 'abyss') G.abyssKilled = true;
       G.slowT = 0.85;
       G.echoBonus += def.echo || 20;
@@ -1065,6 +1091,14 @@
       }
       const D = AE.Data;
       ctx.save();
+      const sL = Math.max(this.safe.l || 0, this.safe.r || 0);
+      const sT = this.safe.t || 0;
+      const sB = this.safe.b || 0;
+      if (sL || sT || sB) {
+        ctx.translate(sL, sT);
+        W = Math.max(160, W - sL * 2);
+        H = Math.max(120, H - sT - sB);
+      }
       ctx.textBaseline = 'middle';
       const head = '"Segoe UI", "Microsoft YaHei", system-ui, sans-serif';
 
