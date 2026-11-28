@@ -33,6 +33,8 @@
         burn: !!char.burn,
         timeWarp: !!char.timeWarp,
         warpT: 0,
+        refractChance: char.refractChance || 0,
+        refractBoostT: 0, refractCd: 0,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
         tetherT: 0,
         shardId: null, shardT: 0, shardMod: null,
@@ -67,6 +69,7 @@
       p.alive = true;
       p.dashT = 0; p.dashCd = 0;
       p.shardId = null; p.shardT = 0; p.shardMod = null;
+      p.refractBoostT = 0; p.refractCd = 0;
       p.after.length = 0;
     },
 
@@ -169,6 +172,8 @@
       if (!p.alive) return;
       p.tetherT = Math.max(0, (p.tetherT || 0) - dt);
       p.warpT = Math.max(0, (p.warpT || 0) - dt);
+      p.refractBoostT = Math.max(0, (p.refractBoostT || 0) - dt);
+      p.refractCd = Math.max(0, (p.refractCd || 0) - dt);
       if (p.shardT > 0) {
         p.shardT = Math.max(0, p.shardT - dt);
         if (p.shardT === 0) { p.shardId = null; p.shardMod = null; }
@@ -352,6 +357,10 @@
           p.warpT = 1.6;
           AE.FX.ring(p.x, p.y, p.char.color, 8, 70, 0.35, 2.5);
           AE.FX.text(p.x, p.y - 24, '时隙超频', '#d9c6ff', 12);
+        }
+        if (p.refractChance > 0) {
+          p.refractBoostT = 3;
+          AE.FX.ring(p.x, p.y, '#c9a6ff', 5, 56, 0.4, 2.2);
         }
         AE.Audio.sfx('dash');
         AE.FX.ring(p.x, p.y, p.char.color, 6, 46, 0.35, 2);

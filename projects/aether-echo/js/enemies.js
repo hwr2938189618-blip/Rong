@@ -1082,6 +1082,31 @@
       if (opts && opts.crit) AE.FX.spark(e.x, e.y, '#ffd479', 3, { spd: 120, life: 0.25, size: 2.2 });
       AE.Audio.sfx('hit');
       if (e.hp <= 0) this.kill(e, opts);
+      // 折光者：命中有概率把一道光折向附近敌人；闪避后 3 秒概率翻倍
+      if (pl && pl.refractChance > 0 && !(opts && (opts.refract || opts.noRefract)) &&
+          (pl.refractCd || 0) <= 0) {
+        let chance = pl.refractChance * ((pl.refractBoostT || 0) > 0 ? 2 : 1);
+        chance = Math.min(0.75, chance);
+        if (Math.random() < chance) {
+          let best = null, bd = 260 * 260;
+          const near = AE.World.grid.query(e.x, e.y, 260);
+          for (let k = 0; k < near.length; k++) {
+            const o = near[k];
+            if (o === e || !o.alive || o.spawning > 0) continue;
+            const dd = U.d2(e.x, e.y, o.x, o.y);
+            if (dd < bd) { bd = dd; best = o; }
+          }
+          if (best) {
+            pl.refractCd = 0.28;
+            AE.FX.line(e.x, e.y, best.x, best.y, '#c9a6ff', 0.18, 3, true);
+            AE.FX.spark(best.x, best.y, '#c9a6ff', 5, { spd: 140, life: 0.3, size: 2.4, add: true });
+            this.damage(best, dmg * 0.55, {
+              crit: false, noSplash: true, noFrost: true, noCombo: true,
+              refract: true, noRefract: true
+            });
+          }
+        }
+      }
       return dmg;
     },
 

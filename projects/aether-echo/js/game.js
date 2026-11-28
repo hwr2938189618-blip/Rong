@@ -1573,6 +1573,17 @@
         ctx.globalAlpha = 1;
         sy += statusGap;
       }
+      if (p.refractChance > 0) {
+        ctx.textAlign = 'left';
+        ctx.font = '700 10px ' + head;
+        const boosted = (p.refractBoostT || 0) > 0;
+        const pc = Math.min(75, Math.round(p.refractChance * (boosted ? 200 : 100)));
+        ctx.fillStyle = boosted ? '#e8d9ff' : 'rgba(201,166,255,0.85)';
+        ctx.fillText(boosted
+          ? '全反射 · 折射率 ' + pc + '% · ' + p.refractBoostT.toFixed(1) + 's'
+          : '折光 · 折射率 ' + pc + '%', 28, sy);
+        sy += statusGap;
+      }
       if (G.bounty) {
         const bpr = this.bountyProgress();
         if (bpr) {

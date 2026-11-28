@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.80.0';
+  D.VERSION = '1.81.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -646,6 +646,13 @@
       start: 'beam', color: '#9f8bff', timeWarp: true, dashCdMul: 0.6,
       intro: '在闪避的缝隙里偷时间，把每一次翻滚变成超频窗口。',
       perk: '闪避冷却 -40% · 闪避后 1.6 秒攻速 +30%'
+    },
+    {
+      id: 'refractor', name: '折光者', title: 'REFRACTOR', cost: 700,
+      hp: 88, speed: 244, dmgMul: 1.0, armor: 0, crit: 0.04, xpMul: 1.0,
+      start: 'refract', color: '#c9a6ff', refractChance: 0.22,
+      intro: '把每一次命中都折成第二道光线，闪避后短暂进入全反射。',
+      perk: '命中 22% 概率折射 55% 伤害 · 闪避后 3 秒折射率翻倍'
     }
   ];
   D.CHAR_MAP = {};
@@ -660,7 +667,8 @@
     lumen: { name: '星神·逐光', color: '#fff3c4', cadence: 0.28, aura: 150, reduce: 0.50 },
     devourer: { name: '星神·噬星', color: '#ff7fb0', cadence: 0.55, aura: 195, reduce: 0.50, drain: true },
     ember: { name: '星神·灼世', color: '#ff9f68', cadence: 0.50, aura: 215, reduce: 0.60, burn: true },
-    chrono: { name: '星神·时隙', color: '#9f8bff', cadence: 0.34, aura: 190, reduce: 0.52 }
+    chrono: { name: '星神·时隙', color: '#9f8bff', cadence: 0.34, aura: 190, reduce: 0.52 },
+    refractor: { name: '星神·折光', color: '#c9a6ff', cadence: 0.40, aura: 195, reduce: 0.50 }
   };
 
   /* ============================================================
