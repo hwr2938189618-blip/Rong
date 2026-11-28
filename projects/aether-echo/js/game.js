@@ -1129,6 +1129,15 @@
         echoes: echoes, bossKills: G.bossKills,
         char: p.char, loop: G.loop, newBest: newBest,
         score: score, grade: grade, rank: rank, maxCombo: maxCombo,
+        build: {
+          weapons: p.weapons.map(function (w) {
+            return { id: w.id, level: w.level, evolved: !!w.evolved };
+          }),
+          passives: Object.keys(p.passives || {}).map(function (id) {
+            return { id: id, level: p.passives[id] || 0 };
+          }),
+          relics: (p.relics || []).slice()
+        },
         daily: G.daily ? G.daily.key : null,
         dailyNew: dailyNew,
         dailyBest: dailyBest,
