@@ -1283,6 +1283,7 @@
       }
       const flash = e.flash > 0;
       const col = e.color;
+      const lod = AE.FX.quality <= 0.6;
       const ang = Math.atan2(AE.G.player.y - e.y, AE.G.player.x - e.x);
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -1325,17 +1326,19 @@
         ctx.restore();
       }
 
-      // 地面阴影
-      ctx.globalAlpha = alpha * 0.3;
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.ellipse(0, e.r * 0.85, e.r * 1.05, e.r * 0.42, 0, 0, U.TAU);
-      ctx.fill();
-      ctx.globalAlpha = alpha;
+      // 地面阴影（低画质省略，减少软件渲染填充率）
+      if (!lod) {
+        ctx.globalAlpha = alpha * 0.3;
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(0, e.r * 0.85, e.r * 1.05, e.r * 0.42, 0, 0, U.TAU);
+        ctx.fill();
+        ctx.globalAlpha = alpha;
+      }
 
       ctx.globalCompositeOperation = 'lighter';
-      AE.FX.glow(ctx, 0, 0, e.r * 2.1, col, 0.34);
-      if (e.burnT > 0) {
+      if (!lod) AE.FX.glow(ctx, 0, 0, e.r * 2.1, col, 0.34);
+      if (e.burnT > 0 && !lod) {
         AE.FX.glow(ctx, 0, -e.r * 0.1, e.r * (2.4 + Math.sin(time * 14) * 0.3), '#ff9f68', 0.5);
         ctx.globalAlpha = alpha * 0.8;
         ctx.fillStyle = '#ffcf8f';
@@ -1406,6 +1409,20 @@
       ctx.scale(sc, sc);
       ctx.rotate(e.rot + (e.elite ? time * 0.4 : 0));
 
+      if (lod) {
+        // 低画质：单圆剪影 + 核心，保留阵营色与受击闪白
+        ctx.fillStyle = flash ? 'rgba(255,240,250,0.8)' : AE.FX.alpha(col, 0.3);
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r, 0, U.TAU);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r * 0.34, 0, U.TAU);
+        ctx.fill();
+      } else {
       const s = e.shape;
       if (s === 'crawler') {
         ctx.fillStyle = flash ? 'rgba(255,236,246,0.72)' : '#2a1230';
@@ -1717,10 +1734,10 @@
         ctx.lineTo(e.r * 0.72, e.r * 0.3);
         ctx.closePath(); ctx.fill();
       }
+      }
 
       // 精英标记
-      if (e.elite) {
-        ctx.globalCompositeOperation = 'lighter';
+      if (e.elite) {        ctx.globalCompositeOperation = 'lighter';
         ctx.strokeStyle = 'rgba(255,212,121,0.7)';
         ctx.lineWidth = 1.6;
         ctx.beginPath();

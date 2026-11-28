@@ -407,6 +407,7 @@
     /* ---------- 绘制 ---------- */
     draw: function (ctx, time) {
       const v = AE.Cam.view();
+      const lowFx = AE.FX.quality <= 0.6;
 
       // 引力井 / 区域
       for (let i = 0; i < this.zones.length; i++) {
@@ -537,7 +538,7 @@
         ctx.globalAlpha = a;
         if (b.kind === 'seeker') {
           const ang = Math.atan2(b.vy, b.vx);
-          AE.FX.glow(ctx, b.x, b.y, 18, b.color, 0.8);
+          if (!lowFx) AE.FX.glow(ctx, b.x, b.y, 18, b.color, 0.8);
           ctx.save();
           ctx.translate(b.x, b.y); ctx.rotate(ang);
           ctx.fillStyle = '#ffe9c9';
@@ -547,7 +548,7 @@
           ctx.restore();
         } else if (b.kind === 'refract') {
           const ang = Math.atan2(b.vy, b.vx);
-          AE.FX.glow(ctx, b.x, b.y, 20, b.color, 0.75);
+          if (!lowFx) AE.FX.glow(ctx, b.x, b.y, 20, b.color, 0.75);
           ctx.save();
           ctx.translate(b.x, b.y); ctx.rotate(ang + time * 3);
           ctx.fillStyle = AE.FX.alpha(b.color, 0.42);
@@ -563,7 +564,7 @@
           ctx.restore();
         } else if (b.kind === 'shard') {
           const ang = Math.atan2(b.vy, b.vx);
-          AE.FX.glow(ctx, b.x, b.y, 14, b.color, 0.7);
+          if (!lowFx) AE.FX.glow(ctx, b.x, b.y, 14, b.color, 0.7);
           ctx.save();
           ctx.translate(b.x, b.y); ctx.rotate(ang);
           ctx.fillStyle = '#ffe0ee';
@@ -597,7 +598,7 @@
       for (let i = 0; i < this.ebullets.length; i++) {
         const b = this.ebullets[i];
         if (b.x < bmx || b.x > bMx || b.y < bmy || b.y > bMy) continue;
-        AE.FX.glow(ctx, b.x, b.y, b.r * 4.6, b.color, 0.6);
+        if (!lowFx) AE.FX.glow(ctx, b.x, b.y, b.r * 4.6, b.color, 0.6);
         ctx.fillStyle = b.color;
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, U.TAU);

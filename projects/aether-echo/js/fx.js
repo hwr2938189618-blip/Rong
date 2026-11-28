@@ -166,7 +166,8 @@
     spark: function (x, y, color, n, o) {
       o = o || {};
       n = n || 4;
-      const cap = (AE.Data.CONST.MAX_PARTICLES || 600) * (this.quality || 1);
+      const cap = (AE.Data.CONST.MAX_PARTICLES || 600) *
+        (this.quality <= 0.6 ? 0.35 : (this.quality || 1));
       for (let i = 0; i < n; i++) {
         if (this.particles.length >= cap) this.particles.shift();
         const ang = o.angle !== undefined ? o.angle + U.rnd(-(o.spread || 0.6), o.spread || 0.6) : U.rnd(0, U.TAU);
@@ -412,7 +413,8 @@
       // 星层：只画与视口相交的瓦片（原先每层多画 1 列 + 1 行，纯属浪费调用）
       if (this.stars) {
         const cw = Math.ceil(w / 640), chh = Math.ceil(h / 640);
-        for (let l = 0; l < this.stars.length; l++) {
+        const starLayers = this.quality <= 0.6 ? Math.min(2, this.stars.length) : this.stars.length;
+        for (let l = 0; l < starLayers; l++) {
           const p = 0.06 + l * 0.09;
           const ox = ((-cam.x * p) % 640 + 640) % 640;
           const oy = ((-cam.y * p) % 640 + 640) % 640;

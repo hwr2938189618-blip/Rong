@@ -558,8 +558,12 @@
         if (this.perfT > 3) {
           const avg = this.perfSum / Math.max(1, this.perfN);
           const q = (AE.Save.data.settings && AE.Save.data.settings.quality) || 1;
-          if (avg > 0.0235 && q > 0.62) {
-            AE.Save.data.settings.quality = Math.max(0.6, Math.round((q - 0.15) * 100) / 100);
+          let nq = q;
+          if (avg > 0.045) nq = 0.6;
+          else if (avg > 0.028) nq = Math.max(0.6, q - 0.2);
+          else if (avg > 0.0235) nq = Math.max(0.6, q - 0.15);
+          if (nq < q - 0.001) {
+            AE.Save.data.settings.quality = Math.round(nq * 100) / 100;
             AE.Save.save();
             this.applySettings();
             if (AE.UI) AE.UI.toast('已自动降低画质以保持流畅', '#7df9ff');
