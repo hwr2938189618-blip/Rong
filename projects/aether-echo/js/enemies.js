@@ -343,6 +343,10 @@
         e.enraged = true;
         AE.Audio.sfx('roar');
         AE.FX.ring(e.x, e.y, e.color, 20, 220, 0.8, 4);
+        AE.FX.ring(e.x, e.y, '#ff3355', 10, 320, 1.0, 3);
+        AE.FX.spark(e.x, e.y, '#ff5c7a', 40, { spd: 420, life: 0.9, size: 4 });
+        AE.FX.flash(0.18, '#ff3355');
+        AE.FX.shake(0.6);
         AE.Game.announce(e.bossName + ' · 暴走', e.color, 2.2);
       }
       const rage = e.enraged ? 1.25 : 1;
@@ -1216,7 +1220,19 @@
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'lighter';
       AE.FX.glow(ctx, 0, 0, e.r * 2.9, col, 0.32 + Math.sin(time * 2) * 0.04);
+      if (e.enraged) {
+        AE.FX.glow(ctx, 0, 0, e.r * 3.4, '#ff3355', 0.24 + Math.sin(time * 7) * 0.08);
+      }
       ctx.globalCompositeOperation = 'source-over';
+      if (e.enraged) {
+        ctx.strokeStyle = 'rgba(255,70,90,' + (0.28 + Math.sin(time * 6) * 0.12).toFixed(2) + ')';
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([10, 12]);
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r + 18, time * 1.5, time * 1.5 + U.TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
       // 外环符文：双层反向旋转，强化首领的存在感
       ctx.save();

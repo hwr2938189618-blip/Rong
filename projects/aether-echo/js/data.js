@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.29.2';
+  D.VERSION = '1.29.3';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 

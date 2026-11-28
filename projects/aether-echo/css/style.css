@@ -846,6 +846,7 @@ body.reduce-motion *::after {
   .kbd { display: none; }
   .touch-dash { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); right: calc(26px + env(safe-area-inset-right, 0px)); }
   .btn, .link-btn { -webkit-tap-highlight-color: transparent; }
+  .link-btn { min-height: 40px; padding: 10px 12px; }
   .pick { min-height: 0; }
 }
 @media (max-width: 560px) and (orientation: portrait) {

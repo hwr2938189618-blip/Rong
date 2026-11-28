@@ -1235,7 +1235,7 @@
       if (G.boss && G.boss.alive) {
         const b = G.boss;
         const bw = Math.min(520, W * 0.52);
-        const bx = W / 2 - bw / 2, by = 88;
+        const bx = W / 2 - bw / 2, by = 96;
         ctx.textAlign = 'center';
         ctx.font = '800 15px ' + head;
         ctx.fillStyle = 'rgba(255,240,245,0.95)';
@@ -1266,7 +1266,7 @@
         ctx.textAlign = 'center';
         ctx.font = '800 22px ' + head;
         ctx.fillStyle = '#ff6b8a';
-        ctx.fillText('⚠ 强敌接近', W / 2, H * 0.3);
+        ctx.fillText('⚠ 强敌接近', W / 2, H < 520 ? H * 0.58 : H * 0.3);
         ctx.globalAlpha = 1;
       }
 
@@ -1322,9 +1322,10 @@
 
     drawAnns: function (ctx, W, head) {
       const anns = G.anns;
+      const baseY = G.boss ? 152 : 126;
       for (let i = 0; i < anns.length; i++) {
         const a = anns[i];
-        const y = 126 + i * 34;
+        const y = baseY + i * 34;
         const k = Math.min(1, a.life / 0.5) * Math.min(1, (a.max - a.life) / 0.18);
         ctx.save();
         ctx.globalAlpha = k;
