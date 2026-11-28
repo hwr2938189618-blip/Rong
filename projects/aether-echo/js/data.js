@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.36.0';
+  D.VERSION = '1.37.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -747,6 +747,16 @@
       id: 'stabilizer', name: '视界稳定器', icon: '◉', color: '#ff7fb0',
       desc: '湮灭光束引导期间减伤 40%，光束宽度 +40%',
       apply: function (p) { p.beamWidth = (p.beamWidth || 1) * 1.4; p.beamGuard = true; }
+    },
+    {
+      id: 'halo', name: '光轮护符', icon: '❂', color: '#b388ff',
+      desc: '轨道刃永久多 2 枚',
+      apply: function (p) { p.orbitBonus = (p.orbitBonus || 0) + 2; }
+    },
+    {
+      id: 'siphon', name: '湮灭虹吸', icon: '⇶', color: '#ff7fb0',
+      desc: '湮灭光束每命中一个敌人回复 0.4 生命（每跳最多 4 点）',
+      apply: function (p) { p.beamLeech = true; }
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

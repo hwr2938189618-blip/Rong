@@ -33,6 +33,7 @@
         burn: !!char.burn,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
         beamWidth: 1, beamGuard: false, channeling: false,
+        orbitBonus: 0, beamLeech: false,
         killStacks: 0, stackBonus: 0,
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),

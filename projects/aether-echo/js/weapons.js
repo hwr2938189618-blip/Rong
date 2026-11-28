@@ -315,6 +315,7 @@
       AE.FX.line(x1, y1, x2, y2, '#ffffff', 0.08, Math.max(2, width * 0.3), false);
       const list = AE.Enemies.list;
       const cos = Math.cos(w.beamAngle), sin = Math.sin(w.beamAngle);
+      let hits = 0;
       for (let i = 0; i < list.length; i++) {
         const e = list[i];
         if (!e.alive || e.spawning > 0) continue;
@@ -323,7 +324,9 @@
         const dot = (e.x - x1) * cos + (e.y - y1) * sin;
         if (dot < -20) continue;
         W.rollCrit(p, e, s.dmg, { x: e.x, y: e.y });
+        hits++;
       }
+      if (p.beamLeech && hits) AE.Player.heal(p, Math.min(4, hits * 0.4));
     },
 
     fireLance: function (p, s, angle, def) {
@@ -365,10 +368,11 @@
       const list = AE.Enemies.list;
       const bladeR = 13;
       const now = AE.G.time;
+      const count = s.count + (p.orbitBonus || 0);
       w.orbT = w.orbT || [];
-      for (let b = 0; b < s.count; b++) {
+      for (let b = 0; b < count; b++) {
         if (now - (w.orbT[b] || -9) < s.hitCd) continue;
-        const a = w.spin + b * U.TAU / s.count;
+        const a = w.spin + b * U.TAU / count;
         const bx = p.x + Math.cos(a) * baseR;
         const by = p.y + Math.sin(a) * baseR;
         for (let i = 0; i < list.length; i++) {
@@ -404,8 +408,9 @@
           ctx.arc(p.x, p.y, baseR, 0, U.TAU);
           ctx.stroke();
           ctx.restore();
-          for (let b = 0; b < s.count; b++) {
-            const a = w.spin + b * U.TAU / s.count;
+          const bladeCount = s.count + (p.orbitBonus || 0);
+          for (let b = 0; b < bladeCount; b++) {
+            const a = w.spin + b * U.TAU / bladeCount;
             const bx = p.x + Math.cos(a) * baseR;
             const by = p.y + Math.sin(a) * baseR;
             ctx.save();
