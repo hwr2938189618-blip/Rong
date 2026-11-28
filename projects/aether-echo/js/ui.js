@@ -587,7 +587,7 @@
           return '<span class="build-chip relic" style="--c:' + def.color + '" title="' +
             def.name + '：' + def.desc + '">' + def.icon + ' ' + def.name + '</span>';
         }).join('');
-        return '<div class="result-build">' +
+        return '<div class="result-build" role="group" aria-label="本局构筑摘要">' +
           (wChips ? '<div class="build-line"><span class="build-label">武器</span>' + wChips + '</div>' : '') +
           (pChips ? '<div class="build-line"><span class="build-label">被动</span>' + pChips + '</div>' : '') +
           (rChips ? '<div class="build-line"><span class="build-label">遗物</span>' + rChips + '</div>' : '') +
