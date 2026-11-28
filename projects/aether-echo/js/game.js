@@ -1541,7 +1541,12 @@
     owned: function (p, id) { return p && p.relics && p.relics.indexOf(id) >= 0; },
     roll: function (p, n) {
       if (!p) return [];
-      const pool = AE.Data.RELICS.filter(function (r) { return p.relics.indexOf(r.id) < 0; });
+      const weapons = p.weapons || [];
+      const pool = AE.Data.RELICS.filter(function (r) {
+        if (p.relics.indexOf(r.id) >= 0) return false;
+        if (r.requires && !weapons.some(function (w) { return w.id === r.requires; })) return false;
+        return true;
+      });
       AE.U.shuffle(pool);
       return pool.slice(0, n).map(function (r) { return { kind: 'relic', id: r.id }; });
     },
