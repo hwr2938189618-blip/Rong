@@ -112,6 +112,7 @@
           document.body.classList.toggle) {
         document.body.classList.toggle('high-contrast', !!s.contrast);
         document.body.classList.toggle('reduce-motion', s.motion === false);
+        document.body.classList.toggle('left-hand', !!s.leftHand);
       }
     },
 
