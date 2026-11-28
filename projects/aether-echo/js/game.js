@@ -1328,7 +1328,6 @@
       ctx.font = '700 13px ' + head;
       ctx.fillStyle = 'rgba(232,242,255,0.9)';
       ctx.fillText(Math.ceil(hp) + ' / ' + Math.round(mx), hx, hy - 10);
-
       this.bar(ctx, hx, hy, 250, 14, hp / mx, hp / mx < 0.3 ? '#ff5c7a' : '#ff7fa0');
       ctx.strokeStyle = 'rgba(255,255,255,0.12)';
       ctx.lineWidth = 1;
