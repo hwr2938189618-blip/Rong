@@ -76,6 +76,7 @@
           if (w.level >= 8 && !w.evolved) {
             w.evolved = true;
             if (!silent) Player.onEvolve(p, w);
+            else Player.recordEvolved(w.id);
           }
           return w;
         }
@@ -85,8 +86,19 @@
       return w;
     },
 
+    recordEvolved: function (id) {
+      const S = AE.Save && AE.Save.data;
+      if (!S) return;
+      if (!Array.isArray(S.evolvedSeen)) S.evolvedSeen = [];
+      if (S.evolvedSeen.indexOf(id) < 0) {
+        S.evolvedSeen.push(id);
+        AE.Save.save();
+      }
+    },
+
     onEvolve: function (p, w) {
       const def = AE.Data.WEAPON_MAP[w.id];
+      Player.recordEvolved(w.id);
       AE.FX.ring(p.x, p.y, def.evolved ? def.color : def.color, 10, 240, 0.7, 5);
       AE.FX.spark(p.x, p.y, def.color, 34, { spd: 340, life: 0.8, size: 3.4 });
       AE.FX.flash(0.22, def.color);
