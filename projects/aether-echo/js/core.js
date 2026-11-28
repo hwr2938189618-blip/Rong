@@ -132,7 +132,7 @@
         for (let i = 0; i < e.changedTouches.length; i++) {
           const t = e.changedTouches[i];
           const x = t.clientX - r.left, y = t.clientY - r.top;
-          if (!self.joy.active && x < r.width * 0.55) {
+          if (!self.joy.active && self.joyZone(x, r.width)) {
             self.joy.active = true; self.joy.dx = 0; self.joy.dy = 0; self.joy.mag = 0;
             self.touch.ox = x; self.touch.oy = y; self.touch.dx = x; self.touch.dy = y;
             self.touch.active = true;
@@ -171,6 +171,12 @@
     down: function (code) { return !!this.keys[code]; },
     hit: function (code) { return !!this.pressed[code]; },
 
+    joyZone: function (x, width) {
+      const lh = !!(AE.Save && AE.Save.data && AE.Save.data.settings &&
+        AE.Save.data.settings.leftHand);
+      return lh ? x > width * 0.45 : x < width * 0.55;
+    },
+
     moveVec: function () {
       let x = 0, y = 0;
       if (this.down('KeyA') || this.down('ArrowLeft')) x -= 1;
@@ -204,7 +210,7 @@
         meta: {}, muted: false,
         best: { time: 0, kills: 0, level: 0, score: 0 },
         seen: false,
-        settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1, motion: true, contrast: false, flash: true },
+        settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1, motion: true, contrast: false, flash: true, leftHand: false },
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 },
         achievements: [],
         bestRuns: [],
