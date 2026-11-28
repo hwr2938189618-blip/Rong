@@ -450,6 +450,20 @@ html, body {
 .result-cell span { display: block; font-size: 9px; letter-spacing: 0.22em; color: var(--dim2); margin-bottom: 7px; }
 .result-cell b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .result-cell.gold b { color: var(--gold); }
+.grade-S { color: #ffd479 !important; }
+.grade-A { color: #8affc1 !important; }
+.grade-B { color: #7df9ff !important; }
+.grade-C { color: #9fb4ff !important; }
+.run-row em { font-style: normal; font-weight: 800; }
+.score-badge {
+  font-size: 10px; letter-spacing: 0.16em; color: var(--dim);
+  border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px;
+}
+.score-badge.top {
+  color: var(--gold); border-color: rgba(255, 212, 121, 0.4);
+  background: rgba(255, 212, 121, 0.07);
+  box-shadow: 0 0 18px rgba(255, 212, 121, 0.1);
+}
 .echo-gain {
   display: flex; align-items: baseline; gap: 10px; justify-content: center;
   font-size: 34px; font-weight: 900; color: var(--gold);
