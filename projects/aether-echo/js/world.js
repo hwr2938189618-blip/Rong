@@ -471,11 +471,13 @@
         ctx.restore();
       }
 
-      // 玩家子弹
+      // 玩家子弹（视口外跳过绘制）
+      const bmx = v.x0 - 80, bmy = v.y0 - 80, bMx = v.x1 + 80, bMy = v.y1 + 80;
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       for (let i = 0; i < this.bullets.length; i++) {
         const b = this.bullets[i];
+        if (b.x < bmx || b.x > bMx || b.y < bmy || b.y > bMy) continue;
         const a = Math.min(1, b.life * 3);
         ctx.globalAlpha = a;
         if (b.kind === 'seeker') {
@@ -518,11 +520,12 @@
       }
       ctx.restore();
 
-      // 敌方子弹
+      // 敌方子弹（同样裁剪视口外）
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       for (let i = 0; i < this.ebullets.length; i++) {
         const b = this.ebullets[i];
+        if (b.x < bmx || b.x > bMx || b.y < bmy || b.y > bMy) continue;
         AE.FX.glow(ctx, b.x, b.y, b.r * 4.6, b.color, 0.6);
         ctx.fillStyle = b.color;
         ctx.beginPath();

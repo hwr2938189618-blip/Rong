@@ -1064,11 +1064,15 @@
       const xpPct = U.clamp(G.xp / G.xpNeed, 0, 1);
       ctx.fillStyle = 'rgba(8,12,26,0.6)';
       ctx.fillRect(0, 0, W, 3);
-      const gx = ctx.createLinearGradient(0, 0, W, 0);
-      gx.addColorStop(0, '#4fd8ff');
-      gx.addColorStop(0.6, '#7df9ff');
-      gx.addColorStop(1, '#b388ff');
-      ctx.fillStyle = gx;
+      // 渐变只在宽度变化时重建，避免每帧分配
+      if (!this._xpGrad || this._xpW !== W) {
+        const gx = ctx.createLinearGradient(0, 0, W, 0);
+        gx.addColorStop(0, '#4fd8ff');
+        gx.addColorStop(0.6, '#7df9ff');
+        gx.addColorStop(1, '#b388ff');
+        this._xpGrad = gx; this._xpW = W;
+      }
+      ctx.fillStyle = this._xpGrad;
       ctx.fillRect(0, 0, W * xpPct, 3);
 
       ctx.save();
