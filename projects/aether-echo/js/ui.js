@@ -535,13 +535,13 @@
       this.prev = 'result';
       const victory = r.victory;
       const title = r.rush
-        ? (victory ? '五连战 · 全破' : '连战中断')
+        ? (victory ? '六连战 · 全破' : '连战中断')
         : (victory ? '回响长存' : '回响中断');
       const kicker = r.rush
         ? (victory ? 'BOSS RUSH · CLEAR' : 'BOSS RUSH · FAILED')
         : (victory ? 'AETHER ECHO · RUN COMPLETE' : 'ECHO FADED · RUN OVER');
       const sub = r.rush
-        ? '五名首领连战 · ' + r.char.name + ' · 用时 ' + U.fmtTime(r.time)
+        ? '六名首领连战 · ' + r.char.name + ' · 用时 ' + U.fmtTime(r.time)
         : (victory
           ? '终焉回响已被击破 · ' + r.char.name + (r.loop ? ' · 无尽 ' + (r.loop + 1) : '')
           : '星渊吞没了这道回响 · 但记忆仍在');

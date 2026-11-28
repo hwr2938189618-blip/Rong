@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.17.0';
+  D.VERSION = '1.18.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -434,7 +434,7 @@
     }
   ];
   /* 首领连战顺序 */
-  D.RUSH_ORDER = ['weaver', 'breaker', 'manyeye', 'eclipse', 'final'];
+  D.RUSH_ORDER = ['weaver', 'breaker', 'manyeye', 'eclipse', 'final', 'abyss'];
 
   /* ============================================================
    * 角色

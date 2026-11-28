@@ -252,7 +252,7 @@
       AE.Player.setAim(G.player, G.player.x + 120, G.player.y);
       AE.FX.flash(0.35, '#ffffff');
       AE.FX.ring(G.player.x, G.player.y, '#7df9ff', 10, 220, 0.8, 3);
-      this.announce(isRush ? '首领连战 · 五连战' : '第 1 层 · 苏醒', isRush ? '#ffd479' : '#7df9ff', 2.0);
+      this.announce(isRush ? '首领连战 · 六连战' : '第 1 层 · 苏醒', isRush ? '#ffd479' : '#7df9ff', 2.0);
       if (isDaily) {
         this.announce('每日挑战 · ' + G.daily.key, '#ffd479', 3.0);
         G.daily.anomalies.forEach(function (a) {
@@ -769,7 +769,7 @@
         if (G.rushIndex >= AE.Data.RUSH_ORDER.length) {
           G.winning = true;
           G.player.invuln = 6;
-          this.announce('五连战 · 全破', '#ffd479', 3);
+          this.announce('六连战 · 全破', '#ffd479', 3);
           this.delay(1.4, function () { self.endRun(true); });
         } else {
           G.pending += 3;
