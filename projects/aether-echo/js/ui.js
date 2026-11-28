@@ -509,6 +509,17 @@
             return '<span class="relic-chip" style="--c:' + r.color + '" title="' + r.name + '：' + r.desc + '">' + r.icon + '</span>';
           }).join('') + '</div>'
         : '';
+      const resActive = ((G.player && G.player.weapons) || []).length
+        ? AE.Data.RESONANCES.filter(function (r) {
+            return r.weapons.every(function (id) {
+              return G.player.weapons.some(function (w) { return w.id === id; });
+            });
+          })
+        : [];
+      const resRow = resActive.length
+        ? '<div class="pause-daily resonance-badge">共鸣 · ' +
+          resActive.map(function (r) { return r.name; }).join(' / ') + '</div>'
+        : '';
       const html =
         '<div class="screen pause-screen">' +
         '<div class="panel">' +
@@ -527,6 +538,7 @@
         (G.pacts && G.pacts.length ? '<div class="pause-daily pact-badge">深渊契约 · ' +
           G.pacts.map(function (id) { return AE.Data.PACT_MAP[id] ? AE.Data.PACT_MAP[id].name : id; }).join(' / ') +
           ' · 回响 ×' + (G.pactMult || 1).toFixed(2) + '</div>' : '') +
+        resRow +
         relicRow +
         '<div class="btn-col">' +
         '<button class="btn primary" data-act="resume">继续' + (this._touch ? '' : '（ESC）') + '</button>' +
@@ -702,6 +714,17 @@
           '<div class="codex-stats">满级 ' + p.desc(5) + '</div>' +
           '</div>';
       }).join('');
+      const resonances = D.RESONANCES.map(function (r) {
+        const pair = r.weapons.map(function (id) {
+          return D.WEAPON_MAP[id] ? D.WEAPON_MAP[id].name : id;
+        }).join(' + ');
+        return '<div class="codex-card resonance-card" style="--c:' + r.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">✧</span><span class="codex-tag">共鸣</span></div>' +
+          '<div class="codex-name">' + r.name + '</div>' +
+          '<div class="codex-desc">' + pair + '</div>' +
+          '<div class="codex-stats">' + r.desc + '</div>' +
+          '</div>';
+      }).join('');
       const enemies = Object.keys(D.ENEMIES).map(function (k) {
         const e = D.ENEMIES[k];
         return '<div class="codex-row"><b style="color:' + e.color + '">' + e.name + '</b>' +
@@ -730,10 +753,12 @@
         '<div class="screen codex-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
         '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
-        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、被动、遗物、敌人与首领</div></div>' +
+        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、共鸣、被动、遗物、敌人与首领</div></div>' +
         '</div></div>' +
         '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把</div>' +
         '<div class="codex-grid">' + weapons + '</div>' +
+        '<div class="section-label">武器共鸣 · 同时携带两把时生效</div>' +
+        '<div class="codex-grid">' + resonances + '</div>' +
         '<div class="section-label">被动 · ' + D.PASSIVES.length + '</div>' +
         '<div class="codex-grid">' + passives + '</div>' +
         '<div class="section-label">遗物 · ' + D.RELICS.length + ' 件（击破首领后获得）</div>' +
