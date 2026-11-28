@@ -999,3 +999,22 @@ body.reduce-motion *::after {
   .touch-dash { right: calc(104px + env(safe-area-inset-right, 0px)); bottom: calc(34px + env(safe-area-inset-bottom, 0px)); }
   .touch-ult { right: calc(188px + env(safe-area-inset-right, 0px)); bottom: calc(34px + env(safe-area-inset-bottom, 0px)); width: 54px; height: 54px; }
 }
+
+/* 左手模式：摇杆移到右侧，动作键镜像到左侧 */
+body.left-hand .touch-dash {
+  left: calc(26px + env(safe-area-inset-left, 0px)); right: auto;
+}
+body.left-hand .touch-ult {
+  left: calc(114px + env(safe-area-inset-left, 0px)); right: auto;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  body.left-hand .touch-dash {
+    left: calc(104px + env(safe-area-inset-left, 0px)); right: auto;
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+  body.left-hand .touch-ult {
+    left: calc(188px + env(safe-area-inset-left, 0px)); right: auto;
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    width: 54px; height: 54px;
+  }
+}
