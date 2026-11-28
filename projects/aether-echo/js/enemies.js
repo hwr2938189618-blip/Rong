@@ -736,8 +736,8 @@
       let dmg = amount;
       const G0 = AE.G;
       const pl0 = G0.player;
-      // 连杀增伤：最高 +35%
-      if (G0.combo > 0) dmg *= 1 + Math.min(0.35, G0.combo * 0.006);
+      // 连杀增伤：最高 +35%（溅射递归不重复计算）
+      if (G0.combo > 0 && !(opts && opts.noCombo)) dmg *= 1 + Math.min(0.35, G0.combo * 0.006);
       // 遗物：处决之刃 —— 对残血目标增伤
       if (pl0 && pl0.relics && pl0.relics.indexOf('executioner') >= 0 &&
           e.maxHp > 0 && e.hp / e.maxHp <= 0.3) {
@@ -772,7 +772,7 @@
           const o = near[k];
           if (o === e || !o.alive || o.spawning > 0) continue;
           if (U.d2(e.x, e.y, o.x, o.y) > 90 * 90) continue;
-          this.damage(o, dmg * 0.35, { crit: false, noSplash: true, noFrost: true });
+          this.damage(o, dmg * 0.35, { crit: false, noSplash: true, noFrost: true, noCombo: true });
         }
         AE.FX.ring(e.x, e.y, '#ffd479', 4, 60, 0.25, 1.6);
       }
@@ -814,7 +814,7 @@
             const o = near[k];
             if (o === e || !o.alive || o.spawning > 0) continue;
             if (U.d2(e.x, e.y, o.x, o.y) > 72 * 72) continue;
-            this.damage(o, boomDmg, { crit: false, noSplash: true, noFrost: true });
+            this.damage(o, boomDmg, { crit: false, noSplash: true, noFrost: true, noCombo: true });
           }
         }
       }
@@ -843,7 +843,7 @@
             const o = near[k];
             if (!o.alive || o.spawning > 0) continue;
             if (U.d2(pl.x, pl.y, o.x, o.y) > 180 * 180) continue;
-            this.damage(o, nd, { noSplash: true, noFrost: true });
+            this.damage(o, nd, { noSplash: true, noFrost: true, noCombo: true });
           }
           pl.reaperBurst = false;
         }

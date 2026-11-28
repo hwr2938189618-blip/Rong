@@ -314,6 +314,10 @@
       G.spawnT = 0.5;
       // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避免“固定种子”假象
       G.daily = null;
+      G.dailyEvents = null;
+      G.dailyEventsDone = 0;
+      G.event = null; G.eventLeft = 0;
+      G.eventT = 60 + Math.random() * 25;
       G.stage = 1;
       AE.RNG.restore();
       G.state = 'playing';
@@ -858,6 +862,8 @@
       const p = G.player;
       if (p.revives > 0) {
         p.revives--;
+        p.avatarT = 0;
+        p.avatar = null;
         p.hp = Math.round(p.maxHp * 0.62);
         p.alive = true;
         p.invuln = 2.4;
@@ -1087,7 +1093,7 @@
       ctx.strokeRect(ux + 0.5, uy + 0.5, uw - 1, 4);
       ctx.font = '600 8px ' + head;
       ctx.fillStyle = (avatarOn || upct >= 1) ? '#ffd479' : 'rgba(150,190,235,0.55)';
-      ctx.fillText(avatarOn ? '星核化身 · ' + p.avatarT.toFixed(1) + 's' : (upct >= 1 ? '星核就绪 · E' : '星核'), ux + uw + 8, uy + 2);
+      ctx.fillText(avatarOn ? ((p.avatar && p.avatar.name) || '星核化身') + ' · ' + p.avatarT.toFixed(1) + 's' : (upct >= 1 ? '星核就绪 · E' : '星核'), ux + uw + 8, uy + 2);
 
       ctx.textAlign = 'center';
       ctx.font = '800 26px ' + head;

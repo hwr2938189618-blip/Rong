@@ -203,38 +203,57 @@
         Player.castUlt(p);
       }
 
-      // 星核化身：持续 10 秒，自动发射星矛 + 近身星火
+      // 星核化身：持续 10 秒，自动发射星矛 + 近身星火（按角色形态变化）
       if (p.avatarT > 0) {
+        const av = p.avatar || AE.Data.AVATARS.echo;
         p.avatarT -= dt;
         p.avatarAtk -= dt;
         p.avatarAura -= dt;
         if (p.avatarAtk <= 0) {
-          p.avatarAtk = 0.5;
-          const ts = AE.Weapons.nearestEnemies(p.x, p.y, 4, 640);
-          for (let ai = 0; ai < ts.length; ai++) {
-            const tgt = ts[ai];
-            const a = Math.atan2(tgt.y - p.y, tgt.x - p.x);
-            AE.World.addBullet({
-              x: p.x, y: p.y, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560,
-              r: 6, dmg: (60 + p.level * 9) * p.dmgMul, life: 1.5,
-              color: '#ffd479', kind: 'shard', pierce: 2, hitIds: [],
-              critChance: p.crit, critDmg: p.critDmg, size: 7,
-              homing: 3.2, target: tgt, trailT: 0
-            });
+          p.avatarAtk = av.cadence || 0.5;
+          const ts = AE.Weapons.nearestEnemies(p.x, p.y, av.chain ? 6 : 4, 640);
+          if (av.chain) {
+            for (let ai = 0; ai < ts.length; ai++) {
+              const tgt = ts[ai];
+              AE.FX.line(p.x, p.y, tgt.x, tgt.y, av.color, 0.2, 5, false);
+              AE.FX.spark(tgt.x, tgt.y, av.color, 5, { spd: 150, life: 0.3, size: 2.6 });
+              AE.Enemies.damage(tgt, (55 + p.level * 8) * p.dmgMul, { crit: false, noSplash: true });
+            }
+            if (ts.length) AE.Audio.sfx('arc');
+          } else {
+            for (let ai = 0; ai < ts.length; ai++) {
+              const tgt = ts[ai];
+              const a = Math.atan2(tgt.y - p.y, tgt.x - p.x);
+              AE.World.addBullet({
+                x: p.x, y: p.y, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560,
+                r: 6, dmg: (60 + p.level * 9) * p.dmgMul, life: 1.5,
+                color: av.color, kind: 'shard', pierce: 2, hitIds: [],
+                critChance: p.crit, critDmg: p.critDmg, size: 7,
+                homing: 3.2, target: tgt, trailT: 0
+              });
+            }
+            if (ts.length) AE.Audio.sfx('lance', { pitch: 1.25 });
           }
-          if (ts.length) AE.Audio.sfx('lance', { pitch: 1.25 });
+          if (av.drain) {
+            const healed = AE.Player.heal(p, 4);
+            if (healed) AE.Audio.sfx('heal');
+          }
         }
         if (p.avatarAura <= 0) {
           p.avatarAura = 0.5;
-          const near = AE.World.grid.query(p.x, p.y, 175);
+          const near = AE.World.grid.query(p.x, p.y, av.aura || 175);
           const ad = (30 + p.level * 4) * p.dmgMul;
           for (let ai = 0; ai < near.length; ai++) {
             const o = near[ai];
             if (!o.alive || o.spawning > 0) continue;
-            if (U.d2(p.x, p.y, o.x, o.y) > 175 * 175) continue;
+            if (U.d2(p.x, p.y, o.x, o.y) > (av.aura || 175) * (av.aura || 175)) continue;
+            if (av.burn) {
+              o.burnT = Math.max(o.burnT || 0, 2.6);
+              o.burnDps = Math.max(o.burnDps || 0, (10 + p.level * 1.8) * (p.burnMul || 1));
+            }
             AE.Enemies.damage(o, ad, { crit: false, noSplash: true, noFrost: true });
           }
-          AE.FX.ring(p.x, p.y, '#ffd479', 6, 175, 0.4, 2);
+          AE.FX.ring(p.x, p.y, av.color, 6, av.aura || 175, 0.4, 2);
         }
         if (p.avatarT <= 0) {
           p.avatarT = 0;
@@ -285,14 +304,16 @@
       p.avatarT = 10;
       p.avatarAtk = 0.25;
       p.avatarAura = 0.25;
+      p.avatar = AE.Data.AVATARS[p.char.id] || AE.Data.AVATARS.echo;
       G.ultCasts = (G.ultCasts || 0) + 1;
       const cx = p.x, cy = p.y, R = 520;
       const dmg = (160 + p.level * 16) * p.dmgMul;
-      AE.FX.flash(0.6, '#7df9ff');
+      const avCol = (p.avatar && p.avatar.color) || '#ffd479';
+      AE.FX.flash(0.6, avCol);
       AE.FX.shake(1.2);
-      AE.FX.ring(cx, cy, '#7df9ff', 24, R, 0.9, 9);
+      AE.FX.ring(cx, cy, avCol, 24, R, 0.9, 9);
       AE.FX.ring(cx, cy, '#ffffff', 12, R * 0.55, 0.7, 5);
-      AE.FX.spark(cx, cy, '#7df9ff', 90, { spd: 640, life: 1.1, size: 4.5 });
+      AE.FX.spark(cx, cy, avCol, 90, { spd: 640, life: 1.1, size: 4.5 });
       AE.Audio.sfx('nova');
       AE.Audio.sfx('explosion');
       const list = AE.Enemies.list.slice();
@@ -331,7 +352,7 @@
     hurt: function (p, amount, srcX, srcY) {
       if (!p.alive || p.invuln > 0) return 0;
       let dmg = Math.max(1, amount - p.armor);
-      if (p.avatarT > 0) dmg = Math.max(1, dmg * 0.55);
+      if (p.avatarT > 0) dmg = Math.max(1, dmg * ((p.avatar && p.avatar.reduce) || 0.55));
       p.hp -= dmg;
       p.invuln = 0.55;
       p.flash = 0.3;
@@ -356,7 +377,8 @@
     /* 星核化身：伪 3D 星神造型（分层棱面 + 光翼 + 三重环） */
     drawAvatar: function (ctx, p, t) {
       const R = p.r * 2.1;
-      const col = '#ffd479';
+      const av = p.avatar || AE.Data.AVATARS.echo;
+      const col = av.color || '#ffd479';
       ctx.save();
       ctx.translate(p.x, p.y);
 
@@ -377,7 +399,7 @@
         ctx.save();
         ctx.rotate(a);
         const len = R * (1.5 + Math.sin(t * 2 + i) * 0.08);
-        ctx.fillStyle = i % 2 ? 'rgba(255,212,121,0.30)' : 'rgba(255,159,104,0.24)';
+        ctx.fillStyle = i % 2 ? AE.FX.alpha(col, 0.34) : 'rgba(255,255,255,0.16)';
         ctx.beginPath();
         ctx.moveTo(R * 0.5, 0);
         ctx.lineTo(len * 0.55, -R * 0.22);
@@ -405,16 +427,16 @@
       // 伪 3D 棱面身体：底暗面 → 金色主面 → 顶部高光
       ctx.save();
       ctx.rotate(Math.sin(t * 0.9) * 0.12);
-      ctx.fillStyle = '#5c3a12';
+      ctx.fillStyle = '#2a1a2e';
       ctx.beginPath();
       ctx.moveTo(0, -R * 1.08); ctx.lineTo(R * 0.95, R * 0.1);
       ctx.lineTo(0, R * 1.12); ctx.lineTo(-R * 0.95, R * 0.1);
       ctx.closePath(); ctx.fill();
       const bg = ctx.createLinearGradient(-R, -R, R, R);
-      bg.addColorStop(0, '#fff2c4');
-      bg.addColorStop(0.45, '#ffd479');
-      bg.addColorStop(0.75, '#e8863c');
-      bg.addColorStop(1, '#6b3a12');
+      bg.addColorStop(0, '#ffffff');
+      bg.addColorStop(0.4, col);
+      bg.addColorStop(0.8, 'rgba(30,18,40,1)');
+      bg.addColorStop(1, '#120a18');
       ctx.fillStyle = bg;
       ctx.beginPath();
       ctx.moveTo(0, -R * 0.92); ctx.lineTo(R * 0.78, R * 0.04);
@@ -451,7 +473,7 @@
       // 朝向指针
       ctx.save();
       ctx.rotate(p.aimAngle);
-      ctx.fillStyle = 'rgba(255,212,121,0.9)';
+      ctx.fillStyle = AE.FX.alpha(col, 0.9);
       ctx.beginPath();
       ctx.moveTo(R * 1.1, 0); ctx.lineTo(R * 0.86, -5); ctx.lineTo(R * 0.86, 5);
       ctx.closePath(); ctx.fill();

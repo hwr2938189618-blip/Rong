@@ -513,7 +513,10 @@
         '<div><span>等级</span><b>' + G.level + '</b></div>' +
         '</div>' +
         (G.daily ? '<div class="pause-daily">每日挑战 · ' + G.daily.key + '<br>' +
-          G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') + '</div>' : '') +
+          G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') +
+          (G.daily.events && G.daily.events.length ? '<br>星象 · ' + G.daily.events.map(function (id) {
+            return AE.Data.EVENT_MAP[id] ? AE.Data.EVENT_MAP[id].name : id;
+          }).join(' / ') : '') + '</div>' : '') +
         (G.pacts && G.pacts.length ? '<div class="pause-daily pact-badge">深渊契约 · ' +
           G.pacts.map(function (id) { return AE.Data.PACT_MAP[id] ? AE.Data.PACT_MAP[id].name : id; }).join(' / ') +
           ' · 回响 ×' + (G.pactMult || 1).toFixed(2) + '</div>' : '') +

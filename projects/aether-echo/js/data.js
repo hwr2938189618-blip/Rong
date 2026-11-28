@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.27.0';
+  D.VERSION = '1.28.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -503,6 +503,17 @@
   ];
   D.CHAR_MAP = {};
   D.CHARS.forEach(function (c) { D.CHAR_MAP[c.id] = c; });
+
+  /* 星核化身：每个角色的化身形态 */
+  D.AVATARS = {
+    echo: { name: '星神·回响', color: '#ffd479', cadence: 0.50, aura: 175, reduce: 0.55 },
+    blade: { name: '星神·刃舞', color: '#b388ff', cadence: 0.32, aura: 205, reduce: 0.50 },
+    warden: { name: '星神·壁垒', color: '#9fb4ff', cadence: 0.72, aura: 240, reduce: 0.35 },
+    seer: { name: '星神·雷廊', color: '#8affc1', cadence: 0.55, aura: 175, reduce: 0.55, chain: true },
+    lumen: { name: '星神·逐光', color: '#fff3c4', cadence: 0.28, aura: 150, reduce: 0.50 },
+    devourer: { name: '星神·噬星', color: '#ff7fb0', cadence: 0.55, aura: 195, reduce: 0.50, drain: true },
+    ember: { name: '星神·灼世', color: '#ff9f68', cadence: 0.50, aura: 215, reduce: 0.60, burn: true }
+  };
 
   /* ============================================================
    * 永久强化（局外成长，回响购买）
