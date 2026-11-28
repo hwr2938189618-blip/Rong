@@ -32,6 +32,7 @@
         killStack: !!char.killStack,
         burn: !!char.burn,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
+        tetherT: 0,
         beamWidth: 1, beamGuard: false, channeling: false,
         orbitBonus: 0, beamLeech: false,
         killStacks: 0, stackBonus: 0,
@@ -112,8 +113,14 @@
 
     pickupRadius: function (p) { return AE.Data.CONST.PICKUP * p.pickupMul; },
 
+    moveSpeed: function (p) {
+      return p.speed * (1 + p.spdMul) * (p.avatarT > 0 ? 1.25 : 1) *
+        ((p.tetherT || 0) > 0 ? 0.72 : 1);
+    },
+
     update: function (p, dt) {
       if (!p.alive) return;
+      p.tetherT = Math.max(0, (p.tetherT || 0) - dt);
       const Input = AE.Input;
       p.t += dt;
       p.invuln = Math.max(0, p.invuln - dt);
@@ -187,7 +194,7 @@
         let dx = mv.x, dy = mv.y;
         const l = Math.hypot(dx, dy);
         if (l > 1) { dx /= l; dy /= l; }
-        const spd = p.speed * (1 + p.spdMul) * (p.avatarT > 0 ? 1.25 : 1);
+        const spd = Player.moveSpeed(p);
         p.vx = dx * spd; p.vy = dy * spd;
         p.x += p.vx * dt; p.y += p.vy * dt;
 
