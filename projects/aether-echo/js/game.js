@@ -603,13 +603,14 @@
         }
         if (G.eventLeft <= 0) {
           const p = G.player;
+          const hasCompass = !!(p && p.relics && p.relics.indexOf('compass') >= 0);
           if (p) {
-            AE.Player.heal(p, p.maxHp * 0.08);
+            AE.Player.heal(p, p.maxHp * (hasCompass ? 0.14 : 0.08));
             G.echoBonus += 5;
           }
-          this.announce('星象平息 · 回复 8%', G.event.color, 1.8);
+          this.announce('星象平息 · 回复 ' + (hasCompass ? '14%' : '8%'), G.event.color, 1.8);
           G.event = null;
-          G.eventT = 60 + Math.random() * 25;
+          G.eventT = (60 + Math.random() * 25) * (hasCompass ? 0.7 : 1);
         }
         return;
       }

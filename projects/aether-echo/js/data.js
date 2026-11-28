@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.25.0';
+  D.VERSION = '1.26.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -703,6 +703,10 @@
       id: 'battery', name: '超载电池', icon: '⚡', color: '#ffd479',
       desc: '星核能量获取 +40%，并立即获得 30 点星核',
       apply: function (p) { p.ultGain += 0.40; p.ult = Math.min(p.ultMax, p.ult + 30); }
+    },
+    {
+      id: 'compass', name: '星象罗盘', icon: '✧', color: '#7df9ff', hook: true,
+      desc: '星象事件间隔 -30%，事件结束回复提升到 14%'
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
