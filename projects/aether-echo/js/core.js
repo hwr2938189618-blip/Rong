@@ -214,6 +214,7 @@
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0, healed: 0, ults: 0, relics: 0, maxCombo: 0 },
         achievements: [],
         evolvedSeen: [],
+        relicsSeen: [],
         bestRuns: [],
         leaderboard: [],
         dailyBest: {},
@@ -241,6 +242,7 @@
         });
         if (!Array.isArray(d.achievements)) d.achievements = [];
         if (!Array.isArray(d.evolvedSeen)) d.evolvedSeen = [];
+        if (!Array.isArray(d.relicsSeen)) d.relicsSeen = [];
         if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
         if (!Array.isArray(d.leaderboard)) d.leaderboard = [];
         else d.leaderboard = d.leaderboard.filter(function (e) {
