@@ -742,10 +742,13 @@
           '<span>' + U.fmtTime(b.at) + ' 出现 · 生命 ' + b.hp + ' · 伤害 ' + b.dmg + ' · ' + b.title + '</span></div>';
       }).join('');
       const relics = D.RELICS.map(function (r) {
-        return '<div class="codex-card" style="--c:' + r.color + '">' +
+        const seen = (S.relicsSeen || []).indexOf(r.id) >= 0;
+        return '<div class="codex-card relic-card ' + (seen ? 'relic-seen' : 'relic-locked') +
+          '" style="--c:' + r.color + '">' +
           '<div class="codex-top"><span class="codex-icon">' + r.icon + '</span><span class="codex-tag">遗物</span></div>' +
           '<div class="codex-name">' + r.name + '</div>' +
           '<div class="codex-desc">' + r.desc + '</div>' +
+          '<div class="codex-seen">' + (seen ? '已获得' : '未发现') + '</div>' +
           '</div>';
       }).join('');
       const events = D.EVENTS.map(function (e) {
@@ -760,15 +763,17 @@
         '<div class="screen codex-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
         '<button class="icon-btn" data-act="back" aria-label="返回">←</button>' +
-        '<div><h2>图鉴</h2><div class="sub">CODEX · 全部武器、共鸣、被动、遗物、敌人与首领</div></div>' +
+        '<div><h2>图鉴</h2><div class="sub">CODEX · 武器进化、共鸣、遗物与敌群收集</div></div>' +
         '</div></div>' +
-        '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把</div>' +
+        '<div class="section-label">武器 · ' + D.WEAPONS.length + ' 把 · 进化 ' +
+        (S.evolvedSeen || []).length + ' / ' + D.WEAPONS.length + '</div>' +
         '<div class="codex-grid">' + weapons + '</div>' +
         '<div class="section-label">武器共鸣 · 同时携带两把时生效</div>' +
         '<div class="codex-grid">' + resonances + '</div>' +
         '<div class="section-label">被动 · ' + D.PASSIVES.length + '</div>' +
         '<div class="codex-grid">' + passives + '</div>' +
-        '<div class="section-label">遗物 · ' + D.RELICS.length + ' 件（击破首领后获得）</div>' +
+        '<div class="section-label">遗物 · ' + D.RELICS.length + ' 件 · 已收集 ' +
+        (S.relicsSeen || []).length + ' / ' + D.RELICS.length + '</div>' +
         '<div class="codex-grid">' + relics + '</div>' +
         '<div class="section-label">星象事件 · ' + D.EVENTS.length + ' 种</div>' +
         '<div class="codex-grid">' + events + '</div>' +
