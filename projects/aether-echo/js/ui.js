@@ -404,7 +404,7 @@
         '<div>最佳存活 <b>' + U.fmtTime(best.time || 0) + '</b></div>' +
         '<div>最高击杀 <b>' + (best.kills || 0) + '</b></div>' +
         '<div>最高等级 <b>' + (best.level || 0) + '</b></div>' +
-        '<div>连战最佳 <b>' + (S.bestRush && S.bestRush.time ? U.fmtTime(S.bestRush.time) : '--:--') + '</b></div>' +
+        '<div>连战最佳 <b>' + (S.bestRush && S.bestRush.time && S.bestRush.size === AE.Data.RUSH_ORDER.length ? U.fmtTime(S.bestRush.time) : '--:--') + '</b></div>' +
         '<div>契约最佳 <b>' + (S.bestPact && S.bestPact.tier ? ('×' + S.bestPact.tier + ' · ' + U.fmtTime(S.bestPact.time)) : '--') + '</b></div>' +
         '<div class="echo">◈ 回响 <b>' + S.echoes + '</b></div>' +
         '</div>' +
@@ -776,7 +776,7 @@
           ? '<div class="daily-card-main"><b>' + U.fmtTime(db.time) + '</b><span>Lv' + db.level + ' · ' + db.kills + ' 击杀 · ◈ ' + db.echoes + '</span></div>'
           : '<div class="daily-card-main"><b>— —</b><span>今天还没有记录，打一局每日挑战</span></div>') +
         '</div>';
-      const rb = S.bestRush || { time: 0 };
+      const rb = (S.bestRush && S.bestRush.size === AE.Data.RUSH_ORDER.length) ? S.bestRush : { time: 0 };
       const rushCard = '<div class="daily-card rush">' +
         '<div class="daily-card-date">首领连战 · 最佳</div>' +
         (rb.time

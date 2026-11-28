@@ -935,11 +935,13 @@
       let rushBest = null;
       if (G.rush) {
         S.bestRush = S.bestRush || { time: 0, char: '', date: '' };
-        if (victory && (!S.bestRush.time || G.time < S.bestRush.time)) {
-          S.bestRush = { time: Math.round(G.time), char: p.char.id, date: AE.dateKey() };
+        const rushLen = AE.Data.RUSH_ORDER.length;
+        const validPrev = S.bestRush.time && S.bestRush.size === rushLen;
+        if (victory && (!validPrev || G.time < S.bestRush.time)) {
+          S.bestRush = { time: Math.round(G.time), char: p.char.id, date: AE.dateKey(), size: rushLen };
           rushNew = true;
         }
-        rushBest = S.bestRush;
+        rushBest = (S.bestRush.size === rushLen) ? S.bestRush : null;
       }
       let pactNew = false;
       let pactBest = null;

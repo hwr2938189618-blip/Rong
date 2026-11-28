@@ -235,8 +235,8 @@
             }
             if (ts.length) AE.Audio.sfx('lance', { pitch: 1.25 });
           }
-          if (av.drain) {
-            const healed = AE.Player.heal(p, 4);
+          if (av.drain && ts.length) {
+            const healed = AE.Player.heal(p, 2 * ts.length);
             if (healed) AE.Audio.sfx('heal');
           }
         }

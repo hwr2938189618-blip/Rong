@@ -81,6 +81,7 @@
         else if (e.affix.id === 'summoner') { e.summonT = 5; }
       }
       e.hp = e.maxHp;
+      e.baseSpeed = e.speed;
       this.list.push(e);
       AE.FX.ring(x, y, def.color, 10, 140, 0.9, 4);
       AE.FX.ring(x, y, '#ffffff', 4, 90, 0.6, 2);
@@ -678,9 +679,9 @@
         }
       }
       if (e.enraged) {
-        e.speed = e.def.speed * 1.25 * (e.affix && e.affix.id === 'frenzy' ? 1.25 : 1);
+        e.speed = (e.baseSpeed || e.def.speed) * 1.25;
       } else if (e.affix && e.affix.id === 'frenzy') {
-        e.speed = e.def.speed * 1.25;
+        e.speed = (e.baseSpeed || e.def.speed);
       }
     },
 
