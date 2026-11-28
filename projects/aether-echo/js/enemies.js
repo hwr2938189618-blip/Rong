@@ -1098,6 +1098,7 @@
           }
           if (best) {
             pl.refractCd = 0.28;
+            G.refractCount = (G.refractCount || 0) + 1;
             AE.FX.line(e.x, e.y, best.x, best.y, '#c9a6ff', 0.18, 3, true);
             AE.FX.spark(best.x, best.y, '#c9a6ff', 5, { spd: 140, life: 0.3, size: 2.4, add: true });
             this.damage(best, dmg * 0.55, {
@@ -1121,6 +1122,7 @@
             if (dd < bd) { bd = dd; best = o; }
           }
           if (best) {
+            G.refractCount = (G.refractCount || 0) + 1;
             AE.FX.line(e.x, e.y, best.x, best.y, '#c9a6ff', 0.2, 3.4, true);
             AE.FX.spark(best.x, best.y, '#c9a6ff', 6, { spd: 160, life: 0.32, size: 2.8, add: true });
             this.damage(best, dmg * 0.6, {
@@ -1233,7 +1235,10 @@
         }
       }
       // 词缀首领击杀统计
-      if (e.boss && e.affix) G.affixKills = (G.affixKills || 0) + 1;
+      if (e.boss && e.affix) {
+        G.affixKills = (G.affixKills || 0) + 1;
+        if (e.affix.id === 'prism') G.prismBossKills = (G.prismBossKills || 0) + 1;
+      }
       // 星核能量：击杀积攒爆发
       if (pl && pl.ult < pl.ultMax) {        const wasFull = pl.ult >= pl.ultMax;
         const gain = (e.boss ? 40 : (e.elite ? 10 : 1.2)) * (1 + (pl.ultGain || 0)) *

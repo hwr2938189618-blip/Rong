@@ -208,6 +208,9 @@
       if ((G.ultCasts || 0) >= 20) unlock('ult20');
       if ((G.affixKills || 0) >= 3) unlock('affix3');
       if ((G.affixKills || 0) >= 5) unlock('affix5');
+      if ((G.bountyHistory || []).length >= 3) unlock('bounty_chain');
+      if ((G.refractCount || 0) >= 100) unlock('refract100');
+      if ((G.prismBossKills || 0) >= 1) unlock('prism_hunter');
       if (G.dailyWin) unlock('daily_win');
       if (final && (G.lastRank || 0) === 1) unlock('top1');
       if (runActive && G.player.weapons && AE.Data.RESONANCES) {
@@ -289,7 +292,7 @@
       G.pactWinTier = 0;
       G.event = null; G.eventLeft = 0; G.meteorT = 0; G.stormT = 0;
       G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
-      G.affixKills = 0;
+      G.affixKills = 0; G.prismBossKills = 0; G.refractCount = 0;
       G.dailyWin = false;
       G.dailyEvents = G.daily && G.daily.events ? G.daily.events.slice() : null;
       G.dailyEventsDone = 0;
