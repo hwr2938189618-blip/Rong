@@ -140,7 +140,8 @@
     modFrom: function (list) {
       const m = {
         enemySpeed: 1, enemyDmg: 1, enemyHp: 1,
-        xpMul: 1, echoMul: 1, spawnMul: 1, armor: 0, speedMul: 1
+        xpMul: 1, echoMul: 1, spawnMul: 1, armor: 0, speedMul: 1,
+        dmgMul: 1, hpMul: 1, ultGain: 0
       };
       (list || []).forEach(function (a) {
         if (a.id === 'swift') { m.enemySpeed *= 1.2; m.xpMul *= 1.15; }
@@ -148,6 +149,9 @@
         else if (a.id === 'greed') { m.xpMul *= 1.35; }
         else if (a.id === 'void') { m.enemyHp *= 0.9; m.spawnMul *= 1.2; }
         else if (a.id === 'iron') { m.armor += 3; m.speedMul *= 0.94; }
+        else if (a.id === 'overload') { m.ultGain += 0.6; m.enemyDmg *= 1.15; }
+        else if (a.id === 'glass') { m.dmgMul *= 1.25; m.hpMul *= 0.8; }
+        else if (a.id === 'swarm') { m.spawnMul *= 1.2; m.xpMul *= 1.1; }
       });
       return m;
     },
@@ -277,6 +281,10 @@
       G.player.level = 1;
       G.player.armor += G.mod.armor || 0;
       G.player.speed *= G.mod.speedMul || 1;
+      G.player.maxHp = Math.max(1, Math.round(G.player.maxHp * (G.mod.hpMul || 1)));
+      G.player.hp = G.player.maxHp;
+      G.player.dmgMul *= G.mod.dmgMul || 1;
+      G.player.ultGain += G.mod.ultGain || 0;
       if (isRush) {
         if (G.player.weapons[0]) G.player.weapons[0].level = 3;
         const pool = AE.Data.WEAPONS.map(function (w) { return w.id; }).filter(function (id) {
