@@ -462,14 +462,14 @@
       }
 
       p.level = G.level;
-      if (G.xp >= G.xpNeed && G.level < AE.Data.CONST.LEVEL_MAX) {
-        this.levelUp();
-      } else if (G.pending > 0 && G.state === 'playing' && !G.relicLock) {
-        this.openLevelUp(false);
-      }
-
+      // 死亡优先结算：避免死亡同帧升级把结算顶成选卡界面
       if (!p.alive && G.state === 'playing') {
         this.playerDown();
+      }
+      if (G.state === 'playing' && G.xp >= G.xpNeed && G.level < AE.Data.CONST.LEVEL_MAX) {
+        this.levelUp();
+      } else if (G.state === 'playing' && G.pending > 0 && !G.relicLock) {
+        this.openLevelUp(false);
       }
     },
 
@@ -1603,12 +1603,22 @@
       return AE.Data.RELICS.filter(function (r) { return r.id === id; })[0] || null;
     },
     owned: function (p, id) { return p && p.relics && p.relics.indexOf(id) >= 0; },
+    hasResonance: function (p) {
+      if (!p || !p.weapons || !AE.Data.RESONANCES) return false;
+      return AE.Data.RESONANCES.some(function (r) {
+        return r.weapons.every(function (id) {
+          return p.weapons.some(function (w) { return w.id === id; });
+        });
+      });
+    },
     roll: function (p, n) {
       if (!p) return [];
       const weapons = p.weapons || [];
+      const hasRes = this.hasResonance(p);
       const pool = AE.Data.RELICS.filter(function (r) {
         if (p.relics.indexOf(r.id) >= 0) return false;
         if (r.requires && !weapons.some(function (w) { return w.id === r.requires; })) return false;
+        if (r.requiresResonance && !hasRes) return false;
         return true;
       });
       AE.U.shuffle(pool);
