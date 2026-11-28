@@ -68,7 +68,7 @@
         chargeDir: { x: 1, y: 0 }, beams: [], spiral: 0, chaseT: 2.5,
         orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
         sweepCd: 8.5, sweepTele: 0, sweepActive: 0, sweepAng: 0, sweepSeen: false,
-        gravT: 5, gravTele: 0, gravPull: 0,
+        gravT: 5, gravTele: 0, gravPull: 0, stormAffT: 5,
         phase2: false, enraged: false, scale: 1
       };
       e.maxHp = G.rush
@@ -842,6 +842,15 @@
           }
         }
       }
+      if (e.affix && e.affix.id === 'storm') {
+        e.stormAffT -= dt;
+        if (e.stormAffT <= 0) {
+          e.stormAffT = 8 / rage;
+          this.finalRift(e, p.x, p.y, 100, '#ffd479');
+          AE.Game.announce('风暴 · 雷击预警', '#ffd479', 1.6);
+          AE.Audio.sfx('warn', { pitch: 1.12 });
+        }
+      }
       if (e.enraged) {
         e.speed = (e.baseSpeed || e.def.speed) * 1.25;
       } else if (e.affix && e.affix.id === 'frenzy') {
@@ -849,19 +858,20 @@
       }
     },
 
-    finalRift: function (e, tx, ty, radius) {
+    finalRift: function (e, tx, ty, radius, color) {
       const CW = AE.Data.CONST.WORLD_W, CH = AE.Data.CONST.WORLD_H;
       tx = U.clamp(tx, 40, CW - 40);
       ty = U.clamp(ty, 40, CH - 40);
       radius = radius || 100;
-      AE.FX.ring(tx, ty, '#ff5c7a', radius, radius, 0.85, 3);
+      color = color || '#ff5c7a';
+      AE.FX.ring(tx, ty, color, radius, radius, 0.85, 3);
       AE.FX.ring(tx, ty, '#ff9f68', 12, radius * 0.42, 0.85, 1.5);
-      AE.FX.text(tx, ty - radius - 6, '!', '#ff5c7a', 18);
+      AE.FX.text(tx, ty - radius - 6, '!', color, 18);
       AE.Game.delay(0.85, function () {
         if (!e.alive) return;
-        AE.FX.ring(tx, ty, '#ff5c7a', radius * 0.18, radius, 0.36, 5);
+        AE.FX.ring(tx, ty, color, radius * 0.18, radius, 0.36, 5);
         AE.FX.ring(tx, ty, '#ffffff', 8, radius * 0.5, 0.24, 2);
-        AE.FX.spark(tx, ty, '#ff5c7a', 22, { spd: 330, life: 0.55, size: 3.4 });
+        AE.FX.spark(tx, ty, color, 22, { spd: 330, life: 0.55, size: 3.4 });
         AE.FX.shake(0.18);
         AE.Audio.sfx('explosion', { pitch: 0.92 });
         const p = AE.G.player;
