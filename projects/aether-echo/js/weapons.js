@@ -220,7 +220,7 @@
             AE.World.addBullet({
               x: p.x + Math.cos(a) * 10, y: p.y + Math.sin(a) * 10,
               vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-              r: 5, dmg: s.dmg * p.dmgMul, life: s.life,
+              r: 5, dmg: s.dmg * p.dmgMul * (p.refractMul || 1), life: s.life,
               color: def.color, kind: 'shard', pierce: s.pierce, hitIds: [],
               critChance: p.crit, critDmg: p.critDmg, size: 5.5,
               ricochet: s.ricochet || 0, trailT: 0
@@ -237,7 +237,7 @@
             AE.World.addBullet({
               x: p.x + Math.cos(a) * 12, y: p.y + Math.sin(a) * 12,
               vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-              r: 6, dmg: s.dmg * p.dmgMul, life: 2.2,
+              r: 6, dmg: s.dmg * p.dmgMul * (p.refractMul || 1), life: 2.2,
               color: def.color, kind: 'refract', pierce: 0,
               ricochet: s.bounces, falloff: s.falloff, jumpRange: s.jumpRange,
               hitIds: [], critChance: p.crit, critDmg: p.critDmg,

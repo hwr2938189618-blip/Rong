@@ -34,7 +34,7 @@
         timeWarp: !!char.timeWarp,
         warpT: 0,
         refractChance: char.refractChance || 0,
-        refractBoostT: 0, refractCd: 0,
+        refractMul: 1, refractBoostT: 0, refractCd: 0,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
         tetherT: 0,
         shardId: null, shardT: 0, shardMod: null,

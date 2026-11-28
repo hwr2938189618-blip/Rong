@@ -142,7 +142,7 @@
       const m = {
         enemySpeed: 1, enemyDmg: 1, enemyHp: 1,
         xpMul: 1, echoMul: 1, spawnMul: 1, armor: 0, speedMul: 1,
-        dmgMul: 1, hpMul: 1, ultGain: 0, dashCdMul: 1
+        dmgMul: 1, hpMul: 1, ultGain: 0, dashCdMul: 1, refractMul: 1
       };
       (list || []).forEach(function (a) {
         if (a.id === 'swift') { m.enemySpeed *= 1.2; m.xpMul *= 1.15; }
@@ -154,6 +154,7 @@
         else if (a.id === 'glass') { m.dmgMul *= 1.25; m.hpMul *= 0.8; }
         else if (a.id === 'swarm') { m.spawnMul *= 1.2; m.xpMul *= 1.1; }
         else if (a.id === 'tempo') { m.dashCdMul *= 0.7; m.enemySpeed *= 1.1; }
+        else if (a.id === 'prismtide') { m.enemySpeed *= 0.92; m.enemyHp *= 1.12; m.refractMul *= 1.25; }
       });
       return m;
     },
@@ -305,6 +306,7 @@
       G.player.maxHp = Math.max(1, Math.round(G.player.maxHp * (G.mod.hpMul || 1)));
       G.player.hp = G.player.maxHp;
       G.player.dmgMul *= G.mod.dmgMul || 1;
+      G.player.refractMul *= G.mod.refractMul || 1;
       G.player.ultGain += G.mod.ultGain || 0;
       G.player.dashCdMul *= G.mod.dashCdMul || 1;
       if (isRush) {

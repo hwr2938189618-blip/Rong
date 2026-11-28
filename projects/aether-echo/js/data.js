@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.85.0';
+  D.VERSION = '1.86.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -761,7 +761,8 @@
     { id: 'overload', name: '超载星核', desc: '星核获取 +60%，但敌人伤害 +15%', color: '#ffd479' },
     { id: 'glass', name: '折光星核', desc: '伤害 +25%，但生命上限 -20%', color: '#ff8fa3' },
     { id: 'swarm', name: '虫群裂隙', desc: '敌人数量 +20%，经验 +10%', color: '#8affc1' },
-    { id: 'tempo', name: '时隙潮汐', desc: '闪避冷却 -30%，但敌人移速 +10%', color: '#9f8bff' }
+    { id: 'tempo', name: '时隙潮汐', desc: '闪避冷却 -30%，但敌人移速 +10%', color: '#9f8bff' },
+    { id: 'prismtide', name: '棱镜潮汐', desc: '敌人移速 -8%、生命 +12%，折射与弹射伤害 +25%', color: '#c9a6ff' }
   ];
 
   /* ============================================================
