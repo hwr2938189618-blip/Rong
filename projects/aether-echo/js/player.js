@@ -35,6 +35,7 @@
         warpT: 0,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
         tetherT: 0,
+        shardId: null, shardT: 0, shardMod: null,
         beamWidth: 1, beamGuard: false, channeling: false,
         orbitBonus: 0, beamLeech: false,
         killStacks: 0, stackBonus: 0,
@@ -65,6 +66,7 @@
       p.invuln = 1.2;
       p.alive = true;
       p.dashT = 0; p.dashCd = 0;
+      p.shardId = null; p.shardT = 0; p.shardMod = null;
       p.after.length = 0;
     },
 
@@ -134,17 +136,42 @@
 
     moveSpeed: function (p) {
       return p.speed * (1 + p.spdMul) * (p.avatarT > 0 ? 1.25 : 1) *
+        (p.shardT > 0 && p.shardId === 'swift' ? 1.25 : 1) *
         ((p.tetherT || 0) > 0 ? 0.72 : 1);
     },
 
     attackSpeedMul: function (p) {
-      return (p && (p.warpT || 0) > 0) ? 1.3 : 1;
+      let m = (p && (p.warpT || 0) > 0) ? 1.3 : 1;
+      if (p && p.shardT > 0 && p.shardId === 'swift') m *= 1.15;
+      return m;
+    },
+
+    /* 精英词缀碎片：8 秒临时强化，重复拾取刷新并切换 */
+    applyShard: function (p, mod) {
+      if (!p || !p.alive || !mod) return false;
+      p.shardId = mod.id;
+      p.shardMod = mod;
+      p.shardT = mod.dur || 8;
+      AE.FX.ring(p.x, p.y, mod.color, 5, 76, 0.45, 3);
+      AE.FX.spark(p.x, p.y, mod.color, 16, { spd: 240, life: 0.5, size: 2.8, add: true });
+      AE.FX.flash(0.05, mod.color);
+      AE.Audio.sfx('pickup', { pitch: 1.25 });
+      if (AE.Game) AE.Game.announce((mod.shard || '词缀碎片') + ' · ' + (mod.shardDesc || mod.name), mod.color, 1.6);
+      return true;
+    },
+
+    shardArmor: function (p) {
+      return (p && p.shardT > 0 && p.shardId === 'warden') ? 10 : 0;
     },
 
     update: function (p, dt) {
       if (!p.alive) return;
       p.tetherT = Math.max(0, (p.tetherT || 0) - dt);
       p.warpT = Math.max(0, (p.warpT || 0) - dt);
+      if (p.shardT > 0) {
+        p.shardT = Math.max(0, p.shardT - dt);
+        if (p.shardT === 0) { p.shardId = null; p.shardMod = null; }
+      }
       const Input = AE.Input;
       p.t += dt;
       p.invuln = Math.max(0, p.invuln - dt);
@@ -397,7 +424,7 @@
 
     hurt: function (p, amount, srcX, srcY) {
       if (!p.alive || p.invuln > 0) return 0;
-      let dmg = Math.max(1, amount - p.armor);
+      let dmg = Math.max(1, amount - p.armor - Player.shardArmor(p));
       if (p.avatarT > 0) dmg = Math.max(1, dmg * ((p.avatar && p.avatar.reduce) || 0.55));
       else if (p.beamGuard && p.channeling) dmg = Math.max(1, dmg * 0.6);
       p.hp -= dmg;

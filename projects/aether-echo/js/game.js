@@ -1331,35 +1331,44 @@
         ctx.fillStyle = 'rgba(255,212,121,0.72)';
         ctx.fillText('每日 · ' + G.daily.anomalies.map(function (a) { return a.name; }).join(' / '), 28, statusY);
       }
+      // 状态行从固定基线向下排，避免新增状态时手算偏移
+      let sy = statusY;
+      if (G.daily) sy += statusGap;
       if (p.killStack) {
         ctx.textAlign = 'left';
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(255,127,176,0.82)';
-        ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks,
-          28, statusY + (G.daily ? statusGap : 0));
+        ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks, 28, sy);
+        sy += statusGap;
       }
       if (G.pacts && G.pacts.length) {
         ctx.textAlign = 'left';
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(179,136,255,0.9)';
-        ctx.fillText('深渊契约 ×' + G.pacts.length + ' · 回响 ×' + (G.pactMult || 1).toFixed(2),
-          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0));
+        ctx.fillText('深渊契约 ×' + G.pacts.length + ' · 回响 ×' + (G.pactMult || 1).toFixed(2), 28, sy);
+        sy += statusGap;
       }
       if (p.tetherT > 0) {
         ctx.textAlign = 'left';
         ctx.font = '700 10px ' + head;
         ctx.fillStyle = 'rgba(201,166,255,0.95)';
-        ctx.fillText('束缚 · 移速 -28%',
-          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0) +
-          (G.pacts && G.pacts.length ? statusGap : 0));
+        ctx.fillText('束缚 · 移速 -28%', 28, sy);
+        sy += statusGap;
       }
       if (p.warpT > 0) {
         ctx.textAlign = 'left';
         ctx.font = '700 10px ' + head;
         ctx.fillStyle = 'rgba(217,198,255,0.95)';
-        ctx.fillText('时隙超频 · 攻速 +30%',
-          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0) +
-          (G.pacts && G.pacts.length ? statusGap : 0) + (p.tetherT > 0 ? statusGap : 0));
+        ctx.fillText('时隙超频 · 攻速 +30%', 28, sy);
+        sy += statusGap;
+      }
+      if (p.shardT > 0 && p.shardMod) {
+        ctx.textAlign = 'left';
+        ctx.font = '700 10px ' + head;
+        ctx.fillStyle = p.shardMod.color;
+        ctx.globalAlpha = p.shardT < 2 ? 0.55 + Math.sin(G.t * 14) * 0.35 : 0.95;
+        ctx.fillText('◈ ' + p.shardMod.shard + ' · ' + p.shardT.toFixed(1) + 's', 28, sy);
+        ctx.globalAlpha = 1;
       }
 
       const compactRail = H < 520;

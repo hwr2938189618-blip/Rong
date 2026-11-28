@@ -789,7 +789,7 @@
           '<div class="codex-top"><span class="codex-icon">✦</span><span class="codex-tag">精英</span></div>' +
           '<div class="codex-name">' + m.name + '</div>' +
           '<div class="codex-desc">' + m.desc + '</div>' +
-          '<div class="codex-stats">金色精英随机附带</div>' +
+          '<div class="codex-stats">掉落「' + m.shard + '」· ' + m.shardDesc + '</div>' +
           '</div>';
       }).join('');
       const relics = D.RELICS.map(function (r) {

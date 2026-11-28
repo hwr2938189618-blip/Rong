@@ -1012,9 +1012,21 @@
           AE.Player.hurt(pl, 18 + G.level * 2, e.x, e.y);
         }
       }
+      // 爆裂碎片：8 秒内击杀敌人引发小范围爆炸（只连锁一层，避免无限递归）
+      if (pl && pl.shardT > 0 && pl.shardId === 'volatile' && !opts.shardBoom) {
+        AE.FX.ring(e.x, e.y, '#ff9f68', 5, 90, 0.32, 2.6);
+        AE.FX.spark(e.x, e.y, '#ffd479', 8, { spd: 180, life: 0.3, size: 2.6 });
+        const snear = AE.World.grid.query(e.x, e.y, 90);
+        const sdmg = (26 + G.level * 2) * (pl.dmgMul || 1);
+        for (let k = 0; k < snear.length; k++) {
+          const o = snear[k];
+          if (o === e || !o.alive || o.spawning > 0) continue;
+          if (U.d2(e.x, e.y, o.x, o.y) > 90 * 90) continue;
+          this.damage(o, sdmg, { noSplash: true, noFrost: true, noCombo: true, shardBoom: true });
+        }
+      }
       if (pl && pl.relics) {
-        if (pl.relics.indexOf('leech') >= 0) {
-          const before = pl.hp;
+        if (pl.relics.indexOf('leech') >= 0) {          const before = pl.hp;
           pl.hp = Math.min(pl.maxHp, pl.hp + 1.5);
           pl.healed += pl.hp - before;
         }
@@ -1107,6 +1119,7 @@
         AE.FX.flash(0.06, '#ffd479');
         AE.FX.shake(0.15);
         AE.World.addPickup('heal', e.x, e.y);
+        if (e.eliteMod) AE.World.addPickup('shard', e.x, e.y, 1, e.eliteMod);
       } else if (Math.random() < 0.028) {
         AE.World.addPickup('heal', e.x, e.y);
       }

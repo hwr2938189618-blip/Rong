@@ -112,12 +112,12 @@
       }
     },
 
-    addPickup: function (type, x, y, n) {
+    addPickup: function (type, x, y, n, mod) {
       n = n || 1;
       for (let i = 0; i < n; i++) {
         this.pickups.push({
           type: type, x: x + U.rnd(-16, 16), y: y + U.rnd(-16, 16),
-          t: U.rnd(0, 6), life: 24
+          t: U.rnd(0, 6), life: 24, mod: mod || null
         });
       }
     },
@@ -385,7 +385,9 @@
         if (o.life <= 0) { ps.splice(i, 1); continue; }
         if (!p.alive) continue;
         if (U.d2(o.x, o.y, p.x, p.y) < (p.r + 22) * (p.r + 22)) {
-          if (o.type === 'heal') {
+          if (o.type === 'shard' && o.mod) {
+            AE.Player.applyShard(p, o.mod);
+          } else if (o.type === 'heal') {
             AE.Player.heal(p, p.maxHp * 0.24);
             AE.FX.ring(o.x, o.y, '#8affc1', 4, 46, 0.4, 2);
             AE.Audio.sfx('pickup', { pitch: 0.7 });
@@ -452,21 +454,69 @@
       }
       ctx.restore();
 
-      // 掉落物
+      // 掉落物：治疗十字 / 精英词缀碎片
       for (let i = 0; i < this.pickups.length; i++) {
         const o = this.pickups[i];
         const s = 1 + Math.sin(time * 4 + o.t) * 0.1;
+        const shard = o.type === 'shard' && o.mod;
+        const col = shard ? o.mod.color : '#8affc1';
         ctx.save();
         ctx.translate(o.x, o.y + Math.sin(time * 3 + o.t) * 4);
+        if (o.life < 4) ctx.globalAlpha = 0.45 + Math.sin(time * 16) * 0.3;
         ctx.globalCompositeOperation = 'lighter';
-        AE.FX.glow(ctx, 0, 0, 34 * s, '#8affc1', 0.5);
+        AE.FX.glow(ctx, 0, 0, (shard ? 42 : 34) * s, col, shard ? 0.62 : 0.5);
         ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = '#8affc1';
-        ctx.lineWidth = 2.4;
-        ctx.beginPath(); ctx.arc(0, 0, 11 * s, 0, U.TAU); ctx.stroke();
-        ctx.fillStyle = '#c9ffe6';
-        ctx.fillRect(-2 * s, -7 * s, 4 * s, 14 * s);
-        ctx.fillRect(-7 * s, -2 * s, 14 * s, 4 * s);
+        if (shard) {
+          // 悬浮碎片：双层菱形 + 反向旋转外环
+          ctx.save();
+          ctx.rotate(time * 1.4 + o.t);
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 1.2;
+          ctx.globalAlpha *= 0.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 15 * s, 0.4, 2.2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, 15 * s, 3.5, 5.3);
+          ctx.stroke();
+          ctx.restore();
+          ctx.save();
+          ctx.rotate(Math.sin(time * 2 + o.t) * 0.25);
+          ctx.beginPath();
+          ctx.moveTo(0, -12 * s);
+          ctx.lineTo(8 * s, 0);
+          ctx.lineTo(0, 12 * s);
+          ctx.lineTo(-8 * s, 0);
+          ctx.closePath();
+          ctx.fillStyle = AE.FX.alpha(col, 0.4);
+          ctx.fill();
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, -5.5 * s); ctx.lineTo(3 * s, 0);
+          ctx.lineTo(0, 5.5 * s); ctx.lineTo(-3 * s, 0);
+          ctx.closePath();
+          ctx.fillStyle = '#ffffff';
+          ctx.globalAlpha *= 0.9;
+          ctx.fill();
+          // 环绕碎片的两颗光点
+          for (let sp = 0; sp < 2; sp++) {
+            const sa = time * 2.2 + o.t + sp * Math.PI;
+            ctx.beginPath();
+            ctx.arc(Math.cos(sa) * 17 * s, Math.sin(sa) * 7 * s, 1.6, 0, U.TAU);
+            ctx.fillStyle = col;
+            ctx.fill();
+          }
+          ctx.restore();
+        } else {
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 2.4;
+          ctx.beginPath(); ctx.arc(0, 0, 11 * s, 0, U.TAU); ctx.stroke();
+          ctx.fillStyle = '#c9ffe6';
+          ctx.fillRect(-2 * s, -7 * s, 4 * s, 14 * s);
+          ctx.fillRect(-7 * s, -2 * s, 14 * s, 4 * s);
+        }
         ctx.restore();
       }
 
