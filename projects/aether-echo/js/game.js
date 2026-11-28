@@ -1188,6 +1188,9 @@
       }
       ctx.textBaseline = 'middle';
       const head = '"Segoe UI", "Microsoft YaHei", system-ui, sans-serif';
+      const shortH = H < 520;
+      const statusY = shortH ? 104 : 112;
+      const statusGap = shortH ? 14 : 16;
 
       const xpPct = U.clamp(G.xp / G.xpNeed, 0, 1);
       ctx.fillStyle = 'rgba(8,12,26,0.6)';
@@ -1272,10 +1275,10 @@
         ctx.textAlign = 'left';
         ctx.font = '800 20px ' + head;
         ctx.fillStyle = G.combo > 30 ? '#ffd479' : '#7df9ff';
-        ctx.fillText('×' + G.combo, 28, 82);
+        ctx.fillText('×' + G.combo, 28, shortH ? 74 : 82);
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(160,200,240,0.6)';
-        ctx.fillText('连杀 · +' + Math.round(Math.min(35, G.combo * 0.6)) + '%', 28, 96);
+        ctx.fillText('连杀 · +' + Math.round(Math.min(35, G.combo * 0.6)) + '%', 28, shortH ? 88 : 96);
         ctx.globalAlpha = 1;
       }
 
@@ -1283,49 +1286,57 @@
         ctx.textAlign = 'left';
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(255,212,121,0.72)';
-        ctx.fillText('每日 · ' + G.daily.anomalies.map(function (a) { return a.name; }).join(' / '), 28, 112);
+        ctx.fillText('每日 · ' + G.daily.anomalies.map(function (a) { return a.name; }).join(' / '), 28, statusY);
       }
       if (p.killStack) {
         ctx.textAlign = 'left';
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(255,127,176,0.82)';
-        ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks, 28, G.daily ? 128 : 112);
+        ctx.fillText('吞噬 +' + (p.stackBonus * 100).toFixed(1) + '% · ' + p.killStacks,
+          28, statusY + (G.daily ? statusGap : 0));
       }
       if (G.pacts && G.pacts.length) {
         ctx.textAlign = 'left';
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(179,136,255,0.9)';
         ctx.fillText('深渊契约 ×' + G.pacts.length + ' · 回响 ×' + (G.pactMult || 1).toFixed(2),
-          28, 112 + (G.daily ? 16 : 0) + (p.killStack ? 16 : 0));
+          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0));
       }
       if (p.tetherT > 0) {
         ctx.textAlign = 'left';
         ctx.font = '700 10px ' + head;
         ctx.fillStyle = 'rgba(201,166,255,0.95)';
         ctx.fillText('束缚 · 移速 -28%',
-          28, 112 + (G.daily ? 16 : 0) + (p.killStack ? 16 : 0) +
-          (G.pacts && G.pacts.length ? 16 : 0));
+          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0) +
+          (G.pacts && G.pacts.length ? statusGap : 0));
       }
 
-      const wx = W - 34, wy = H / 2 - p.weapons.length * 26 + 16;
+      const compactRail = H < 520;
+      const railStep = compactRail ? 40 : 52;
+      const railBox = compactRail ? 32 : 40;
+      const railHalf = railBox / 2;
+      const wx = W - (compactRail ? 28 : 34);
+      let wy = H / 2 - p.weapons.length * railStep / 2 + (compactRail ? 10 : 16);
+      wy = Math.max(railHalf + 4, wy);
       for (let i = 0; i < p.weapons.length; i++) {
         const w = p.weapons[i];
         const def = D.WEAPON_MAP[w.id];
-        const y = wy + i * 52;
+        const y = wy + i * railStep;
         ctx.save();
-        this.roundRect(ctx, wx - 20, y - 20, 40, 40, 10);
+        this.roundRect(ctx, wx - railHalf, y - railHalf, railBox, railBox, 8);
         ctx.fillStyle = 'rgba(11,18,36,0.86)';
         ctx.fill();
         ctx.strokeStyle = w.evolved ? '#ffd479' : AE.FX.alpha(def.color, 0.62);
         ctx.lineWidth = w.evolved ? 1.8 : 1.3;
         ctx.stroke();
         ctx.textAlign = 'center';
-        ctx.font = '700 19px ' + head;
+        ctx.font = '700 ' + (compactRail ? 16 : 19) + 'px ' + head;
         ctx.fillStyle = w.evolved ? '#ffe9a8' : def.color;
         ctx.fillText(w.evolved ? (def.evolved.icon || def.icon) : def.icon, wx, y + 1);
         for (let k = 0; k < 8; k++) {
           ctx.beginPath();
-          ctx.arc(wx - 14 + k * 4, y + 16, 1.3, 0, U.TAU);
+          ctx.arc(wx - (compactRail ? 11 : 14) + k * (compactRail ? 3 : 4),
+            y + railHalf - 4, compactRail ? 1.1 : 1.3, 0, U.TAU);
           ctx.fillStyle = k < w.level ? (w.evolved ? '#ffd479' : def.color) : 'rgba(255,255,255,0.15)';
           ctx.fill();
         }
@@ -1371,18 +1382,18 @@
       if (G.boss && G.boss.alive) {
         const b = G.boss;
         const bw = Math.min(520, W * 0.52);
-        const bx = W / 2 - bw / 2, by = 96;
+        const bx = W / 2 - bw / 2, by = shortH ? 84 : 96;
         ctx.textAlign = 'center';
-        ctx.font = '800 15px ' + head;
+        ctx.font = '800 ' + (shortH ? 13 : 15) + 'px ' + head;
         ctx.fillStyle = 'rgba(255,240,245,0.95)';
         ctx.fillText(b.bossName, W / 2, by - 9);
         ctx.font = '600 8px ' + head;
         ctx.fillStyle = 'rgba(220,170,190,0.55)';
-        ctx.fillText(b.bossTitle, W / 2, by + 18);
+        ctx.fillText(b.bossTitle, W / 2, by + (shortH ? 15 : 18));
         if (b.affix) {
           ctx.font = '700 9px ' + head;
           ctx.fillStyle = b.affix.color;
-          ctx.fillText('词缀 · ' + b.affix.name, W / 2, by + 31);
+          ctx.fillText('词缀 · ' + b.affix.name, W / 2, by + (shortH ? 27 : 31));
         }
         this.bar(ctx, bx, by, bw, 10, b.hp / b.maxHp, '#ff5c7a', 'rgba(20,6,12,0.8)');
         ctx.strokeStyle = 'rgba(255,180,200,0.35)';
@@ -1406,7 +1417,7 @@
         ctx.globalAlpha = 1;
       }
 
-      this.drawAnns(ctx, W, head);
+      this.drawAnns(ctx, W, head, H);
 
       if (G.boss && G.boss.alive) {
         const s = AE.Cam.toScreen(G.boss.x, G.boss.y);
@@ -1456,17 +1467,18 @@
       ctx.restore();
     },
 
-    drawAnns: function (ctx, W, head) {
+    drawAnns: function (ctx, W, head, H) {
       const anns = G.anns;
-      const baseY = G.boss ? 152 : 126;
+      const shortH = (H || 720) < 520;
+      const baseY = G.boss ? (shortH ? 132 : 152) : (shortH ? 108 : 126);
       for (let i = 0; i < anns.length; i++) {
         const a = anns[i];
-        const y = baseY + i * 34;
+        const y = baseY + i * (shortH ? 26 : 34);
         const k = Math.min(1, a.life / 0.5) * Math.min(1, (a.max - a.life) / 0.18);
         ctx.save();
         ctx.globalAlpha = k;
         ctx.textAlign = 'center';
-        ctx.font = '800 19px ' + head;
+        ctx.font = '800 ' + (shortH ? 15 : 19) + 'px ' + head;
         ctx.shadowColor = a.color;
         ctx.shadowBlur = 16;
         ctx.fillStyle = a.color;
