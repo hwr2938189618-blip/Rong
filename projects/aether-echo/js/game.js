@@ -1033,6 +1033,10 @@
     drawHUD: function (ctx, W, H) {
       const p = G.player;
       if (!p) return;
+      if (p.avatarT > 0) {
+        ctx.fillStyle = 'rgba(255,180,80,0.045)';
+        ctx.fillRect(0, 0, W, H);
+      }
       const D = AE.Data;
       ctx.save();
       ctx.textBaseline = 'middle';
@@ -1070,19 +1074,20 @@
       ctx.fillStyle = 'rgba(150,190,235,0.65)';
       ctx.fillText(Math.floor(G.xp) + ' / ' + G.xpNeed, 62, 52);
 
-      // 星核能量条
+      // 星核能量条 / 化身持续时间
       const uw = 118, ux = 62, uy = 63;
+      const avatarOn = p.avatarT > 0;
       ctx.fillStyle = 'rgba(8,12,26,0.72)';
       ctx.fillRect(ux, uy, uw, 5);
-      const upct = U.clamp(p.ult / p.ultMax, 0, 1);
-      ctx.fillStyle = upct >= 1 ? (Math.sin(G.t * 8) > 0 ? '#ffd479' : '#7df9ff') : 'rgba(125,249,255,0.78)';
+      const upct = avatarOn ? U.clamp(p.avatarT / 10, 0, 1) : U.clamp(p.ult / p.ultMax, 0, 1);
+      ctx.fillStyle = avatarOn ? '#ffd479' : (upct >= 1 ? (Math.sin(G.t * 8) > 0 ? '#ffd479' : '#7df9ff') : 'rgba(125,249,255,0.78)');
       ctx.fillRect(ux, uy, uw * upct, 5);
-      ctx.strokeStyle = upct >= 1 ? 'rgba(255,212,121,0.85)' : 'rgba(125,249,255,0.28)';
+      ctx.strokeStyle = (avatarOn || upct >= 1) ? 'rgba(255,212,121,0.85)' : 'rgba(125,249,255,0.28)';
       ctx.lineWidth = 1;
       ctx.strokeRect(ux + 0.5, uy + 0.5, uw - 1, 4);
       ctx.font = '600 8px ' + head;
-      ctx.fillStyle = upct >= 1 ? '#ffd479' : 'rgba(150,190,235,0.55)';
-      ctx.fillText(upct >= 1 ? '星核就绪 · E' : '星核', ux + uw + 8, uy + 2);
+      ctx.fillStyle = (avatarOn || upct >= 1) ? '#ffd479' : 'rgba(150,190,235,0.55)';
+      ctx.fillText(avatarOn ? '星核化身 · ' + p.avatarT.toFixed(1) + 's' : (upct >= 1 ? '星核就绪 · E' : '星核'), ux + uw + 8, uy + 2);
 
       ctx.textAlign = 'center';
       ctx.font = '800 26px ' + head;
@@ -1119,7 +1124,7 @@
         ctx.fillText('×' + G.combo, 28, 82);
         ctx.font = '600 10px ' + head;
         ctx.fillStyle = 'rgba(160,200,240,0.6)';
-        ctx.fillText('连杀', 28, 96);
+        ctx.fillText('连杀 · +' + Math.round(Math.min(35, G.combo * 0.6)) + '%', 28, 96);
         ctx.globalAlpha = 1;
       }
 

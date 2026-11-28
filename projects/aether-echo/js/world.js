@@ -325,8 +325,21 @@
           continue;
         }
         if (!p.alive) continue;
+        const dd = U.d2(b.x, b.y, p.x, p.y);
         const rr = p.r + b.r - 3;
-        if (U.d2(b.x, b.y, p.x, p.y) < rr * rr) {
+        // 险避：擦弹而过获得星核与连杀
+        const grazeR = p.r + b.r + 16;
+        if (!b.grazed && dd < grazeR * grazeR && dd > rr * rr) {
+          b.grazed = true;
+          p.ult = Math.min(p.ultMax, p.ult + 1.8);
+          AE.G.combo = Math.min(999, (AE.G.combo || 0) + 1);
+          AE.G.comboT = 0.6;
+          p.grazeT = 0.25;
+          AE.FX.spark(b.x, b.y, '#ffd479', 3, { spd: 80, life: 0.25, size: 2, add: true });
+          AE.FX.text(p.x, p.y - 24, '险避', '#ffd479', 12);
+          AE.Audio.sfx('pickup', { pitch: 1.35 });
+        }
+        if (dd < rr * rr) {
           AE.Player.hurt(p, b.dmg, b.x, b.y);
           AE.FX.spark(b.x, b.y, b.color, 6, { spd: 140, life: 0.3, size: 2.5 });
           bs.splice(i, 1);

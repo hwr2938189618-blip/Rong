@@ -736,6 +736,8 @@
       let dmg = amount;
       const G0 = AE.G;
       const pl0 = G0.player;
+      // 连杀增伤：最高 +35%
+      if (G0.combo > 0) dmg *= 1 + Math.min(0.35, G0.combo * 0.006);
       // 遗物：处决之刃 —— 对残血目标增伤
       if (pl0 && pl0.relics && pl0.relics.indexOf('executioner') >= 0 &&
           e.maxHp > 0 && e.hp / e.maxHp <= 0.3) {
