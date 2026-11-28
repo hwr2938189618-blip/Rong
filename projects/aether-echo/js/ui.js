@@ -784,6 +784,14 @@
           '<div class="codex-stats">无尽轮首领随机附带</div>' +
           '</div>';
       }).join('');
+      const eliteMods = D.ELITE_MODS.map(function (m) {
+        return '<div class="codex-card elite-card" style="--c:' + m.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">✦</span><span class="codex-tag">精英</span></div>' +
+          '<div class="codex-name">' + m.name + '</div>' +
+          '<div class="codex-desc">' + m.desc + '</div>' +
+          '<div class="codex-stats">金色精英随机附带</div>' +
+          '</div>';
+      }).join('');
       const relics = D.RELICS.map(function (r) {
         const seen = (S.relicsSeen || []).indexOf(r.id) >= 0;
         return '<div class="codex-card relic-card ' + (seen ? 'relic-seen' : 'relic-locked') +
@@ -828,6 +836,8 @@
         '<div class="codex-rows">' + bosses + '</div>' +
         '<div class="section-label">首领词缀 · ' + D.BOSS_AFFIXES.length + ' 种</div>' +
         '<div class="codex-grid">' + affixes + '</div>' +
+        '<div class="section-label">精英词缀 · ' + D.ELITE_MODS.length + ' 种</div>' +
+        '<div class="codex-grid">' + eliteMods + '</div>' +
         '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
         '</div>';
       this.setHTML(html, true);

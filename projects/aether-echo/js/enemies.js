@@ -40,6 +40,12 @@
         mode: 'chase', modeT: 0, shootT: U.rnd(0.6, 2.0), healT: U.rnd(1, 3),
         chargeDir: { x: 1, y: 0 }, fuse: 0, scale: elite ? 1.45 : 1
       };
+      if (elite && D.ELITE_MODS) {
+        e.eliteMod = D.ELITE_MODS[Math.floor(Math.random() * D.ELITE_MODS.length)];
+        if (e.eliteMod.id === 'swift') { e.speed *= 1.3; e.maxHp *= 0.9; }
+        else if (e.eliteMod.id === 'warden') { e.armor += 6; e.maxHp *= 1.2; e.speed *= 0.9; }
+        else if (e.eliteMod.id === 'volatile') { e.maxHp *= 0.95; }
+      }
       e.hp = e.maxHp;
       if (e.behavior === 'wisp') { e.mode = 'orbit'; e.modeT = U.rnd(1.2, 2.4); }
       if (e.behavior === 'charger') { e.mode = 'idle'; e.modeT = U.rnd(1.2, 2.2); }
@@ -997,6 +1003,15 @@
       AE.Game.addCombo(1, 2.6);
       // 遗物：吸血符文 / 爆裂回响
       const pl = G.player;
+      if (e.elite && e.eliteMod && e.eliteMod.id === 'volatile') {
+        AE.FX.ring(e.x, e.y, '#ff9f68', 10, 130, 0.5, 5);
+        AE.FX.spark(e.x, e.y, '#ff9f68', 24, { spd: 320, life: 0.6, size: 3.4 });
+        AE.FX.shake(0.2);
+        AE.Audio.sfx('explosion');
+        if (pl && pl.alive && pl.invuln <= 0 && U.d2(e.x, e.y, pl.x, pl.y) < 130 * 130) {
+          AE.Player.hurt(pl, 18 + G.level * 2, e.x, e.y);
+        }
+      }
       if (pl && pl.relics) {
         if (pl.relics.indexOf('leech') >= 0) {
           const before = pl.hp;
@@ -1160,6 +1175,19 @@
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.translate(e.x, e.y);
+
+      if (e.elite && e.eliteMod) {
+        ctx.save();
+        ctx.strokeStyle = e.eliteMod.color;
+        ctx.globalAlpha = alpha * (0.4 + Math.sin(time * 4) * 0.12);
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([5, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r * 1.55, -time * 0.7, -time * 0.7 + U.TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
 
       // 缚者的锁链：从本体连向玩家，断链时自动消失
       if (e.behavior === 'binder' && e.tethering) {
