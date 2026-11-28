@@ -272,7 +272,7 @@
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
       G.maxCombo = 0; G.lastRank = 0;
       G.orbsPicked = 0; G.dashes = 0; G.eliteKills = 0; G.runEvolves = 0;
-      G.bounty = null;
+      G.bounty = null; G.bountyHistory = []; G.bountyChoice = null;
       G.comboAwarded = {};
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
@@ -345,8 +345,9 @@
       return 'normal';
     },
 
-    assignBounty: function (id) {
+    assignBounty: function (id, tier) {
       const D = AE.Data;
+      tier = tier || 1;
       let def = id ? D.BOUNTY_MAP[id] : null;
       if (!def) {
         const mode = this.bountyMode();
@@ -357,7 +358,7 @@
         def = src[Math.floor(Math.random() * src.length)];
       }
       G.bounty = {
-        def: def, done: false,
+        def: def, done: false, tier: tier,
         target: (G.rush && def.rushTarget) ? def.rushTarget : def.target,
         desc: (G.rush && def.rushTarget) ? ('存活 ' + def.rushTarget + ' 秒') : def.desc,
         startTime: G.time || 0, startKills: G.kills || 0, startBoss: G.bossKills || 0,
@@ -366,6 +367,33 @@
         startCombo: G.maxCombo || 0
       };
       return G.bounty;
+    },
+
+    bountyReward: function (def, tier) {
+      tier = tier || 1;
+      return Math.round(def.echo * (1 + (tier - 1) * 0.5));
+    },
+
+    bountyChoices: function (excludeId) {
+      const D = AE.Data;
+      const mode = this.bountyMode();
+      const pool = D.BOUNTIES.filter(function (b) {
+        return (!b.modes || b.modes.indexOf(mode) >= 0) && b.id !== excludeId;
+      });
+      // 洗牌后取 3 个，保证同一条悬赏链不连续重复
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+      }
+      const out = pool.slice(0, 3);
+      if (out.length < 3) {
+        for (let i = 0; i < D.BOUNTIES.length && out.length < 3; i++) {
+          const b = D.BOUNTIES[i];
+          if (b.id === excludeId || out.indexOf(b) >= 0) continue;
+          out.push(b);
+        }
+      }
+      return out;
     },
 
     bountyProgress: function () {
@@ -382,7 +410,11 @@
       else if (d.id === 'elite') cur = (G.eliteKills || 0) - b.startElites;
       else if (d.id === 'evolve') cur = (G.runEvolves || 0) - b.startEvolves;
       cur = Math.max(0, cur);
-      return { cur: Math.min(cur, b.target || d.target), target: b.target || d.target, done: !!b.done, def: d };
+      return {
+        cur: Math.min(cur, b.target || d.target), target: b.target || d.target,
+        done: !!b.done, def: d, tier: b.tier || 1,
+        reward: this.bountyReward(d, b.tier || 1)
+      };
     },
 
     updateBounty: function () {
@@ -390,9 +422,12 @@
       if (!b || b.done) return false;
       const pr = this.bountyProgress();
       if (!pr || pr.cur < pr.target) return false;
-      b.done = true;
-      G.echoBonus = (G.echoBonus || 0) + b.def.echo;
       const p = G.player;
+      b.done = true;
+      const reward = this.bountyReward(b.def, b.tier);
+      G.echoBonus = (G.echoBonus || 0) + reward;
+      G.bountyHistory = G.bountyHistory || [];
+      G.bountyHistory.push({ id: b.def.id, name: b.def.name, tier: b.tier, echo: reward });
       if (p && p.alive) {
         AE.Player.heal(p, p.maxHp * 0.12);
         p.ult = Math.min(p.ultMax, p.ult + 20);
@@ -401,8 +436,38 @@
         AE.FX.flash(0.06, b.def.color);
       }
       AE.Audio.sfx('levelup');
-      this.announce('悬赏完成 · ' + b.def.name + ' · +' + b.def.echo + ' 回响', b.def.color, 2.8);
-      if (AE.UI && AE.UI.toast) AE.UI.toast('悬赏完成 · +' + b.def.echo + ' 回响', b.def.color);
+      this.announce('悬赏完成 · ' + b.def.name + ' · +' + reward + ' 回响', b.def.color, 2.8);
+      if (b.tier >= 3) {
+        G.echoBonus += 30;
+        this.announce('悬赏链全破 · 额外 +30 回响', '#ffd479', 3.2);
+        if (AE.UI && AE.UI.toast) AE.UI.toast('悬赏链全破 · 额外 +30 回响', '#ffd479');
+      } else if (p && p.alive && !G.winning && G.state === 'playing' && AE.UI && AE.UI.showBountyChain) {
+        G.bountyChoice = { options: this.bountyChoices(b.def.id), tier: b.tier + 1 };
+        G.state = 'bounty';
+        this.acc = 0;
+        AE.UI.showBountyChain(G.bountyChoice.options, b.tier + 1);
+        return true;
+      }
+      if (AE.UI && AE.UI.toast && b.tier < 3) AE.UI.toast('悬赏完成 · +' + reward + ' 回响', b.def.color);
+      return true;
+    },
+
+    chooseBounty: function (i) {
+      if (G.state !== 'bounty' || !G.bountyChoice) return false;
+      const choice = G.bountyChoice;
+      const def = choice.options[i];
+      G.bountyChoice = null;
+      G.state = 'playing';
+      this.acc = 0;
+      this.last = performance.now();
+      if (AE.UI) AE.UI.hideAll();
+      if (!def) {
+        this.announce('悬赏链终止 · 已领取奖励', '#8affc1', 2.2);
+        return true;
+      }
+      this.assignBounty(def.id, choice.tier);
+      AE.Audio.sfx('ui');
+      this.announce('悬赏链 ' + choice.tier + '/3 · ' + def.name + ' · ' + def.desc, def.color, 2.6);
       return true;
     },
 
@@ -1201,10 +1266,15 @@
       let bountyInfo = null;
       if (G.bounty) {
         const bpr = this.bountyProgress();
+        const chain = G.bountyHistory || [];
         bountyInfo = {
-          id: G.bounty.def.id, name: G.bounty.def.name, echo: G.bounty.def.echo,
+          id: G.bounty.def.id, name: G.bounty.def.name,
+          echo: this.bountyReward(G.bounty.def, G.bounty.tier),
           done: !!G.bounty.done, cur: bpr ? Math.floor(bpr.cur) : 0,
-          target: G.bounty.target || G.bounty.def.target
+          target: G.bounty.target || G.bounty.def.target,
+          tier: G.bounty.tier || 1,
+          chain: G.bountyHistory ? G.bountyHistory.length : 0,
+          chainEcho: chain.reduce(function (s, c) { return s + (c.echo || 0); }, 0)
         };
       }
       G.result = {
@@ -1464,8 +1534,9 @@
           const u = bpr.def.unit || '';
           ctx.fillStyle = bpr.done ? 'rgba(138,255,193,0.9)' : bpr.def.color;
           ctx.fillText(bpr.done
-            ? '悬赏完成 · +' + bpr.def.echo + ' 回响'
-            : '悬赏 · ' + bpr.def.name + ' ' + Math.floor(bpr.cur) + u + ' / ' + bpr.target + u,
+            ? '悬赏完成 · +' + bpr.reward + ' 回响'
+            : '悬赏 ' + bpr.tier + '/3 · ' + bpr.def.name + ' ' + Math.floor(bpr.cur) + u +
+              '/' + bpr.target + u + ' · +' + bpr.reward,
             28, sy);
         }
       }

@@ -85,6 +85,16 @@
           }
           return;
         }
+        if (self.mode === 'bounty') {
+          if (k === '1' || k === '2' || k === '3') {
+            e.preventDefault();
+            AE.Game.chooseBounty(parseInt(k, 10) - 1);
+          } else if (k === 'Escape') {
+            e.preventDefault();
+            AE.Game.chooseBounty(-1);
+          }
+          return;
+        }
         if (self.mode === 'menu') {
           if (k === 'Enter') { e.preventDefault(); self.action('play'); }
           else if (k === 'd' || k === 'D') { e.preventDefault(); self.action('daily'); }
@@ -221,6 +231,12 @@
           if (this.pactSel && this.pactSel.length) {
             AE.Game.startRun(S.char, false, false, this.pactSel.slice());
           }
+          break;
+        case 'bounty':
+          AE.Game.chooseBounty(parseInt(i, 10));
+          break;
+        case 'bounty-skip':
+          AE.Game.chooseBounty(-1);
           break;
         case 'meta':
           this.prev = this.mode === 'result' ? 'result' : 'menu';
@@ -500,6 +516,41 @@
       this.setHTML(html, this._touch || window.innerWidth <= 720 || window.innerHeight < 780);
     },
 
+    /* ---------- 悬赏链三选一 ---------- */
+    showBountyChain: function (options, tier) {
+      if (!options || !options.length) return;
+      this.mode = 'bounty';
+      this.prev = 'bounty';
+      if (this.toastEl) this.toastEl.classList.remove('show');
+      const G = AE.G;
+      const cards = options.map(function (b, idx) {
+        const tgt = (G && G.rush && b.rushTarget) ? b.rushTarget : b.target;
+        const desc = (G && G.rush && b.rushTarget) ? ('存活 ' + b.rushTarget + ' 秒') : b.desc;
+        const reward = AE.Game.bountyReward(b, tier);
+        return '<button class="pick bounty-pick" style="--c:' + b.color + '" data-act="bounty" data-i="' + idx + '">' +
+          '<div class="pick-top"><span class="pick-icon">' + b.icon + '</span><span class="pick-tag">悬赏链</span></div>' +
+          '<div class="pick-name">' + b.name + '</div>' +
+          '<div class="pick-desc">' + desc + '</div>' +
+          '<div class="pick-stats">目标 ' + tgt + (b.unit || '') + ' · 完成 +' + reward + ' 回响</div>' +
+          '<span class="pick-key">' + (idx + 1) + '</span>' +
+          '</button>';
+      }).join('');
+      const html =
+        '<div class="screen draft-screen bounty-screen">' +
+        '<div class="draft-head">' +
+        '<div class="draft-kicker">BOUNTY CHAIN · 悬赏链</div>' +
+        '<h2 class="draft-title">再次委托 <em>' + tier + ' / 3</em></h2>' +
+        '<div class="draft-sub">' + (this._touch ? '点击卡片接受委托' : '按 1 / 2 / 3 接受委托 · ESC 放弃链') +
+        ' · 奖励随链数提升</div>' +
+        '</div>' +
+        '<div class="draft-cards">' + cards + '</div>' +
+        '<div class="draft-foot">' +
+        '<button class="btn ghost small" data-act="bounty-skip">放弃悬赏链</button>' +
+        '</div>' +
+        '</div>';
+      this.setHTML(html, this._touch || window.innerWidth <= 720 || window.innerHeight < 780);
+    },
+
     /* ---------- 暂停 ---------- */
     showPause: function (byBlur) {
       this.mode = 'pause';
@@ -530,9 +581,10 @@
         ? '<div class="pause-daily bounty-badge" style="color:' + bpr.def.color +
           ';border-color:' + bpr.def.color + '55;background:' + bpr.def.color + '0d">' +
           (bpr.done
-            ? '悬赏完成 · ' + bpr.def.name + ' · +' + bpr.def.echo + ' 回响'
-            : '悬赏 · ' + bpr.def.name + ' · ' + Math.floor(bpr.cur) + (bpr.def.unit || '') +
-              ' / ' + bpr.target + (bpr.def.unit || '') + ' · 完成 +' + bpr.def.echo + ' 回响') +
+            ? '悬赏完成 · ' + bpr.def.name + ' · +' + bpr.reward + ' 回响'
+            : '悬赏链 ' + bpr.tier + '/3 · ' + bpr.def.name + ' · ' +
+              Math.floor(bpr.cur) + (bpr.def.unit || '') + ' / ' + bpr.target + (bpr.def.unit || '') +
+              ' · 完成 +' + bpr.reward + ' 回响') +
           '</div>'
         : '';
       const html =
@@ -647,9 +699,9 @@
         (r.pacts && r.pacts.length ? '<div class="rush-badge pact-badge">深渊契约 · ' +
           r.pacts.join(' / ') + ' · 回响 ×' + (r.pactMult || 1).toFixed(2) +
           (r.pactNew ? ' · 新纪录' : '') + '</div>' : '') +
-        (r.bounty ? '<div class="rush-badge bounty-badge">悬赏 · ' + r.bounty.name + ' · ' +
+        (r.bounty ? '<div class="rush-badge bounty-badge">悬赏链 ' + r.bounty.tier + '/3 · ' + r.bounty.name + ' · ' +
           (r.bounty.done
-            ? '完成 +' + r.bounty.echo + ' 回响'
+            ? '完成 +' + r.bounty.echo + ' 回响' + (r.bounty.chain >= 3 ? ' · 全破' : '')
             : '未完成 ' + r.bounty.cur + '/' + r.bounty.target + ' · 完成可得 +' + r.bounty.echo + ' 回响') +
           '</div>' : '') +
         buildHtml +
