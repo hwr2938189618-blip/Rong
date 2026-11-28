@@ -229,6 +229,7 @@
       p.ult = 0;
       p.invuln = Math.max(p.invuln, 1.6);
       p.ultPulse = 1;
+      G.ultCasts = (G.ultCasts || 0) + 1;
       const cx = p.x, cy = p.y, R = 760;
       const dmg = (220 + p.level * 24) * p.dmgMul;
       AE.FX.flash(0.6, '#7df9ff');

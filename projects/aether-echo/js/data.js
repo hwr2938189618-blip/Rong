@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.18.0';
+  D.VERSION = '1.19.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -539,6 +539,10 @@
     { id: 'rush_win', name: '五连破晓', desc: '完成一次首领连战', icon: '⛨', color: '#ff8fa3' },
     { id: 'pact2', name: '契约行者', desc: '以至少 2 条深渊契约通关', icon: '⟡', color: '#b388ff' },
     { id: 'pact4', name: '深渊主宰', desc: '以 4 条深渊契约通关', icon: '❖', color: '#ff5c7a' },
+    { id: 'abyss_kill', name: '凝视深渊', desc: '击破深渊之眼', icon: '◉', color: '#ff5c9a' },
+    { id: 'event5', name: '星象观测者', desc: '单局经历 5 次星象事件', icon: '☄', color: '#ff9f68' },
+    { id: 'burn300', name: '燎原', desc: '单局用灼烧击杀 300 个敌人', icon: '✹', color: '#ff9f68' },
+    { id: 'ult20', name: '超新星', desc: '单局释放 20 次星核爆发', icon: '⚡', color: '#ffd479' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 

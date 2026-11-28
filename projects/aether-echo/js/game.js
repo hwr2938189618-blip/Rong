@@ -19,6 +19,7 @@
     rush: false, rushIndex: 0, rushGap: 0,
     relicLock: false,
     event: null, eventT: 0, eventLeft: 0, meteorT: 0,
+    eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -166,6 +167,10 @@
       if (S.bestRush && S.bestRush.time > 0) unlock('rush_win');
       if ((G.pactWinTier || 0) >= 2) unlock('pact2');
       if ((G.pactWinTier || 0) >= 4) unlock('pact4');
+      if (G.abyssKilled) unlock('abyss_kill');
+      if ((G.eventCount || 0) >= 5) unlock('event5');
+      if ((G.burnKills || 0) >= 300) unlock('burn300');
+      if ((G.ultCasts || 0) >= 20) unlock('ult20');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
@@ -226,6 +231,7 @@
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.pactWinTier = 0;
       G.event = null; G.eventLeft = 0; G.meteorT = 0;
+      G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
       G.eventT = 55 + Math.random() * 25;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
@@ -587,6 +593,7 @@
       G.event = def;
       G.eventLeft = def.dur;
       G.meteorT = 0.45;
+      G.eventCount = (G.eventCount || 0) + 1;
       if (def.id === 'hunt') {
         const p = G.player;
         for (let i = 0; i < 3; i++) {
@@ -759,6 +766,7 @@
     onBossKilled: function (boss) {
       const def = boss.def;
       G.boss = null;
+      if (def.id === 'abyss') G.abyssKilled = true;
       G.slowT = 0.85;
       G.echoBonus += def.echo || 20;
       AE.Player.heal(G.player, G.player.maxHp * 0.25);

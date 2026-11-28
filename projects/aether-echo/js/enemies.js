@@ -808,6 +808,7 @@
       }
       // 灼星者 / 引燃：燃烧的敌人死亡时引燃周围
       if (e.burnT > 0 && pl && (pl.burn || pl.igniteChance > 0)) {
+        G.burnKills = (G.burnKills || 0) + 1;
         e.burnT = 0;
         const near = AE.World.grid.query(e.x, e.y, 140);
         for (let k = 0; k < near.length; k++) {
