@@ -549,6 +549,7 @@
       if (dt > 0.08) dt = 0.08;
       if (dt < 0) dt = 0;
       if (G.slowT > 0) { G.slowT -= dt; dt *= 0.35; }
+      AE.Input.pollGamepad(now);
 
       // 自适应画质：持续低于约 43fps 时自动降一档
       if (G.state === 'playing' && !this.headless) {
@@ -1728,13 +1729,16 @@
 
       if (!AE.Save.data.seen && G.time < 12) {
         const touchUI = AE.Input.touch.on || (AE.UI && AE.UI._touch);
+        const padOn = AE.Input.pad && AE.Input.pad.connected;
         ctx.globalAlpha = U.clamp((12 - G.time) / 2, 0, 1);
         ctx.textAlign = 'center';
         ctx.font = '600 13px ' + head;
         ctx.fillStyle = 'rgba(190,225,255,0.85)';
-        ctx.fillText(touchUI
-          ? '左半屏拖动移动 · 右下角「闪」闪避 · 右上角暂停'
-          : 'WASD 移动 · 武器自动攻击 · 空格 / Shift 闪避 · ESC 暂停', W / 2, H - 26);
+        ctx.fillText(padOn
+          ? '手柄 · 左摇杆移动 · A 闪避 · B 星核爆发 · Start 暂停'
+          : (touchUI
+            ? '左半屏拖动移动 · 右下角「闪」闪避 · 右上角暂停'
+            : 'WASD 移动 · 武器自动攻击 · 空格 / Shift 闪避 · ESC 暂停'), W / 2, H - 26);
         ctx.globalAlpha = 1;
       }
 

@@ -97,6 +97,8 @@
     mouse: { x: 0, y: 0, sx: 0, sy: 0, down: false, active: false, clicked: false },
     touch: { on: false, ox: 0, oy: 0, dx: 0, dy: 0, active: false },
     joy: { active: false, dx: 0, dy: 0, mag: 0 },
+    pad: { connected: false, index: -1, dx: 0, dy: 0, mag: 0 },
+    padPrev: [], padT: 0,
     ultPressed: false,
     enabled: true,
 
@@ -171,6 +173,72 @@
     down: function (code) { return !!this.keys[code]; },
     hit: function (code) { return !!this.pressed[code]; },
 
+    /* 手柄：无设备时每 0.5 秒才探测一次，有设备时逐帧读取 */
+    pollGamepad: function (now, force) {
+      const nav = typeof navigator !== 'undefined' && navigator.getGamepads;
+      if (!nav) { this.pad.connected = false; return false; }
+      now = now || 0;
+      if (!force && !this.pad.connected && now - (this.padT || 0) < 500) return false;
+      this.padT = now;
+      let pads = null;
+      try { pads = nav.call(navigator); } catch (e) { pads = null; }
+      let gp = null;
+      if (pads) {
+        for (let i = 0; i < pads.length; i++) {
+          if (pads[i] && pads[i].connected) { gp = pads[i]; break; }
+        }
+      }
+      if (!gp) {
+        this.pad.connected = false; this.pad.index = -1;
+        this.pad.dx = 0; this.pad.dy = 0; this.pad.mag = 0;
+        this.padPrev = [];
+        return false;
+      }
+      this.pad.connected = true;
+      this.pad.index = gp.index;
+      const ax = gp.axes || [];
+      let x = ax[0] || 0, y = ax[1] || 0;
+      const btns = gp.buttons || [];
+      const press = function (i) { return !!(btns[i] && btns[i].pressed); };
+      if (press(12)) y -= 1;
+      if (press(13)) y += 1;
+      if (press(14)) x -= 1;
+      if (press(15)) x += 1;
+      let mag = Math.hypot(x, y);
+      const dz = 0.2;
+      if (mag > dz) {
+        const k = Math.min(1, (mag - dz) / (1 - dz)) / mag;
+        x *= k; y *= k; mag = Math.min(1, (mag - dz) / (1 - dz));
+      } else { x = 0; y = 0; mag = 0; }
+      this.pad.dx = x; this.pad.dy = y; this.pad.mag = mag;
+      const prev = this.padPrev;
+      const edge = function (i) {
+        const cur = press(i);
+        const was = !!prev[i];
+        prev[i] = cur;
+        return cur && !was;
+      };
+      const a = edge(0), b = edge(1), start = edge(9);
+      const G = AE.G;
+      if (G && (G.state === 'playing' || G.state === 'paused')) {
+        if (start) {
+          if (G.state === 'playing') AE.Game.pause();
+          else AE.Game.resume();
+        }
+        if (G.state === 'playing') {
+          if (a) this.dashPressed = true;
+          if (b) this.ultPressed = true;
+        }
+      }
+      return true;
+    },
+
+    releasePad: function () {
+      this.pad.connected = false; this.pad.index = -1;
+      this.pad.dx = 0; this.pad.dy = 0; this.pad.mag = 0;
+      this.padPrev = [];
+    },
+
     joyZone: function (x, width) {
       const lh = !!(AE.Save && AE.Save.data && AE.Save.data.settings &&
         AE.Save.data.settings.leftHand);
@@ -183,6 +251,7 @@
       if (this.down('KeyD') || this.down('ArrowRight')) x += 1;
       if (this.down('KeyW') || this.down('ArrowUp')) y -= 1;
       if (this.down('KeyS') || this.down('ArrowDown')) y += 1;
+      if (this.pad.mag > 0.18) { x = this.pad.dx; y = this.pad.dy; }
       if (this.joy.mag > 0.12) { x = this.joy.dx; y = this.joy.dy; }
       const l = Math.hypot(x, y);
       if (l > 1) { x /= l; y /= l; }
