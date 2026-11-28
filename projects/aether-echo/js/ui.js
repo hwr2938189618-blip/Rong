@@ -572,6 +572,12 @@
         '<div class="result-cell"><span>总伤害</span><b>' + U.fmtNum(r.damage) + '</b></div>' +
         '<div class="result-cell"><span>击破首领</span><b>' + r.bossKills + '</b></div>' +
         '<div class="result-cell gold"><span>获得回响</span><b>◈ ' + r.echoes + '</b></div>' +
+        '<div class="result-cell"><span>评级</span><b class="grade-' + (r.grade || 'C') + '">' + (r.grade || 'C') + '</b></div>' +
+        '<div class="result-cell"><span>评分</span><b>' + U.fmtNum(r.score || 0) + '</b></div>' +
+        '<div class="result-cell"><span>最高连杀</span><b>' + (r.maxCombo || 0) + '</b></div>' +
+        '</div>' +
+        '<div class="score-badge' + (r.rank === 1 ? ' top' : '') + '">' +
+        (r.rank ? '本地排行 #' + r.rank + (r.rank === 1 ? ' · 登顶' : '') : '本地排行未入榜') +
         '</div>' +
         (r.newBest ? '<div class="new-best">NEW RECORD · 最久存活</div>' : '') +
         (r.daily ? '<div class="daily-badge">每日挑战 · ' + r.daily + ' · ' +
@@ -792,6 +798,21 @@
           '<span>最久 ' + U.fmtTime(cb.time || 0) + ' · 击杀 ' + (cb.kills || 0) +
           ' · Lv' + (cb.level || 0) + (cb.wins ? ' · 通关 ' + cb.wins : '') + '</span></div>';
       }).join('');
+      const lbHtml = (S.leaderboard || []).slice().sort(function (a, b) {
+        return (b.score || 0) - (a.score || 0) || (b.time || 0) - (a.time || 0);
+      }).map(function (r, i) {
+        const c = AE.Data.CHAR_MAP[r.char];
+        const modeTag = r.mode === 'daily' ? '每日 · ' : (r.mode === 'rush' ? '连战 · ' : '');
+        const g = r.grade || 'C';
+        return '<div class="run-row lb-row">' +
+          '<span class="run-rank">#' + (i + 1) + '</span>' +
+          '<b>' + U.fmtNum(r.score || 0) + '</b>' +
+          '<span><em class="grade-' + g + '">' + g + '</em> · ' + modeTag +
+          'Lv' + (r.level || 0) + ' · ' + (r.kills || 0) + ' 杀 · ' + (r.maxCombo || 0) + ' 连</span>' +
+          '<span class="run-char">' + (c ? c.name : r.char) + '</span>' +
+          '<span class="' + (r.victory ? 'ok' : '') + '">' + (r.victory ? '通关' : U.fmtTime(r.time || 0)) + '</span>' +
+          '</div>';
+      }).join('') || '<div class="empty">还没有评分记录，去打一局吧</div>';
       const html =
         '<div class="screen archive-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -810,7 +831,10 @@
         '</div>' +
         dailyCard +
         rushCard +
-        '<div class="section-label">角色最佳 · 本地排行</div>' +
+        '<div class="section-label">本地排行榜 · 最高 ' +
+        U.fmtNum((S.best && S.best.score) || 0) + '</div>' +
+        '<div class="run-list lb-list">' + lbHtml + '</div>' +
+        '<div class="section-label">角色最佳 · 分角色记录</div>' +
         '<div class="run-list">' + charBestHtml + '</div>' +
         '<div class="section-label">成就 · ' + got.length + ' / ' + all.length + '</div>' +
         '<div class="ach-grid">' + achHtml + '</div>' +
@@ -836,6 +860,7 @@
         '<div class="how-item"><h4>武器进化</h4><p>同一把武器升到 <b style="color:#ffd479">8 级</b>会立刻进化成全新形态，威力大幅提升。</p></div>' +
         '<div class="how-item"><h4>首领</h4><p>每 2.5 分钟出现一名首领，攻击都有前摇提示。击破后可获得额外强化。</p></div>' +
         '<div class="how-item"><h4>回响</h4><p>每局结束按表现结算「回响」，可在强化界面购买永久成长与解锁角色。</p></div>' +
+        '<div class="how-item"><h4>评分</h4><p>结算按击杀、等级、首领、存活、最高连杀与通关计分，给出 S / A / B / C 评级，本地保留 Top 8。</p></div>' +
         '<div class="how-item"><h4>目标</h4><p>活到 <b style="color:#ffd479">10:00</b>，击破最终首领「终焉回响」，之后可进入无尽轮次。</p></div>' +
         '</div>' +
         '<div class="btn-col"><button class="btn primary" data-act="back">返回</button></div>' +
