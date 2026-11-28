@@ -208,6 +208,16 @@
       if ((G.affixKills || 0) >= 3) unlock('affix3');
       if (G.dailyWin) unlock('daily_win');
       if (final && (G.lastRank || 0) === 1) unlock('top1');
+      if (runActive && G.player.weapons && AE.Data.RESONANCES) {
+        let rc = 0;
+        AE.Data.RESONANCES.forEach(function (r) {
+          if (r.weapons.every(function (id) {
+            return G.player.weapons.some(function (w) { return w.id === id; });
+          })) rc++;
+        });
+        if (rc >= 2) unlock('resonance2');
+        if (rc >= 3) unlock('resonance3');
+      }
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
