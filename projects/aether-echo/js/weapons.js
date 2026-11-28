@@ -7,6 +7,26 @@
   const U = AE.U;
 
   const W = {
+    applyResonance: function (p, w, s) {
+      const list = AE.Data.RESONANCES;
+      if (!list || !p || !p.weapons || !s) return s;
+      let out = s;
+      for (let i = 0; i < list.length; i++) {
+        const r = list[i];
+        if (r.weapons.indexOf(w.id) < 0) continue;
+        let hasAll = true;
+        for (let k = 0; k < r.weapons.length; k++) {
+          const id = r.weapons[k];
+          if (!p.weapons.some(function (x) { return x.id === id; })) { hasAll = false; break; }
+        }
+        if (!hasAll) continue;
+        if (out === s) out = Object.assign({}, s);
+        if (r.dmg) out.dmg = (out.dmg || 0) * r.dmg;
+        if (r.width) out.width = (out.width || 0) * r.width;
+      }
+      return out;
+    },
+
     update: function (p, dt) {
       const D = AE.Data;
       p.channeling = false;
@@ -14,8 +34,9 @@
         const w = p.weapons[i];
         const def = D.WEAPON_MAP[w.id];
         if (!def) continue;
-        const s = D.weaponStats(w, w.level);
+        let s = D.weaponStats(w, w.level);
         if (!s) continue;
+        s = W.applyResonance(p, w, s);
         if (w.id === 'orbit') {
           w.spin = (w.spin || 0) + s.rot * dt;
           W.orbitHit(p, w, s);
