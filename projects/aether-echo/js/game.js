@@ -18,7 +18,7 @@
     slowT: 0, daily: null, mod: null,
     rush: false, rushIndex: 0, rushGap: 0,
     relicLock: false,
-    event: null, eventT: 0, eventLeft: 0, meteorT: 0,
+    event: null, eventT: 0, eventLeft: 0, meteorT: 0, stormT: 0,
     eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false, stage: 1,
     affixKills: 0, dailyWin: false, dailyEvents: null, dailyEventsDone: 0,
     bossWait: 0,
@@ -283,7 +283,7 @@
       G.relicLock = false;
       G.echoBonus = 0; G.stats = { damage: 0 }; G.result = null;
       G.pactWinTier = 0;
-      G.event = null; G.eventLeft = 0; G.meteorT = 0;
+      G.event = null; G.eventLeft = 0; G.meteorT = 0; G.stormT = 0;
       G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
       G.affixKills = 0;
       G.dailyWin = false;
@@ -667,6 +667,9 @@
         if (G.event.id === 'meteor') {
           G.meteorT -= dt;
           if (G.meteorT <= 0) { G.meteorT = 0.72; this.dropMeteor(); }
+        } else if (G.event.id === 'storm') {
+          G.stormT -= dt;
+          if (G.stormT <= 0) { G.stormT = 0.55; this.stormStrike(); }
         }
         if (G.eventLeft <= 0) {
           const p = G.player;
@@ -702,6 +705,7 @@
       G.event = def;
       G.eventLeft = def.dur;
       G.meteorT = 0.45;
+      G.stormT = 0.25;
       G.eventCount = (G.eventCount || 0) + 1;
       if (def.id === 'hunt') {
         const p = G.player;
@@ -717,6 +721,27 @@
       AE.Audio.sfx(def.id === 'meteor' ? 'warn' : 'evolve');
       AE.FX.flash(0.06, def.color);
       return def;
+    },
+
+    stormStrike: function () {
+      const p = G.player;
+      const alive = AE.Enemies.list.filter(function (e) {
+        return e.alive && e.spawning <= 0;
+      });
+      if (!alive.length) return;
+      const n = Math.min(3, alive.length);
+      for (let i = 0; i < n; i++) {
+        const idx = Math.floor(Math.random() * alive.length);
+        const e = alive.splice(idx, 1)[0];
+        const dmg = (55 + G.level * 9) * (p.dmgMul || 1);
+        AE.FX.line(e.x, e.y - 420, e.x, e.y, '#ffd479', 0.5, 5, true);
+        AE.FX.line(e.x, e.y - 420, e.x, e.y, '#ffffff', 0.3, 2, true);
+        AE.FX.ring(e.x, e.y, '#ffd479', 6, 74, 0.4, 3);
+        AE.FX.spark(e.x, e.y, '#ffd479', 12, { spd: 220, life: 0.4, size: 3 });
+        AE.Enemies.damage(e, dmg, { crit: false, noSplash: true, noFrost: true });
+      }
+      AE.FX.shake(0.1);
+      AE.Audio.sfx('arc', { pitch: 1.22 });
     },
 
     dropMeteor: function (fx, fy) {
