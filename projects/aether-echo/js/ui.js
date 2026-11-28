@@ -576,6 +576,7 @@
         (r.newBest ? '<div class="new-best">NEW RECORD · 最久存活</div>' : '') +
         (r.daily ? '<div class="daily-badge">每日挑战 · ' + r.daily + ' · ' +
           (r.dailyNew ? '今日新纪录' : ('今日最佳 ' + U.fmtTime(r.dailyBest ? r.dailyBest.time : 0))) +
+          (r.dailyBest && r.dailyBest.victory ? ' · 已通关' : '') +
           (r.anomalies && r.anomalies.length ? ' · ' + r.anomalies.join(' / ') : '') + '</div>' : '') +
         (r.rush ? '<div class="rush-badge">首领连战 · 最佳 ' +
           (r.rushBest && r.rushBest.time ? U.fmtTime(r.rushBest.time) : '--:--') +
@@ -757,11 +758,13 @@
           '<div><div class="ach-name">' + a.name + '</div><div class="ach-desc">' + a.desc + '</div></div>' +
           '</div>';
       }).join('');
-      const runs = (S.bestRuns || []).map(function (r, i) {        const c = AE.Data.CHAR_MAP[r.char];
+      const runs = (S.bestRuns || []).map(function (r, i) {
+        const c = AE.Data.CHAR_MAP[r.char];
+        const modeTag = r.mode === 'daily' ? '每日 · ' : (r.mode === 'rush' ? '连战 · ' : '');
         return '<div class="run-row">' +
           '<span class="run-rank">#' + (i + 1) + '</span>' +
           '<b>' + U.fmtTime(r.time) + '</b>' +
-          '<span>Lv' + r.level + ' · ' + r.kills + ' 击杀</span>' +
+          '<span>' + modeTag + 'Lv' + r.level + ' · ' + r.kills + ' 击杀</span>' +
           '<span class="run-char">' + (c ? c.name : r.char) + '</span>' +
           '<span class="' + (r.victory ? 'ok' : '') + '">' + (r.victory ? '通关' : '陨落') + '</span>' +
           '</div>';
@@ -772,7 +775,7 @@
       const dailyCard = '<div class="daily-card">' +
         '<div class="daily-card-date">每日挑战 · ' + dailyKey + '</div>' +
         (db
-          ? '<div class="daily-card-main"><b>' + U.fmtTime(db.time) + '</b><span>Lv' + db.level + ' · ' + db.kills + ' 击杀 · ◈ ' + db.echoes + '</span></div>'
+          ? '<div class="daily-card-main"><b>' + U.fmtTime(db.time) + '</b><span>Lv' + db.level + ' · ' + db.kills + ' 击杀 · ◈ ' + db.echoes + (db.victory ? ' · 通关' : '') + '</span></div>'
           : '<div class="daily-card-main"><b>— —</b><span>今天还没有记录，打一局每日挑战</span></div>') +
         '</div>';
       const rb = (S.bestRush && S.bestRush.size === AE.Data.RUSH_ORDER.length) ? S.bestRush : { time: 0 };

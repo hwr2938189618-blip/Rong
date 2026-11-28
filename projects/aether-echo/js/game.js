@@ -948,6 +948,7 @@
       S.bestRuns.push({
         time: Math.round(G.time), kills: G.kills, level: G.level,
         victory: !!victory, char: p.char.id, echo: echoes,
+        mode: G.rush ? 'rush' : (G.daily ? 'daily' : 'normal'),
         date: new Date().toISOString().slice(0, 10)
       });
       S.bestRuns.sort(function (a, b) { return b.time - a.time; });
@@ -972,10 +973,13 @@
         S.dailyBest = S.dailyBest || {};
         const rec = {
           time: Math.round(G.time), kills: G.kills, level: G.level,
-          char: p.char.id, echoes: echoes
+          char: p.char.id, echoes: echoes, victory: !!victory
         };
         const prev = S.dailyBest[G.daily.key];
-        if (!prev || rec.time > prev.time) {
+        const better = !prev ||
+          (rec.victory && !prev.victory) ||
+          (!!rec.victory === !!prev.victory && rec.time > prev.time);
+        if (better) {
           S.dailyBest[G.daily.key] = rec;
           dailyNew = true;
         }
