@@ -680,15 +680,15 @@
         slider('sfx', '音效音量', st.sfx) +
         slider('shake', '屏幕震动', st.shake) +
         '<div class="set-row"><div class="set-label">伤害数字</div>' +
-        '<button class="switch ' + (st.dmgText ? 'on' : '') + '" data-act="toggle" data-id="dmgText">' + (st.dmgText ? '开' : '关') + '</button></div>' +
+        '<button class="switch ' + (st.dmgText ? 'on' : '') + '" aria-label="伤害数字" aria-pressed="' + (st.dmgText ? 'true' : 'false') + '" data-act="toggle" data-id="dmgText">' + (st.dmgText ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">动态效果</div>' +
-        '<button class="switch ' + (st.motion !== false ? 'on' : '') + '" data-act="toggle" data-id="motion">' + (st.motion !== false ? '开' : '关') + '</button></div>' +
+        '<button class="switch ' + (st.motion !== false ? 'on' : '') + '" aria-label="动态效果" aria-pressed="' + (st.motion !== false ? 'true' : 'false') + '" data-act="toggle" data-id="motion">' + (st.motion !== false ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">屏幕闪光</div>' +
-        '<button class="switch ' + (st.flash !== false ? 'on' : '') + '" data-act="toggle" data-id="flash">' + (st.flash !== false ? '开' : '关') + '</button></div>' +
+        '<button class="switch ' + (st.flash !== false ? 'on' : '') + '" aria-label="屏幕闪光" aria-pressed="' + (st.flash !== false ? 'true' : 'false') + '" data-act="toggle" data-id="flash">' + (st.flash !== false ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">左手模式</div>' +
-        '<button class="switch ' + (st.leftHand ? 'on' : '') + '" data-act="toggle" data-id="leftHand">' + (st.leftHand ? '开' : '关') + '</button></div>' +
+        '<button class="switch ' + (st.leftHand ? 'on' : '') + '" aria-label="左手模式" aria-pressed="' + (st.leftHand ? 'true' : 'false') + '" data-act="toggle" data-id="leftHand">' + (st.leftHand ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">高对比</div>' +
-        '<button class="switch ' + (st.contrast ? 'on' : '') + '" data-act="toggle" data-id="contrast">' + (st.contrast ? '开' : '关') + '</button></div>' +
+        '<button class="switch ' + (st.contrast ? 'on' : '') + '" aria-label="高对比" aria-pressed="' + (st.contrast ? 'true' : 'false') + '" data-act="toggle" data-id="contrast">' + (st.contrast ? '开' : '关') + '</button></div>' +
         '<div class="set-row"><div class="set-label">画质</div><div class="seg">' +
         [['0.6', '低'], ['1', '中'], ['1.4', '高']].map(function (p) {
           const on = Math.abs(q - parseFloat(p[0])) < 0.01;
