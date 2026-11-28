@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.35.0';
+  D.VERSION = '1.36.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -164,7 +164,7 @@
         { dmg: 30, cd: 0.74, count: 7, spread: 0.78, speed: 830, life: 0.56, pierce: 2 }
       ],
       evolved: {
-        name: '棱镜审判', icon: '❈', dmg: 50, cd: 0.58, count: 10, spread: 1.10,
+        name: '棱镜审判', icon: '❈', dmg: 58, cd: 0.54, count: 12, spread: 1.15,
         speed: 850, life: 0.58, pierce: 3, ricochet: 1, note: '光化作裁决，弹射不止'
       }
     },
@@ -236,8 +236,8 @@
         { dmg: 38, cd: 1.84, count: 15, speed: 330, life: 1.15, pierce: 2, size: 5.8 }
       ],
       evolved: {
-        name: '超新星花园', icon: '❁', dmg: 46, cd: 1.50, count: 22, speed: 350,
-        life: 1.30, pierce: 2, size: 6.2, note: '花园盛开，环身皆刃'
+        name: '超新星花园', icon: '❁', dmg: 58, cd: 1.30, count: 26, speed: 360,
+        life: 1.35, pierce: 2, size: 6.2, note: '花园盛开，环身皆刃'
       }
     },
     {
