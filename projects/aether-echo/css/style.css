@@ -979,6 +979,10 @@ body.reduce-motion *::after {
 .pact-mult small { display: block; font-size: 9px; letter-spacing: 0.2em; color: var(--dim2); margin-top: 2px; }
 .pact-best { font-size: 10px; letter-spacing: 0.16em; color: var(--dim2); }
 .pact-badge { margin-top: 8px; }
+.resonance-badge {
+  color: #7df9ff !important; border-color: rgba(125, 249, 255, 0.28) !important;
+  background: rgba(125, 249, 255, 0.05) !important;
+}
 @media (max-width: 720px) {
   .pact-grid { grid-template-columns: 1fr; }
   .pact-foot { flex-direction: column; align-items: stretch; }
