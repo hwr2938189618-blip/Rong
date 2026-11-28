@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.43.0';
+  D.VERSION = '1.44.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -284,6 +284,16 @@
       id: 'huntmoon', name: '猎月双生', color: '#ff9f68',
       weapons: ['seek', 'scythe'], dmg: 1.20,
       desc: '追猎蜂群与回旋月刃伤害 +20%'
+    },
+    {
+      id: 'supernova', name: '超新星花园', color: '#ff9f68',
+      weapons: ['bloom', 'nova'], dmg: 1.20,
+      desc: '星华绽放与虚空新星伤害 +20%'
+    },
+    {
+      id: 'prismstar', name: '棱镜星屑', color: '#ff7fb0',
+      weapons: ['prism', 'pulse'], dmg: 1.16,
+      desc: '破碎明光与星屑脉冲伤害 +16%'
     }
   ];
 
@@ -788,6 +798,11 @@
       id: 'siphon', name: '湮灭虹吸', icon: '⇶', color: '#ff7fb0',
       desc: '湮灭光束每命中一个敌人回复 0.4 生命（每跳最多 4 点）', requires: 'beam',
       apply: function (p) { p.beamLeech = true; }
+    },
+    {
+      id: 'resonator', name: '共鸣棱镜', icon: '❖', color: '#7df9ff', requiresResonance: true,
+      desc: '武器共鸣的伤害与宽度增幅 +50%',
+      apply: function (p) { p.resonanceMul = (p.resonanceMul || 1) * 1.5; }
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
