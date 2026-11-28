@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.16.0';
+  D.VERSION = '1.17.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -674,6 +674,16 @@
     {
       id: 'reaper', name: '收割之环', icon: '❂', color: '#b388ff', hook: true,
       desc: '每击杀 20 个敌人释放一次收割新星'
+    },
+    {
+      id: 'ignition', name: '灼热核心', icon: '✹', color: '#ff9f68',
+      desc: '灼烧伤害 +50%',
+      apply: function (p) { p.burnMul *= 1.5; }
+    },
+    {
+      id: 'battery', name: '超载电池', icon: '⚡', color: '#ffd479',
+      desc: '星核能量获取 +40%，并立即获得 30 点星核',
+      apply: function (p) { p.ultGain += 0.40; p.ult = Math.min(p.ultMax, p.ult + 30); }
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

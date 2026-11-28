@@ -703,10 +703,10 @@
       if (pl && !(opts && opts.noBurn) && dmg > 0) {
         if (pl.burn) {
           e.burnT = Math.max(e.burnT || 0, 3);
-          e.burnDps = Math.max(e.burnDps || 0, 6 + pl.level * 1.6);
+          e.burnDps = Math.max(e.burnDps || 0, (6 + pl.level * 1.6) * (pl.burnMul || 1));
         } else if (pl.igniteChance > 0 && Math.random() < pl.igniteChance) {
           e.burnT = Math.max(e.burnT || 0, 2.5);
-          e.burnDps = Math.max(e.burnDps || 0, 4 + pl.level * 1.2);
+          e.burnDps = Math.max(e.burnDps || 0, (4 + pl.level * 1.2) * (pl.burnMul || 1));
           AE.FX.spark(e.x, e.y, '#ff9f68', 3, { spd: 90, life: 0.3, size: 2.2, add: true });
         }
       }

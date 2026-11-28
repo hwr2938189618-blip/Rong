@@ -31,7 +31,7 @@
         dashDamage: !!char.dashDamage,
         killStack: !!char.killStack,
         burn: !!char.burn,
-        ultGain: 0, igniteChance: 0,
+        ultGain: 0, igniteChance: 0, burnMul: 1,
         killStacks: 0, stackBonus: 0,
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),
