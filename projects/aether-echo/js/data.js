@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.60.0';
+  D.VERSION = '1.61.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -592,6 +592,13 @@
       start: 'bloom', color: '#ff9f68', burn: true,
       intro: '把每一次命中都点成火种，让敌群自己烧起来。',
       perk: '所有命中附加 3 秒灼烧（每秒 4 + 1.1×等级）· 伤害 -8%'
+    },
+    {
+      id: 'chrono', name: '时隙者', title: 'CHRONO WALKER', cost: 600,
+      hp: 90, speed: 240, dmgMul: 1.0, armor: 0, crit: 0.03, xpMul: 1.0,
+      start: 'beam', color: '#9f8bff', timeWarp: true, dashCdMul: 0.6,
+      intro: '在闪避的缝隙里偷时间，把每一次翻滚变成超频窗口。',
+      perk: '闪避冷却 -40% · 闪避后 1.6 秒攻速 +30%'
     }
   ];
   D.CHAR_MAP = {};
@@ -605,7 +612,8 @@
     seer: { name: '星神·雷廊', color: '#8affc1', cadence: 0.55, aura: 175, reduce: 0.55, chain: true },
     lumen: { name: '星神·逐光', color: '#fff3c4', cadence: 0.28, aura: 150, reduce: 0.50 },
     devourer: { name: '星神·噬星', color: '#ff7fb0', cadence: 0.55, aura: 195, reduce: 0.50, drain: true },
-    ember: { name: '星神·灼世', color: '#ff9f68', cadence: 0.50, aura: 215, reduce: 0.60, burn: true }
+    ember: { name: '星神·灼世', color: '#ff9f68', cadence: 0.50, aura: 215, reduce: 0.60, burn: true },
+    chrono: { name: '星神·时隙', color: '#9f8bff', cadence: 0.34, aura: 190, reduce: 0.52 }
   };
 
   /* ============================================================
