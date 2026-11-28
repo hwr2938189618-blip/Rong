@@ -298,6 +298,34 @@
             AE.Audio.sfx('arc', { pitch: 1.35 });
           }
         }
+      } else if (e.behavior === 'screamer') {
+        // 保持中远距离，周期性尖啸清除附近玩家弹幕
+        if (d > 360) {
+          mx = nx; my = ny;
+        } else if (d < 230) {
+          mx = -nx; my = -ny;
+        } else {
+          mx = -ny * 0.6; my = nx * 0.6; sp *= 0.6;
+        }
+        e.castT = (e.castT === undefined ? 3.4 : e.castT) - dt;
+        if (e.castT <= 0) {
+          e.castT = 4.8;
+          const R = 210;
+          AE.FX.ring(e.x, e.y, e.color, 12, R, 0.5, 4);
+          AE.FX.ring(e.x, e.y, '#ffffff', 6, R * 0.55, 0.3, 2);
+          AE.FX.spark(e.x, e.y, e.color, 16, { spd: 260, life: 0.45, size: 3 });
+          AE.FX.shake(0.12);
+          AE.Audio.sfx('arc', { pitch: 0.58 });
+          let removed = 0;
+          const bs = AE.World.bullets;
+          for (let bi = bs.length - 1; bi >= 0; bi--) {
+            const b = bs[bi];
+            if (U.d2(e.x, e.y, b.x, b.y) > R * R) continue;
+            bs.splice(bi, 1);
+            removed++;
+          }
+          if (removed) AE.FX.text(e.x, e.y - 24, '弹幕消散', e.color, 11);
+        }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
         if (e.def.explode && d < 58 && e.fuse <= 0) {
@@ -1277,6 +1305,36 @@
           ctx.beginPath();
           ctx.arc(Math.cos(a) * e.r * 1.18, Math.sin(a) * e.r * 1.18, 2.2, 0, U.TAU);
           ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'screamer') {
+        // 尖啸者：锯齿声环 + 发光口器
+        const pulse = 1 + Math.sin(time * 6 + e.phase) * 0.06;
+        ctx.scale(pulse, pulse);
+        ctx.fillStyle = flash ? 'rgba(255,240,250,0.75)' : '#2a0d20';
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let k = 0; k < 12; k++) {
+          const a = k * U.TAU / 12;
+          const rr = e.r * (k % 2 ? 0.78 : 1.08);
+          const px = Math.cos(a) * rr, py = Math.sin(a) * rr;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#12040e';
+        ctx.beginPath(); ctx.ellipse(0, 0, e.r * 0.5, e.r * 0.34, 0, 0, U.TAU); ctx.fill();
+        ctx.strokeStyle = AE.FX.alpha(col, 0.9); ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.ellipse(0, 0, e.r * 0.5, e.r * 0.34, 0, 0, U.TAU); ctx.stroke();
+        ctx.fillStyle = '#ffd9e8';
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.16 + Math.sin(time * 8) * 1.2, 0, U.TAU); ctx.fill();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 3; k++) {
+          const a = -time * 1.8 + k * U.TAU / 3;
+          ctx.strokeStyle = AE.FX.alpha(col, 0.45);
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.r * (0.72 + k * 0.16), a, a + 1.2);
+          ctx.stroke();
         }
         ctx.globalCompositeOperation = 'source-over';
       } else if (s === 'binder') {
