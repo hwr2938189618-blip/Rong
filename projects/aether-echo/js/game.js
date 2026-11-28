@@ -566,7 +566,12 @@
           if (G.meteorT <= 0) { G.meteorT = 0.72; this.dropMeteor(); }
         }
         if (G.eventLeft <= 0) {
-          this.announce('星象平息 · ' + G.event.name, G.event.color, 1.6);
+          const p = G.player;
+          if (p) {
+            AE.Player.heal(p, p.maxHp * 0.08);
+            G.echoBonus += 5;
+          }
+          this.announce('星象平息 · 回复 8%', G.event.color, 1.8);
           G.event = null;
           G.eventT = 60 + Math.random() * 25;
         }

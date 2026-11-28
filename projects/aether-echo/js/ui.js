@@ -698,6 +698,14 @@
           '<div class="codex-desc">' + r.desc + '</div>' +
           '</div>';
       }).join('');
+      const events = D.EVENTS.map(function (e) {
+        return '<div class="codex-card" style="--c:' + e.color + '">' +
+          '<div class="codex-top"><span class="codex-icon">' + e.icon + '</span><span class="codex-tag">星象</span></div>' +
+          '<div class="codex-name">' + e.name + '</div>' +
+          '<div class="codex-desc">' + e.desc + '</div>' +
+          '<div class="codex-stats">持续 ' + e.dur + ' 秒 · 结束后回复 8% 生命</div>' +
+          '</div>';
+      }).join('');
       const html =
         '<div class="screen codex-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -710,6 +718,8 @@
         '<div class="codex-grid">' + passives + '</div>' +
         '<div class="section-label">遗物 · ' + D.RELICS.length + ' 件（击破首领后获得）</div>' +
         '<div class="codex-grid">' + relics + '</div>' +
+        '<div class="section-label">星象事件 · ' + D.EVENTS.length + ' 种</div>' +
+        '<div class="codex-grid">' + events + '</div>' +
         '<div class="section-label">虚空生物</div>' +
         '<div class="codex-rows">' + enemies + '</div>' +
         '<div class="section-label">首领</div>' +
