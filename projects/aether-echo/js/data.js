@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.55.0';
+  D.VERSION = '1.56.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -312,6 +312,11 @@
       id: 'prismstar', name: '棱镜星屑', color: '#ff7fb0',
       weapons: ['prism', 'pulse'], dmg: 1.16,
       desc: '破碎明光与星屑脉冲伤害 +16%'
+    },
+    {
+      id: 'pyro', name: '焚星', color: '#ff9f68',
+      weapons: ['flame', 'nova'], dmg: 1.18,
+      desc: '焰流喷射与虚空新星伤害 +18%'
     }
   ];
 
