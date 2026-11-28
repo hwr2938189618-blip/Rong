@@ -1328,6 +1328,7 @@
       ctx.font = '700 13px ' + head;
       ctx.fillStyle = 'rgba(232,242,255,0.9)';
       ctx.fillText(Math.ceil(hp) + ' / ' + Math.round(mx), hx, hy - 10);
+
       this.bar(ctx, hx, hy, 250, 14, hp / mx, hp / mx < 0.3 ? '#ff5c7a' : '#ff7fa0');
       ctx.strokeStyle = 'rgba(255,255,255,0.12)';
       ctx.lineWidth = 1;
@@ -1620,14 +1621,21 @@
         });
       });
     },
+    hasBurn: function (p) {
+      if (!p) return false;
+      if (p.burn || (p.igniteChance || 0) > 0) return true;
+      return (p.weapons || []).some(function (w) { return w.id === 'flame'; });
+    },
     roll: function (p, n) {
       if (!p) return [];
       const weapons = p.weapons || [];
       const hasRes = this.hasResonance(p);
+      const hasBurn = this.hasBurn(p);
       const pool = AE.Data.RELICS.filter(function (r) {
         if (p.relics.indexOf(r.id) >= 0) return false;
         if (r.requires && !weapons.some(function (w) { return w.id === r.requires; })) return false;
         if (r.requiresResonance && !hasRes) return false;
+        if (r.requiresBurn && !hasBurn) return false;
         return true;
       });
       AE.U.shuffle(pool);
