@@ -204,13 +204,17 @@
     KEY: KEY,
     data: null,
     defaults: function () {
+      const mq = function (q) {
+        try { return typeof g.matchMedia === 'function' && g.matchMedia(q).matches; }
+        catch (e) { return false; }
+      };
       return {
         v: 1, echoes: 0, totalEchoes: 0, runs: 0,
         chars: ['echo'], char: 'echo',
         meta: {}, muted: false,
         best: { time: 0, kills: 0, level: 0, score: 0 },
         seen: false,
-        settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1, motion: true, contrast: false, flash: true, leftHand: false },
+        settings: { music: 0.7, sfx: 0.85, shake: 1, dmgText: true, quality: 1, motion: !mq('(prefers-reduced-motion: reduce)'), contrast: mq('(prefers-contrast: more)'), flash: true, leftHand: false },
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0, healed: 0, ults: 0, relics: 0, maxCombo: 0 },
         achievements: [],
         evolvedSeen: [],
