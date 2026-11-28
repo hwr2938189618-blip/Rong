@@ -876,6 +876,17 @@
             (AE.Data.CHAR_MAP[rb.char] ? AE.Data.CHAR_MAP[rb.char].name : rb.char) + ' · ' + (rb.date || '') + '</span></div>'
           : '<div class="daily-card-main"><b>— —</b><span>还没有连战记录</span></div>') +
         '</div>';
+      const dailyHistory = Object.keys(S.dailyBest || {}).sort().reverse().slice(0, 7).map(function (key) {
+        const r = S.dailyBest[key];
+        const c = AE.Data.CHAR_MAP[r.char];
+        return '<div class="run-row daily-row">' +
+          '<span class="run-rank">' + key + '</span>' +
+          '<b>' + U.fmtTime(r.time || 0) + '</b>' +
+          '<span>Lv' + (r.level || 0) + ' · ' + (r.kills || 0) + ' 杀 · ◈ ' + (r.echoes || 0) + '</span>' +
+          '<span class="run-char">' + (c ? c.name : r.char) + '</span>' +
+          '<span class="' + (r.victory ? 'ok' : '') + '">' + (r.victory ? '通关' : '未通关') + '</span>' +
+          '</div>';
+      }).join('') || '<div class="empty">还没有每日战绩</div>';
       const charBestHtml = AE.Data.CHARS.map(function (c) {
         const cb = (S.charBest && S.charBest[c.id]) || {};
         return '<div class="run-row char-best"><b style="color:' + c.color + '">' + c.name + '</b>' +
@@ -928,6 +939,8 @@
         '</div>' +
         dailyCard +
         rushCard +
+        '<div class="section-label">每日挑战 · 最近 7 天</div>' +
+        '<div class="run-list daily-history">' + dailyHistory + '</div>' +
         '<div class="section-label">本地排行榜 · 最高 ' +
         U.fmtNum((S.best && S.best.score) || 0) + '</div>' +
         lbTabs +
