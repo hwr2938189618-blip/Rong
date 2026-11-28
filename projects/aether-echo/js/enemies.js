@@ -354,6 +354,56 @@
             AE.Audio.sfx('pickup', { pitch: 0.6 });
           }
         }
+      } else if (e.behavior === 'sentinel') {
+        // 棱镜哨兵：保持中远距离，蓄力后打出三束旋转激光
+        if (d > 430) { mx = nx; my = ny; }
+        else if (d < 250) { mx = -nx; my = -ny; }
+        else { mx = -ny * 0.55; my = nx * 0.55; sp *= 0.5; }
+        e.laserT = (e.laserT === undefined ? 2.6 : e.laserT) - dt;
+        if (!e.laserPhase) e.laserPhase = 'idle';
+        if (e.laserPhase === 'idle') {
+          if (e.laserT <= 0 && d < 640) {
+            e.laserPhase = 'charge';
+            e.laserT = 0.9;
+            e.laserAng = Math.atan2(dy, dx);
+            AE.Audio.sfx('warn');
+          }
+        } else if (e.laserPhase === 'charge') {
+          sp = 0;
+          if (e.laserT <= 0) {
+            e.laserPhase = 'fire';
+            e.laserT = 1.15;
+            e.laserHitT = 0;
+            e.laserAng = Math.atan2(dy, dx);
+            AE.Audio.sfx('prism', { pitch: 0.72 });
+            AE.FX.shake(0.08);
+          }
+        } else if (e.laserPhase === 'fire') {
+          sp = 0;
+          e.laserAng += dt * 1.9;
+          e.laserHitT -= dt;
+          if (e.laserHitT <= 0) {
+            e.laserHitT = 0.18;
+            const range = 520;
+            const rx = p.x - e.x, ry = p.y - e.y;
+            for (let k = 0; k < 3; k++) {
+              const a = e.laserAng + k * U.TAU / 3;
+              const ca = Math.cos(a), sa = Math.sin(a);
+              const proj = rx * ca + ry * sa;
+              if (proj <= e.r || proj >= range) continue;
+              const perp = Math.abs(-rx * sa + ry * ca);
+              if (perp > 16 + p.r) continue;
+              if (AE.Player.hurt(p, e.dmg * 1.15, e.x, e.y) > 0) {
+                AE.FX.spark(p.x, p.y, e.color, 5, { spd: 160, life: 0.3, size: 2.6, add: true });
+              }
+              break;
+            }
+          }
+          if (e.laserT <= 0) { e.laserPhase = 'recover'; e.laserT = 1.0; }
+        } else {
+          sp *= 0.35;
+          if (e.laserT <= 0) { e.laserPhase = 'idle'; e.laserT = 3.0 + Math.random() * 1.5; }
+        }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
         if (e.def.explode && d < 58 && e.fuse <= 0) {
@@ -1170,7 +1220,10 @@
       for (let i = 0; i < list.length; i++) {
         const e = list[i];
         if (!e.alive) continue;
-        if (e.x < v.x0 - 90 || e.x > v.x1 + 90 || e.y < v.y0 - 90 || e.y > v.y1 + 90) continue;
+        // 棱镜哨兵的激光射程 520，预警/开火时放宽裁剪，避免屏幕外激光不可见却命中
+        const pad = (e.behavior === 'sentinel' &&
+          (e.laserPhase === 'charge' || e.laserPhase === 'fire')) ? 580 : 90;
+        if (e.x < v.x0 - pad || e.x > v.x1 + pad || e.y < v.y0 - pad || e.y > v.y1 + pad) continue;
         if (e.boss) this.drawBoss(ctx, e, time);
         else this.drawMob(ctx, e, time);
       }
@@ -1266,6 +1319,42 @@
         ctx.lineTo(300, 0);
         ctx.stroke();
         ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      // 棱镜哨兵：蓄力预警 / 三束旋转激光
+      if (e.behavior === 'sentinel' && (e.laserPhase === 'charge' || e.laserPhase === 'fire')) {
+        const base = e.laserAng || 0;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 3; k++) {
+          ctx.save();
+          ctx.rotate(base + k * U.TAU / 3);
+          if (e.laserPhase === 'charge') {
+            const prog = 1 - Math.max(0, e.laserT) / 0.9;
+            ctx.globalAlpha = alpha * (0.2 + prog * 0.42) * (0.7 + Math.sin(time * 24 + k) * 0.18);
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 1.4 + prog * 2.2;
+            ctx.setLineDash([14, 11]);
+            ctx.lineDashOffset = -time * 70;
+            ctx.beginPath(); ctx.moveTo(e.r * 0.7, 0); ctx.lineTo(560, 0); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = alpha * (0.35 + prog * 0.4);
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.arc(560, 0, 2 + prog * 3, 0, U.TAU); ctx.fill();
+          } else {
+            ctx.globalAlpha = alpha * 0.14;
+            ctx.strokeStyle = col; ctx.lineWidth = 24;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(520, 0); ctx.stroke();
+            ctx.globalAlpha = alpha * 0.68;
+            ctx.lineWidth = 9;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(520, 0); ctx.stroke();
+            ctx.globalAlpha = alpha * 0.95;
+            ctx.strokeStyle = '#fff0f7'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(520, 0); ctx.stroke();
+          }
+          ctx.restore();
+        }
         ctx.restore();
       }
 
@@ -1395,6 +1484,66 @@
           ctx.beginPath();
           ctx.arc(Math.cos(a) * e.r * 1.18, Math.sin(a) * e.r * 1.18, 2.2, 0, U.TAU);
           ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'sentinel') {
+        // 棱镜哨兵：三棱晶核 + 环绕棱片，蓄力时核心裂开
+        const charge = e.laserPhase === 'charge' ? 1 - Math.max(0, e.laserT) / 0.9 : 0;
+        const fire = e.laserPhase === 'fire' ? 1 : 0;
+        ctx.fillStyle = flash ? 'rgba(255,240,250,0.78)' : '#3c112e';
+        ctx.strokeStyle = col; ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (let k = 0; k < 3; k++) {
+          const a = -Math.PI / 2 + k * U.TAU / 3;
+          const px = Math.cos(a) * e.r, py = Math.sin(a) * e.r;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // 三个棱角伸出的晶片
+        ctx.fillStyle = AE.FX.alpha(col, 0.5);
+        for (let k = 0; k < 3; k++) {
+          const a = -Math.PI / 2 + k * U.TAU / 3;
+          const px = Math.cos(a) * e.r * 0.95, py = Math.sin(a) * e.r * 0.95;
+          ctx.beginPath();
+          ctx.moveTo(px + Math.cos(a + 1.9) * 4, py + Math.sin(a + 1.9) * 4);
+          ctx.lineTo(px + Math.cos(a) * e.r * 0.55, py + Math.sin(a) * e.r * 0.55);
+          ctx.lineTo(px + Math.cos(a - 1.9) * 4, py + Math.sin(a - 1.9) * 4);
+          ctx.closePath(); ctx.fill();
+        }
+        ctx.strokeStyle = AE.FX.alpha(col, 0.75);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        for (let k = 0; k < 3; k++) {
+          const a = Math.PI / 2 + k * U.TAU / 3;
+          const px = Math.cos(a) * e.r * 0.52, py = Math.sin(a) * e.r * 0.52;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.stroke();
+        if (charge > 0 || fire > 0) {
+          ctx.strokeStyle = 'rgba(255,243,248,' + (0.35 + charge * 0.4 + fire * 0.2).toFixed(2) + ')';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          for (let k = 0; k < 3; k++) {
+            const a = -Math.PI / 2 + k * U.TAU / 3;
+            const px = Math.cos(a) * e.r * (1.12 + charge * 0.08);
+            const py = Math.sin(a) * e.r * (1.12 + charge * 0.08);
+            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'lighter';
+        AE.FX.glow(ctx, 0, 0, e.r * (0.9 + charge * 0.6), fire ? '#ffffff' : col, 0.72 + charge * 0.28);
+        ctx.fillStyle = fire ? '#ffffff' : '#ffe2ef';
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.24 + charge * 2.5, 0, U.TAU); ctx.fill();
+        for (let k = 0; k < 3; k++) {
+          const oa = -time * (1.2 + charge * 1.8) + k * U.TAU / 3;
+          const ox = Math.cos(oa) * e.r * 1.45, oy = Math.sin(oa) * e.r * 1.45;
+          ctx.fillStyle = col;
+          ctx.beginPath();
+          ctx.moveTo(ox, oy - 4);
+          ctx.lineTo(ox + 3.4, oy + 1.4);
+          ctx.lineTo(ox - 3.4, oy + 1.4);
+          ctx.closePath(); ctx.fill();
         }
         ctx.globalCompositeOperation = 'source-over';
       } else if (s === 'gorger') {

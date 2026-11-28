@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.75.0';
+  D.VERSION = '1.76.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -482,6 +482,10 @@
     gorger: {
       name: '食星者', hp: 120, speed: 58, dmg: 12, r: 17, xp: 6,
       color: '#b388ff', shape: 'gorger', behavior: 'gorger'
+    },
+    sentinel: {
+      name: '棱镜哨兵', hp: 118, speed: 36, dmg: 9, r: 18, xp: 6,
+      color: '#ff7fb0', shape: 'sentinel', behavior: 'sentinel'
     }
   };
 
@@ -494,8 +498,8 @@
     { t: 175, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2 } },
     { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2, mender: 2 } },
     { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3, mender: 2, charger: 3 } },
-    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1, binder: 2, screamer: 1 } },
-    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2, binder: 2, screamer: 2, gorger: 1 } }
+    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1, binder: 2, screamer: 1, sentinel: 1 } },
+    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2, binder: 2, screamer: 2, gorger: 1, sentinel: 2 } }
   ];
 
   /* ============================================================
@@ -659,6 +663,7 @@
     '虚空缚者的锁链会减速；拉开距离或优先击杀它即可断链。',
     '虚空尖啸者会周期性清掉附近弹幕，优先点掉它再输出。',
     '食星者会主动吞经验球回血，别把经验球留太久。',
+    '棱镜哨兵蓄力后会打出旋转的三棱激光，看准缝隙横穿。',
     '同时携带脉冲 + 相位链、环刃 + 引力井等组合会触发武器共鸣。',
     'BOSS 的行动都有前摇，提前绕开。'
   ];
