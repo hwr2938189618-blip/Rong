@@ -207,6 +207,7 @@
       if ((G.burnKills || 0) >= 300) unlock('burn300');
       if ((G.ultCasts || 0) >= 20) unlock('ult20');
       if ((G.affixKills || 0) >= 3) unlock('affix3');
+      if ((G.affixKills || 0) >= 5) unlock('affix5');
       if (G.dailyWin) unlock('daily_win');
       if (final && (G.lastRank || 0) === 1) unlock('top1');
       if (runActive && G.player.weapons && AE.Data.RESONANCES) {
