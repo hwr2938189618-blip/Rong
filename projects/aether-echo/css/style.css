@@ -1010,6 +1010,13 @@ body.reduce-motion *::after {
   .touch-ult { right: calc(188px + env(safe-area-inset-right, 0px)); bottom: calc(34px + env(safe-area-inset-bottom, 0px)); width: 54px; height: 54px; }
 }
 
+button:focus-visible,
+.link-btn:focus-visible,
+[data-act]:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
 .lb-tabs { margin: 0 0 8px; }
 .lb-tabs .seg-btn { min-width: 58px; }
 body.left-hand .touch-dash {
