@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.57.0';
+  D.VERSION = '1.58.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -673,6 +673,7 @@
     { id: 'resonance2', name: '共鸣回响', desc: '单局同时激活 2 组武器共鸣', icon: '✧', color: '#7df9ff' },
     { id: 'resonance3', name: '三重协奏', desc: '单局同时激活 3 组武器共鸣', icon: '❖', color: '#b388ff' },
     { id: 'evolve12', name: '万象归一', desc: '解锁全部 12 种武器进化', icon: '✺', color: '#ffd479' },
+    { id: 'relic26', name: '万象遗珍', desc: '收集全部 26 件遗物', icon: '❖', color: '#b388ff' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 
