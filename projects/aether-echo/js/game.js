@@ -1287,6 +1287,14 @@
         ctx.fillText('深渊契约 ×' + G.pacts.length + ' · 回响 ×' + (G.pactMult || 1).toFixed(2),
           28, 112 + (G.daily ? 16 : 0) + (p.killStack ? 16 : 0));
       }
+      if (p.tetherT > 0) {
+        ctx.textAlign = 'left';
+        ctx.font = '700 10px ' + head;
+        ctx.fillStyle = 'rgba(201,166,255,0.95)';
+        ctx.fillText('束缚 · 移速 -28%',
+          28, 112 + (G.daily ? 16 : 0) + (p.killStack ? 16 : 0) +
+          (G.pacts && G.pacts.length ? 16 : 0));
+      }
 
       const wx = W - 34, wy = H / 2 - p.weapons.length * 26 + 16;
       for (let i = 0; i < p.weapons.length; i++) {
