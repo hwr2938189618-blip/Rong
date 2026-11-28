@@ -907,6 +907,51 @@
           AE.Audio.sfx('warn', { pitch: 1.12 });
         }
       }
+      if (e.affix && e.affix.id === 'prism') {
+        e.prismT = (e.prismT === undefined ? 6 : e.prismT) - dt;
+        if (!e.prismPhase) e.prismPhase = 'idle';
+        if (e.prismPhase === 'idle') {
+          if (e.prismT <= 0) {
+            e.prismPhase = 'charge';
+            e.prismT = 0.85;
+            e.prismAng = Math.atan2(p.y - e.y, p.x - e.x);
+            if (!e.prismSeen) {
+              e.prismSeen = true;
+              AE.Game.announce('棱镜 · 三棱激光', e.affix.color, 1.8);
+            }
+            AE.Audio.sfx('warn', { pitch: 0.92 });
+          }
+        } else if (e.prismPhase === 'charge') {
+          e.prismAng += dt * 0.3;
+          if (e.prismT <= 0) {
+            e.prismPhase = 'fire';
+            e.prismT = 1.05;
+            e.prismHitT = 0;
+            AE.Audio.sfx('prism', { pitch: 0.6 });
+            AE.FX.shake(0.14);
+          }
+        } else if (e.prismPhase === 'fire') {
+          e.prismAng += dt * 1.55;
+          e.prismHitT -= dt;
+          if (e.prismHitT <= 0) {
+            e.prismHitT = 0.18;
+            const rx = p.x - e.x, ry = p.y - e.y;
+            for (let k = 0; k < 3; k++) {
+              const a = e.prismAng + k * U.TAU / 3;
+              const ca = Math.cos(a), sa = Math.sin(a);
+              const proj = rx * ca + ry * sa;
+              if (proj <= e.r || proj >= 620) continue;
+              const perp = Math.abs(-rx * sa + ry * ca);
+              if (perp > 20 + p.r) continue;
+              if (AE.Player.hurt(p, e.dmg * 0.8, e.x, e.y) > 0) {
+                AE.FX.spark(p.x, p.y, e.affix.color, 5, { spd: 170, life: 0.3, size: 2.8, add: true });
+              }
+              break;
+            }
+          }
+          if (e.prismT <= 0) { e.prismPhase = 'idle'; e.prismT = 9 / rage; }
+        }
+      }
       if (e.enraged) {
         e.speed = (e.baseSpeed || e.def.speed) * 1.25;
       } else if (e.affix && e.affix.id === 'frenzy') {
@@ -1854,6 +1899,42 @@
             ctx.strokeStyle = 'rgba(255,225,240,0.75)';
             ctx.lineWidth = 3;
             ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(500, 0); ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      if (e.affix && e.affix.id === 'prism' &&
+          (e.prismPhase === 'charge' || e.prismPhase === 'fire')) {
+        for (let k = 0; k < 3; k++) {
+          ctx.save();
+          ctx.rotate(e.prismAng + k * U.TAU / 3);
+          if (e.prismPhase === 'charge') {
+            const prog = 1 - Math.max(0, e.prismT) / 0.85;
+            ctx.globalAlpha = 0.25 + prog * 0.45;
+            ctx.strokeStyle = e.affix.color;
+            ctx.lineWidth = 2 + prog * 2.4;
+            ctx.setLineDash([16, 12]);
+            ctx.lineDashOffset = -time * 80;
+            ctx.beginPath(); ctx.moveTo(e.r * 0.8, 0); ctx.lineTo(620, 0); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 0.5 + prog * 0.35;
+            ctx.fillStyle = e.affix.color;
+            ctx.beginPath(); ctx.arc(620, 0, 2.5 + prog * 3, 0, U.TAU); ctx.fill();
+          } else {
+            const gp = ctx.createLinearGradient(0, 0, 620, 0);
+            gp.addColorStop(0, AE.FX.alpha(e.affix.color, 0.85));
+            gp.addColorStop(0.75, AE.FX.alpha('#ff7fb0', 0.55));
+            gp.addColorStop(1, AE.FX.alpha(e.affix.color, 0));
+            ctx.globalAlpha = 0.2;
+            ctx.strokeStyle = e.affix.color; ctx.lineWidth = 22;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
+            ctx.globalAlpha = 0.75;
+            ctx.strokeStyle = gp; ctx.lineWidth = 9;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
+            ctx.globalAlpha = 0.95;
+            ctx.strokeStyle = '#fff0f7'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
           }
           ctx.restore();
         }

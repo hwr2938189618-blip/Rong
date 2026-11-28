@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.78.0';
+  D.VERSION = '1.79.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -573,7 +573,8 @@
     { id: 'aegis', name: '护盾', color: '#9fb4ff', desc: '生命 +25%，护甲 +8' },
     { id: 'summoner', name: '召唤', color: '#8affc1', desc: '每 6 秒召唤 2 只虚空生物' },
     { id: 'gravity', name: '引力', color: '#9f8bff', desc: '每 7 秒预警后牵引玩家 0.7 秒' },
-    { id: 'storm', name: '风暴', color: '#ffd479', desc: '每 8 秒在玩家脚下落下延迟雷击' }
+    { id: 'storm', name: '风暴', color: '#ffd479', desc: '每 8 秒在玩家脚下落下延迟雷击' },
+    { id: 'prism', name: '棱镜', color: '#c9a6ff', desc: '每 9 秒打出旋转三棱激光' }
   ];
 
   /* 精英怪词缀：死亡掉落对应碎片，拾取获得 8 秒强化 */
