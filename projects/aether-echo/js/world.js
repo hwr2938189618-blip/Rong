@@ -335,9 +335,12 @@
           AE.G.combo = Math.min(999, (AE.G.combo || 0) + 1);
           AE.G.comboT = 0.6;
           p.grazeT = 0.25;
-          AE.FX.spark(b.x, b.y, '#ffd479', 3, { spd: 80, life: 0.25, size: 2, add: true });
-          AE.FX.text(p.x, p.y - 24, '险避', '#ffd479', 12);
-          AE.Audio.sfx('pickup', { pitch: 1.35 });
+          if (AE.G.time - (p.lastGrazeFx || -9) > 0.09) {
+            p.lastGrazeFx = AE.G.time;
+            AE.FX.spark(b.x, b.y, '#ffd479', 3, { spd: 80, life: 0.25, size: 2, add: true });
+            AE.FX.text(p.x, p.y - 24, '险避', '#ffd479', 12);
+            AE.Audio.sfx('pickup', { pitch: 1.35 });
+          }
         }
         if (dd < rr * rr) {
           AE.Player.hurt(p, b.dmg, b.x, b.y);

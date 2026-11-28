@@ -120,10 +120,16 @@
 
     hideAll: function () {
       this.mode = null;
+      this.clearBossIntro();
       if (!this.enabled) return;
       this.el.className = 'overlay hidden';
       this.el.innerHTML = '';
       this.syncDash();
+    },
+
+    clearBossIntro: function () {
+      const el = document.getElementById('boss-intro');
+      if (el) { el.classList.add('hidden'); el.classList.remove('show'); }
     },
 
     hideLevelUp: function () { this.hideAll(); },
@@ -348,6 +354,7 @@
 
     showMenu: function () {
       this.mode = 'menu';
+      this.clearBossIntro();
       this.prev = 'menu';
       const S = AE.Save.data;
       const muted = AE.Audio.muted;
@@ -525,7 +532,7 @@
         '<button class="btn primary" data-act="resume">继续' + (this._touch ? '' : '（ESC）') + '</button>' +
         '<button class="btn ghost" data-act="mute">' + (muted ? '开启声音' : '静音') + '</button>' +
         '<button class="btn ghost" data-act="restart">重新开始</button>' +
-        '<button class="btn ghost danger" data-act="menu">返回主菜单</button>' +
+        '<button class="btn ghost danger" data-act="menu">放弃本局 · 返回主菜单</button>' +
         '</div>' +
         '<div class="hint">' + (this._touch ? '点击继续返回战斗' : '按 ESC 继续 · 结束后仍可获得回响') + '</div>' +
         '<div class="pause-links"><button class="link-btn" data-act="codex">图鉴</button>' +

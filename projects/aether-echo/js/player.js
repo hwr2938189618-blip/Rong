@@ -198,9 +198,10 @@
       }
 
       // 星核爆发：E / 触屏「爆」——化身形态
-      if ((Input.hit('KeyE') || Input.ultPressed) && p.ult >= p.ultMax && p.avatarT <= 0) {
+      const wantUlt = Input.hit('KeyE') || Input.ultPressed;
+      if (wantUlt) {
+        if (p.ult >= p.ultMax && p.avatarT <= 0) Player.castUlt(p);
         Input.ultPressed = false;
-        Player.castUlt(p);
       }
 
       // 星核化身：持续 10 秒，自动发射星矛 + 近身星火（按角色形态变化）
