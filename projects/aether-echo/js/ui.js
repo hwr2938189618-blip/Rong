@@ -701,12 +701,15 @@
     showCodex: function () {
       this.mode = 'codex';
       const D = AE.Data;
+      const S = AE.Save.data;
       const weapons = D.WEAPONS.map(function (w) {
+        const seen = (S.evolvedSeen || []).indexOf(w.id) >= 0;
         return '<div class="codex-card" style="--c:' + w.color + '">' +
           '<div class="codex-top"><span class="codex-icon">' + w.icon + '</span><span class="codex-tag">' + w.tag + '</span></div>' +
           '<div class="codex-name">' + w.name + '</div>' +
           '<div class="codex-desc">' + w.intro + '</div>' +
-          '<div class="codex-evo">进化 · ' + w.evolved.name + '</div>' +
+          '<div class="codex-evo ' + (seen ? 'seen' : 'locked') + '">进化 · ' + w.evolved.name +
+          (seen ? ' · 已解锁' : ' · 未发现') + '</div>' +
           '<div class="codex-stats">Lv1 ' + D.weaponDetail({ id: w.id, evolved: false }, 1) + '<br>Lv8 ' + D.weaponDetail({ id: w.id, evolved: false }, 8) + '</div>' +
           '</div>';
       }).join('');
