@@ -11,7 +11,7 @@
     state: 'menu',
     time: 0, loop: 0, t: 0, frame: 0,
     player: null, enemies: null, boss: null,
-    kills: 0, bossKills: 0, combo: 0, comboT: 0,
+    kills: 0, bossKills: 0, combo: 0, comboT: 0, maxCombo: 0, lastRank: 0,
     xp: 0, level: 1, xpNeed: 0, pending: 0,
     spawnT: 0, eliteT: 50, bossIdx: 0, bossWarnT: 0, bossWarned: false,
     draft: null, anns: [], timers: [], echoBonus: 0, winning: false,
@@ -202,6 +202,7 @@
       if ((G.ultCasts || 0) >= 20) unlock('ult20');
       if ((G.affixKills || 0) >= 3) unlock('affix3');
       if (G.dailyWin) unlock('daily_win');
+      if (final && (G.lastRank || 0) === 1) unlock('top1');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
@@ -250,6 +251,7 @@
       G.state = 'playing';
       G.time = 0; G.loop = 0; G.frame = 0; this.acc = 0;
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
+      G.maxCombo = 0; G.lastRank = 0;
       G.comboAwarded = {};
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
@@ -835,6 +837,7 @@
     addCombo: function (n, hold) {
       G.combo = Math.min(999, (G.combo || 0) + n);
       G.comboT = hold || 2.6;
+      G.maxCombo = Math.max(G.maxCombo || 0, G.combo);
       this.rewardCombo();
     },
 
@@ -997,6 +1000,27 @@
       cb.level = Math.max(cb.level || 0, G.level);
       if (victory) cb.wins = (cb.wins || 0) + 1;
       S.charBest[p.char.id] = cb;
+      // 本局评分与本地排行榜
+      const maxCombo = G.maxCombo || 0;
+      const scoreRaw = G.kills * 10 + G.level * 60 + G.bossKills * 400 +
+        Math.floor(G.time) * 4 + maxCombo * 15 + (victory ? 2000 : 0);
+      const score = Math.round(scoreRaw * (G.pactMult || 1));
+      const grade = score >= 38000 ? 'S' : (score >= 22000 ? 'A' : (score >= 9000 ? 'B' : 'C'));
+      const mode = G.rush ? 'rush' : (G.daily ? 'daily' : 'normal');
+      const lbEntry = {
+        score: score, grade: grade, time: Math.round(G.time), kills: G.kills,
+        level: G.level, bossKills: G.bossKills, maxCombo: maxCombo,
+        char: p.char.id, mode: mode, victory: !!victory, date: AE.dateKey()
+      };
+      S.leaderboard = Array.isArray(S.leaderboard) ? S.leaderboard : [];
+      S.leaderboard.push(lbEntry);
+      S.leaderboard.sort(function (a, b) {
+        return (b.score || 0) - (a.score || 0) || (b.time || 0) - (a.time || 0);
+      });
+      S.leaderboard = S.leaderboard.slice(0, 8);
+      const rank = S.leaderboard.indexOf(lbEntry) + 1;
+      G.lastRank = rank;
+      if (score > (best.score || 0)) best.score = score;
       S.seen = true;
       let dailyNew = false;
       let dailyBest = null;
@@ -1052,6 +1076,7 @@
         damage: Math.floor(G.stats.damage),
         echoes: echoes, bossKills: G.bossKills,
         char: p.char, loop: G.loop, newBest: newBest,
+        score: score, grade: grade, rank: rank, maxCombo: maxCombo,
         daily: G.daily ? G.daily.key : null,
         dailyNew: dailyNew,
         dailyBest: dailyBest,
