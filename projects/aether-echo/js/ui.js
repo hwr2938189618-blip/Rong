@@ -857,6 +857,10 @@
         '<div class="stat-cell"><span>总伤害</span><b>' + U.fmtNum(st.damage || 0) + '</b></div>' +
         '<div class="stat-cell"><span>击破首领</span><b>' + (st.bosses || 0) + '</b></div>' +
         '<div class="stat-cell"><span>武器进化</span><b>' + (st.evolves || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>总治疗</span><b>' + U.fmtNum(st.healed || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>星核爆发</span><b>' + (st.ults || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>获得遗物</span><b>' + (st.relics || 0) + '</b></div>' +
+        '<div class="stat-cell"><span>最高连杀</span><b>' + (st.maxCombo || 0) + '</b></div>' +
         '</div>' +
         dailyCard +
         rushCard +
