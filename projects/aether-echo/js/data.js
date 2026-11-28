@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.38.0';
+  D.VERSION = '1.39.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -594,6 +594,7 @@
     { id: 'affix3', name: '词缀猎人', desc: '单局击破 3 名带词缀的首领', icon: '❖', color: '#9fb4ff' },
     { id: 'daily_win', name: '今日之星', desc: '完成一次每日挑战通关', icon: '☀', color: '#ffd479' },
     { id: 'lv60', name: '星渊主宰', desc: '单局达到 60 级', icon: '❂', color: '#ffd479' },
+    { id: 'top1', name: '榜首', desc: '本地排行榜登顶', icon: '☗', color: '#ffd479' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 
