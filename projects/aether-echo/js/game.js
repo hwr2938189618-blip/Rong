@@ -846,6 +846,10 @@
         } else if (G.event.id === 'storm') {
           G.stormT -= dt;
           if (G.stormT <= 0) { G.stormT = 0.55; this.stormStrike(); }
+        } else if (G.event.id === 'prismstorm') {
+          G.prismAng = (G.prismAng || 0) + dt * 1.15;
+          G.prismHitT = (G.prismHitT || 0) - dt;
+          if (G.prismHitT <= 0) { G.prismHitT = 0.22; this.prismSweep(); }
         }
         if (G.eventLeft <= 0) {
           const p = G.player;
@@ -882,6 +886,10 @@
       G.eventLeft = def.dur;
       G.meteorT = 0.45;
       G.stormT = 0.25;
+      if (def.id === 'prismstorm') {
+        G.prismAng = Math.random() * U.TAU;
+        G.prismHitT = 0;
+      }
       G.eventCount = (G.eventCount || 0) + 1;
       if (def.id === 'hunt') {
         const p = G.player;
@@ -920,8 +928,77 @@
       AE.Audio.sfx('arc', { pitch: 1.22 });
     },
 
-    dropMeteor: function (fx, fy) {
+    prismSweep: function () {
       const p = G.player;
+      if (!p) return;
+      const range = 620;
+      const ang0 = G.prismAng || 0;
+      let hits = 0;
+      const list = AE.Enemies.list;
+      for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (!e.alive || e.spawning > 0) continue;
+        const rx = e.x - p.x, ry = e.y - p.y;
+        if (rx * rx + ry * ry > range * range) continue;
+        let hit = false;
+        for (let k = 0; k < 3; k++) {
+          const a = ang0 + k * U.TAU / 3;
+          const ca = Math.cos(a), sa = Math.sin(a);
+          const proj = rx * ca + ry * sa;
+          if (proj <= 0 || proj >= range) continue;
+          if (Math.abs(-rx * sa + ry * ca) > 20 + e.r) continue;
+          hit = true;
+          break;
+        }
+        if (!hit) continue;
+        AE.Enemies.damage(e, (26 + G.level * 4) * (p.dmgMul || 1), {
+          crit: false, noSplash: true, noFrost: true, noRefract: true
+        });
+        AE.FX.spark(e.x, e.y, '#c9a6ff', 3, { spd: 120, life: 0.25, size: 2.2, add: true });
+        hits++;
+      }
+      if (hits) AE.Audio.sfx('prism', { pitch: 1.18 });
+    },
+
+    drawPrismStorm: function (ctx) {
+      const p = G.player;
+      if (!p) return;
+      const t = G.time || 0;
+      const ang0 = G.prismAng || 0;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.globalCompositeOperation = 'lighter';
+      for (let k = 0; k < 3; k++) {
+        ctx.save();
+        ctx.rotate(ang0 + k * U.TAU / 3);
+        const gp = ctx.createLinearGradient(0, 0, 620, 0);
+        gp.addColorStop(0, AE.FX.alpha('#c9a6ff', 0.72));
+        gp.addColorStop(0.7, AE.FX.alpha('#ff9fd0', 0.42));
+        gp.addColorStop(1, AE.FX.alpha('#c9a6ff', 0));
+        ctx.globalAlpha = 0.2 + Math.sin(t * 5 + k) * 0.04;
+        ctx.strokeStyle = '#c9a6ff'; ctx.lineWidth = 22;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
+        ctx.globalAlpha = 0.72;
+        ctx.strokeStyle = gp; ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
+        ctx.globalAlpha = 0.92;
+        ctx.strokeStyle = '#fff2fb'; ctx.lineWidth = 2.6;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(620, 0); ctx.stroke();
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = '#c9a6ff';
+        ctx.beginPath(); ctx.arc(620, 0, 4, 0, U.TAU); ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#c9a6ff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath(); ctx.arc(0, 0, 56 + Math.sin(t * 4) * 5, 0, U.TAU); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    },
+
+    dropMeteor: function (fx, fy) {      const p = G.player;
       const alive = AE.Enemies.list.filter(function (e) {
         return e.alive && e.spawning <= 0 && !e.boss;
       });
@@ -1386,6 +1463,7 @@
       AE.FX.drawRings(ctx);
       AE.Enemies.draw(ctx, G.time);
       AE.World.draw(ctx, G.time);
+      if (G.event && G.event.id === 'prismstorm' && G.player) this.drawPrismStorm(ctx);
       if (G.player) {
         AE.Weapons.draw(ctx, G.player);
         AE.Player.draw(ctx, G.player);
