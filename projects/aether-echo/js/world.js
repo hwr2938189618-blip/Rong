@@ -370,6 +370,7 @@
         }
         if (d2 < (p.r + 10) * (p.r + 10)) {
           AE.Game.gainXp(o.val);
+          AE.G.orbsPicked = (AE.G.orbsPicked || 0) + 1;
           AE.Audio.sfx('pickup', { pitch: 0.9 + Math.min(1.2, (AE.G.combo || 0) * 0.01) });
           AE.FX.spark(o.x, o.y, '#ffd479', 3, { spd: 70, life: 0.25, size: 2 });
           orbs.splice(i, 1);

@@ -1115,6 +1115,7 @@
       const val = Math.max(1, Math.round(e.xp * (1 + (G.loop || 0) * 0.2)));
       AE.World.dropOrbs(e.x, e.y, val, e.elite);
       if (e.elite) {
+        G.eliteKills = (G.eliteKills || 0) + 1;
         AE.FX.ring(e.x, e.y, '#ffd479', 6, 90, 0.5, 3);
         AE.FX.flash(0.06, '#ffd479');
         AE.FX.shake(0.15);

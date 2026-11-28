@@ -525,6 +525,16 @@
         ? '<div class="pause-daily resonance-badge">共鸣 · ' +
           resActive.map(function (r) { return r.name; }).join(' / ') + '</div>'
         : '';
+      const bpr = AE.Game.bountyProgress ? AE.Game.bountyProgress() : null;
+      const bountyRow = bpr
+        ? '<div class="pause-daily bounty-badge" style="color:' + bpr.def.color +
+          ';border-color:' + bpr.def.color + '55;background:' + bpr.def.color + '0d">' +
+          (bpr.done
+            ? '悬赏完成 · ' + bpr.def.name + ' · +' + bpr.def.echo + ' 回响'
+            : '悬赏 · ' + bpr.def.name + ' · ' + Math.floor(bpr.cur) + (bpr.def.unit || '') +
+              ' / ' + bpr.target + (bpr.def.unit || '') + ' · 完成 +' + bpr.def.echo + ' 回响') +
+          '</div>'
+        : '';
       const html =
         '<div class="screen pause-screen">' +
         '<div class="panel">' +
@@ -543,6 +553,7 @@
         (G.pacts && G.pacts.length ? '<div class="pause-daily pact-badge">深渊契约 · ' +
           G.pacts.map(function (id) { return AE.Data.PACT_MAP[id] ? AE.Data.PACT_MAP[id].name : id; }).join(' / ') +
           ' · 回响 ×' + (G.pactMult || 1).toFixed(2) + '</div>' : '') +
+        bountyRow +
         resRow +
         relicRow +
         '<div class="btn-col">' +
@@ -636,6 +647,11 @@
         (r.pacts && r.pacts.length ? '<div class="rush-badge pact-badge">深渊契约 · ' +
           r.pacts.join(' / ') + ' · 回响 ×' + (r.pactMult || 1).toFixed(2) +
           (r.pactNew ? ' · 新纪录' : '') + '</div>' : '') +
+        (r.bounty ? '<div class="rush-badge bounty-badge">悬赏 · ' + r.bounty.name + ' · ' +
+          (r.bounty.done
+            ? '完成 +' + r.bounty.echo + ' 回响'
+            : '未完成 ' + r.bounty.cur + '/' + r.bounty.target + ' · 完成可得 +' + r.bounty.echo + ' 回响') +
+          '</div>' : '') +
         buildHtml +
         '<div class="echo-gain">◈ ' + r.echoes + '<span>回响已入库</span></div>' +
         '<div class="result-actions">' +

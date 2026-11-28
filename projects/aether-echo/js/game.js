@@ -271,6 +271,8 @@
       G.time = 0; G.loop = 0; G.frame = 0; this.acc = 0;
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
       G.maxCombo = 0; G.lastRank = 0;
+      G.orbsPicked = 0; G.dashes = 0; G.eliteKills = 0; G.runEvolves = 0;
+      G.bounty = null;
       G.comboAwarded = {};
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
@@ -317,6 +319,10 @@
       AE.Cam.snap(G.player);
       AE.Cam.trauma = 0;
       AE.UI.hideAll();
+      this.assignBounty();
+      if (G.bounty && AE.UI.toast) {
+        AE.UI.toast('悬赏 · ' + G.bounty.def.name + ' · ' + G.bounty.desc, G.bounty.def.color);
+      }
       AE.Audio.setIntensity(0.24);
       AE.Audio.sfx('ui');
       AE.Player.setAim(G.player, G.player.x + 120, G.player.y);
@@ -330,6 +336,74 @@
         }, this);
       }
       this.pausedByBlur = false;
+    },
+
+    /* ---------- 深渊悬赏 ---------- */
+    bountyMode: function () {
+      if (G.rush) return 'rush';
+      if (G.daily) return 'daily';
+      return 'normal';
+    },
+
+    assignBounty: function (id) {
+      const D = AE.Data;
+      let def = id ? D.BOUNTY_MAP[id] : null;
+      if (!def) {
+        const mode = this.bountyMode();
+        const pool = D.BOUNTIES.filter(function (b) {
+          return !b.modes || b.modes.indexOf(mode) >= 0;
+        });
+        const src = pool.length ? pool : D.BOUNTIES;
+        def = src[Math.floor(Math.random() * src.length)];
+      }
+      G.bounty = {
+        def: def, done: false,
+        target: (G.rush && def.rushTarget) ? def.rushTarget : def.target,
+        desc: (G.rush && def.rushTarget) ? ('存活 ' + def.rushTarget + ' 秒') : def.desc,
+        startTime: G.time || 0, startKills: G.kills || 0, startBoss: G.bossKills || 0,
+        startOrbs: G.orbsPicked || 0, startDashes: G.dashes || 0,
+        startElites: G.eliteKills || 0, startEvolves: G.runEvolves || 0,
+        startCombo: G.maxCombo || 0
+      };
+      return G.bounty;
+    },
+
+    bountyProgress: function () {
+      const b = G.bounty;
+      if (!b) return null;
+      const d = b.def;
+      let cur = 0;
+      if (d.id === 'slayer') cur = G.kills - b.startKills;
+      else if (d.id === 'survivor') cur = G.time - b.startTime;
+      else if (d.id === 'collector') cur = (G.orbsPicked || 0) - b.startOrbs;
+      else if (d.id === 'dasher') cur = (G.dashes || 0) - b.startDashes;
+      else if (d.id === 'boss') cur = G.bossKills - b.startBoss;
+      else if (d.id === 'combo') cur = (G.maxCombo || 0) - b.startCombo;
+      else if (d.id === 'elite') cur = (G.eliteKills || 0) - b.startElites;
+      else if (d.id === 'evolve') cur = (G.runEvolves || 0) - b.startEvolves;
+      cur = Math.max(0, cur);
+      return { cur: Math.min(cur, b.target || d.target), target: b.target || d.target, done: !!b.done, def: d };
+    },
+
+    updateBounty: function () {
+      const b = G.bounty;
+      if (!b || b.done) return false;
+      const pr = this.bountyProgress();
+      if (!pr || pr.cur < pr.target) return false;
+      b.done = true;
+      G.echoBonus = (G.echoBonus || 0) + b.def.echo;
+      const p = G.player;
+      if (p && p.alive) {
+        AE.Player.heal(p, p.maxHp * 0.12);
+        p.ult = Math.min(p.ultMax, p.ult + 20);
+        AE.FX.ring(p.x, p.y, b.def.color, 8, 190, 0.6, 4);
+        AE.FX.spark(p.x, p.y, b.def.color, 26, { spd: 300, life: 0.7, size: 3.2 });
+        AE.FX.flash(0.06, b.def.color);
+      }
+      AE.Audio.sfx('levelup');
+      this.announce('悬赏完成 · ' + b.def.name + ' · +' + b.def.echo + ' 回响', b.def.color, 2.8);
+      if (AE.UI && AE.UI.toast) AE.UI.toast('悬赏完成 · +' + b.def.echo + ' 回响', b.def.color);
+      return true;
     },
 
     pause: function (byBlur) {
@@ -456,6 +530,7 @@
       AE.Enemies.update(edt);
       AE.World.grid.build(AE.Enemies.list);
       AE.World.update(dt, p);
+      this.updateBounty();
 
       this.updateDirector(dt);
       this.updateEvents(dt);
@@ -1123,6 +1198,15 @@
       }
       AE.Save.save();
       this.checkAchievements(true);
+      let bountyInfo = null;
+      if (G.bounty) {
+        const bpr = this.bountyProgress();
+        bountyInfo = {
+          id: G.bounty.def.id, name: G.bounty.def.name, echo: G.bounty.def.echo,
+          done: !!G.bounty.done, cur: bpr ? Math.floor(bpr.cur) : 0,
+          target: G.bounty.target || G.bounty.def.target
+        };
+      }
       G.result = {
         victory: !!victory,
         time: G.time, kills: G.kills, level: G.level,
@@ -1130,6 +1214,7 @@
         echoes: echoes, bossKills: G.bossKills,
         char: p.char, loop: G.loop, newBest: newBest,
         score: score, grade: grade, rank: rank, maxCombo: maxCombo,
+        bounty: bountyInfo,
         build: {
           weapons: p.weapons.map(function (w) {
             return { id: w.id, level: w.level, evolved: !!w.evolved };
@@ -1369,6 +1454,20 @@
         ctx.globalAlpha = p.shardT < 2 ? 0.55 + Math.sin(G.t * 14) * 0.35 : 0.95;
         ctx.fillText('◈ ' + p.shardMod.shard + ' · ' + p.shardT.toFixed(1) + 's', 28, sy);
         ctx.globalAlpha = 1;
+        sy += statusGap;
+      }
+      if (G.bounty) {
+        const bpr = this.bountyProgress();
+        if (bpr) {
+          ctx.textAlign = 'left';
+          ctx.font = '700 10px ' + head;
+          const u = bpr.def.unit || '';
+          ctx.fillStyle = bpr.done ? 'rgba(138,255,193,0.9)' : bpr.def.color;
+          ctx.fillText(bpr.done
+            ? '悬赏完成 · +' + bpr.def.echo + ' 回响'
+            : '悬赏 · ' + bpr.def.name + ' ' + Math.floor(bpr.cur) + u + ' / ' + bpr.target + u,
+            28, sy);
+        }
       }
 
       const compactRail = H < 520;

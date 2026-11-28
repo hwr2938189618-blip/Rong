@@ -1008,6 +1008,11 @@ body.reduce-motion *::after {
 .pact-mult small { display: block; font-size: 9px; letter-spacing: 0.2em; color: var(--dim2); margin-top: 2px; }
 .pact-best { font-size: 10px; letter-spacing: 0.16em; color: var(--dim2); }
 .pact-badge { margin-top: 8px; }
+.bounty-badge {
+  margin-top: 8px; color: #d8fbff;
+  border-color: rgba(125, 249, 255, 0.32); background: rgba(125, 249, 255, 0.06);
+}
+.pause-daily.bounty-badge { text-align: left; }
 .resonance-badge {
   color: #7df9ff !important; border-color: rgba(125, 249, 255, 0.28) !important;
   background: rgba(125, 249, 255, 0.05) !important;

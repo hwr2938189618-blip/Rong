@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.73.0';
+  D.VERSION = '1.74.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -652,6 +652,7 @@
     '按住 Shift / 空格 闪避，可穿过敌群。',
     '同一种武器升到 8 级会自动进化。',
     '金色精英会掉落大量经验，并留下对应词缀的强化碎片。',
+    '每局会随机发布一条深渊悬赏，完成可获得额外回响。',
     '连杀达到 25 / 50 / 100 时会回复生命并补充星核。',
     '深渊之眼的触须横扫会留下三条直线预警，往侧面绕。',
     '无尽首领的「引力」词缀会先拉出紫色牵引线，随后把玩家拖向首领。',
@@ -735,6 +736,31 @@
   ];
   D.EVENT_MAP = {};
   D.EVENTS.forEach(function (e) { D.EVENT_MAP[e.id] = e; });
+
+  /* ============================================================
+   * 深渊悬赏（每局随机一条目标，完成获得额外回响）
+   * modes 限制可用模式：normal / daily / rush；rush 没有小怪与精英
+   * ============================================================ */
+  D.BOUNTIES = [
+    { id: 'slayer', name: '猎杀', icon: '✦', color: '#ff8fa3', desc: '击杀 120 个敌人',
+      target: 120, echo: 25, modes: ['normal', 'daily'] },
+    { id: 'survivor', name: '存续', icon: '◷', color: '#8affc1', desc: '存活 300 秒',
+      target: 300, rushTarget: 150, echo: 25, unit: 's', modes: ['normal', 'daily', 'rush'] },
+    { id: 'collector', name: '拾取', icon: '⊙', color: '#ffd479', desc: '拾取 70 枚经验',
+      target: 70, echo: 20, modes: ['normal', 'daily'] },
+    { id: 'dasher', name: '闪避', icon: '↯', color: '#7df9ff', desc: '闪避 25 次',
+      target: 25, echo: 20, modes: ['normal', 'daily'] },
+    { id: 'boss', name: '破界', icon: '⛨', color: '#ff5c7a', desc: '击破 3 名首领',
+      target: 3, echo: 35, modes: ['normal', 'daily', 'rush'] },
+    { id: 'combo', name: '连杀', icon: '⚡', color: '#b388ff', desc: '达到 60 连杀',
+      target: 60, echo: 30, modes: ['normal', 'daily'] },
+    { id: 'elite', name: '精英', icon: '✧', color: '#ffd479', desc: '击杀 5 名精英',
+      target: 5, echo: 30, modes: ['normal', 'daily'] },
+    { id: 'evolve', name: '进化', icon: '✺', color: '#ff7fb0', desc: '完成 2 次武器进化',
+      target: 2, echo: 30, modes: ['normal', 'daily'] }
+  ];
+  D.BOUNTY_MAP = {};
+  D.BOUNTIES.forEach(function (b) { D.BOUNTY_MAP[b.id] = b; });
 
   /* ============================================================
    * 深渊契约（开局可选难度词条，提高回响收益）

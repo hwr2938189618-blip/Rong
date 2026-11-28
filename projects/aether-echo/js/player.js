@@ -104,6 +104,7 @@
 
     onEvolve: function (p, w) {
       const def = AE.Data.WEAPON_MAP[w.id];
+      if (AE.G) AE.G.runEvolves = (AE.G.runEvolves || 0) + 1;
       const isNew = Player.recordEvolved(w.id);
       AE.FX.ring(p.x, p.y, def.evolved ? def.color : def.color, 10, 240, 0.7, 5);
       AE.FX.spark(p.x, p.y, def.color, 34, { spd: 340, life: 0.8, size: 3.4 });
@@ -339,6 +340,7 @@
       const wantDash = Input.hit('Space') || Input.hit('ShiftLeft') || Input.hit('ShiftRight') || Input.dashPressed;
       Input.dashPressed = false;
       if (wantDash && p.dashT <= 0 && p.dashCd <= 0) {
+        if (AE.G) AE.G.dashes = (AE.G.dashes || 0) + 1;
         let ax = mv.x, ay = mv.y;
         if (!ax && !ay) { ax = Math.cos(p.aimAngle); ay = Math.sin(p.aimAngle); }
         const n = U.norm(ax, ay);
