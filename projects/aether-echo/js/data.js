@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.42.0';
+  D.VERSION = '1.43.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -262,6 +262,30 @@
 
   D.WEAPON_MAP = {};
   D.WEAPONS.forEach(function (w) { D.WEAPON_MAP[w.id] = w; });
+
+  /* ---------- 武器共鸣：同时携带两把指定武器时生效 ---------- */
+  D.RESONANCES = [
+    {
+      id: 'conduct', name: '星轨交汇', color: '#7df9ff',
+      weapons: ['pulse', 'arc'], dmg: 1.18,
+      desc: '星屑脉冲与相位链伤害 +18%'
+    },
+    {
+      id: 'ringflow', name: '永寂环流', color: '#b388ff',
+      weapons: ['orbit', 'well'], dmg: 1.18,
+      desc: '轨道刃与引力奇点伤害 +18%'
+    },
+    {
+      id: 'lightpath', name: '光路同调', color: '#ffd479',
+      weapons: ['lance', 'beam'], dmg: 1.10, width: 1.25,
+      desc: '贯穿光矛与湮灭光束伤害 +10%，宽度 +25%'
+    },
+    {
+      id: 'huntmoon', name: '猎月双生', color: '#ff9f68',
+      weapons: ['seek', 'scythe'], dmg: 1.20,
+      desc: '追猎蜂群与回旋月刃伤害 +20%'
+    }
+  ];
 
   /* 武器当前一级的实际数值（含进化覆盖） */
   D.weaponStats = function (w, level) {
@@ -560,6 +584,7 @@
     '金色精英会掉落大量经验。',
     '连杀达到 25 / 50 / 100 时会回复生命并补充星核。',
     '深渊之眼的触须横扫会留下三条直线预警，往侧面绕。',
+    '同时携带脉冲 + 相位链、环刃 + 引力井等组合会触发武器共鸣。',
     'BOSS 的行动都有前摇，提前绕开。'
   ];
 
