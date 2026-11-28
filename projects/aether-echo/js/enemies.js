@@ -67,6 +67,7 @@
         mode: 'idle', modeT: 0, t1: 1.2, t2: 3.0, t3: 5.0, t4: 7.0,
         chargeDir: { x: 1, y: 0 }, beams: [], spiral: 0, chaseT: 2.5,
         orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
+        sweepCd: 8.5, sweepTele: 0, sweepActive: 0, sweepAng: 0, sweepSeen: false,
         phase2: false, enraged: false, scale: 1
       };
       e.maxHp = G.rush
@@ -570,6 +571,43 @@
           break;
         }
         case 'abyss': {
+          // 触须横扫：三条由眼体向外扫出的触须，先虚线预警再实体化
+          e.sweepCd -= dt;
+          if (e.sweepTele > 0) {
+            e.sweepTele -= dt;
+            if (e.sweepTele <= 0) {
+              e.sweepActive = 0.42;
+              AE.Audio.sfx('arc', { pitch: 0.72 });
+              AE.FX.shake(0.16);
+            }
+          } else if (e.sweepActive > 0) {
+            e.sweepActive -= dt;
+            const lanes = [-0.5, 0, 0.5];
+            for (let i = 0; i < lanes.length; i++) {
+              const a = e.sweepAng + lanes[i];
+              const ex = e.x + Math.cos(a) * 520, ey = e.y + Math.sin(a) * 520;
+              if (this.pointLineDist(p.x, p.y, e.x, e.y, ex, ey) > 27) continue;
+              const dot = (p.x - e.x) * Math.cos(a) + (p.y - e.y) * Math.sin(a);
+              if (dot < 0 || dot > 520) continue;
+              if (p.alive && p.invuln <= 0) {
+                AE.Player.hurt(p, e.dmg * 0.5, e.x, e.y);
+                AE.FX.spark(p.x, p.y, e.color, 10, { spd: 210, life: 0.4, size: 3 });
+              }
+              break;
+            }
+            if (e.sweepActive <= 0) e.sweepCd = e.enraged ? 6.8 : 9.2;
+          } else if (e.sweepCd <= 0) {
+            e.sweepCd = 99;
+            e.sweepTele = 0.95;
+            e.sweepAng = Math.atan2(dy, dx);
+            e.mode = 'idle';
+            e.modeT = Math.max(e.modeT, 1.6);
+            AE.Audio.sfx('warn', { pitch: 0.66 });
+            if (!e.sweepSeen) {
+              e.sweepSeen = true;
+              AE.Game.announce('深渊之眼 · 触须横扫', e.color, 2.0);
+            }
+          }
           // 保持中远距离凝视
           if (d > 360) { e.x += nx * e.speed * dt; e.y += ny * e.speed * dt; }
           else if (d < 240) { e.x -= nx * e.speed * 0.8 * dt; e.y -= ny * e.speed * 0.8 * dt; }
@@ -1366,6 +1404,33 @@
             ctx.lineWidth = 3;
             ctx.strokeStyle = 'rgba(255,230,240,0.9)';
             ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1100, 0); ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+      if (e.ai === 'abyss' && (e.sweepTele > 0 || e.sweepActive > 0)) {
+        const tele = e.sweepTele > 0;
+        const lanes = [-0.5, 0, 0.5];
+        for (let i = 0; i < lanes.length; i++) {
+          ctx.save();
+          ctx.rotate(e.sweepAng + lanes[i]);
+          const gs = ctx.createLinearGradient(0, 0, 520, 0);
+          gs.addColorStop(0, AE.FX.alpha(col, tele ? 0.55 : 0.9));
+          gs.addColorStop(0.7, AE.FX.alpha('#ff5c9a', tele ? 0.38 : 0.65));
+          gs.addColorStop(1, AE.FX.alpha(col, 0));
+          ctx.strokeStyle = gs;
+          ctx.lineWidth = tele ? 4 : 20;
+          if (tele) ctx.setLineDash([18, 12]);
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(520, 0); ctx.stroke();
+          ctx.setLineDash([]);
+          if (tele) {
+            ctx.strokeStyle = AE.FX.alpha(col, 0.85);
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(520, 0, 15, 0, U.TAU); ctx.stroke();
+          } else {
+            ctx.strokeStyle = 'rgba(255,225,240,0.75)';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(500, 0); ctx.stroke();
           }
           ctx.restore();
         }
