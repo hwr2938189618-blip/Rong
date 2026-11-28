@@ -1107,6 +1107,29 @@
           }
         }
       }
+      // 遗物：折光核心 —— 每第 4 次武器命中额外折射一道光
+      if (pl && pl.relics && pl.relics.indexOf('refractcore') >= 0 &&
+          !(opts && (opts.refract || opts.noRefract || opts.burnKill))) {
+        pl.refractCoreHits = (pl.refractCoreHits || 0) + 1;
+        if (pl.refractCoreHits % 4 === 0) {
+          let best = null, bd = 300 * 300;
+          const near = AE.World.grid.query(e.x, e.y, 300);
+          for (let k = 0; k < near.length; k++) {
+            const o = near[k];
+            if (o === e || !o.alive || o.spawning > 0) continue;
+            const dd = U.d2(e.x, e.y, o.x, o.y);
+            if (dd < bd) { bd = dd; best = o; }
+          }
+          if (best) {
+            AE.FX.line(e.x, e.y, best.x, best.y, '#c9a6ff', 0.2, 3.4, true);
+            AE.FX.spark(best.x, best.y, '#c9a6ff', 6, { spd: 160, life: 0.32, size: 2.8, add: true });
+            this.damage(best, dmg * 0.6, {
+              crit: false, noSplash: true, noFrost: true, noCombo: true,
+              refract: true, noRefract: true
+            });
+          }
+        }
+      }
       return dmg;
     },
 
