@@ -348,7 +348,14 @@
       p.hp = Math.min(p.maxHp, p.hp + amount);
       const real = p.hp - before;
       p.healed += real;
-      if (real > 0) AE.FX.text(p.x, p.y - 22, '+' + Math.round(real), '#8affc1', 15);
+      if (real > 0) {
+        p.healAcc = (p.healAcc || 0) + real;
+        if (p.healAcc >= 1) {
+          const show = Math.floor(p.healAcc);
+          p.healAcc -= show;
+          AE.FX.text(p.x, p.y - 22, '+' + show, '#8affc1', 15);
+        }
+      }
       return real;
     },
 
