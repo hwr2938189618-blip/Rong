@@ -957,6 +957,14 @@
       if (G.time > (best.time || 0)) { best.time = G.time; newBest = true; }
       if (G.kills > (best.kills || 0)) best.kills = G.kills;
       if (G.level > (best.level || 0)) best.level = G.level;
+      // 每名角色的本地最佳记录
+      S.charBest = S.charBest || {};
+      const cb = S.charBest[p.char.id] || { time: 0, kills: 0, level: 0, wins: 0 };
+      cb.time = Math.max(cb.time || 0, G.time);
+      cb.kills = Math.max(cb.kills || 0, G.kills);
+      cb.level = Math.max(cb.level || 0, G.level);
+      if (victory) cb.wins = (cb.wins || 0) + 1;
+      S.charBest[p.char.id] = cb;
       S.seen = true;
       let dailyNew = false;
       let dailyBest = null;

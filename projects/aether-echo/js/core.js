@@ -210,7 +210,8 @@
         bestRuns: [],
         dailyBest: {},
         bestRush: { time: 0, char: '', date: '' },
-        bestPact: { tier: 0, time: 0, char: '', date: '' }
+        bestPact: { tier: 0, time: 0, char: '', date: '' },
+        charBest: {}
       };
     },
     load: function () {
@@ -236,6 +237,7 @@
         if (!d.bestRush || typeof d.bestRush !== 'object') d.bestRush = { time: 0, char: '', date: '' };
         if (!d.bestPact || typeof d.bestPact !== 'object') d.bestPact = base.bestPact;
         else for (const pk in base.bestPact) if (d.bestPact[pk] === undefined) d.bestPact[pk] = base.bestPact[pk];
+        if (!d.charBest || typeof d.charBest !== 'object') d.charBest = {};
       } else {
         d = base;
       }

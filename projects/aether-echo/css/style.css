@@ -736,6 +736,8 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 .run-row b { color: var(--ink); font-size: 14px; letter-spacing: 0.04em; }
+.run-row.char-best { grid-template-columns: 110px 1fr; }
+.char-best b { font-size: 13px; }
 .run-rank { color: var(--dim2); font-size: 10px; }
 .run-char { color: var(--cyan); }
 .run-row .ok { color: var(--gold); }

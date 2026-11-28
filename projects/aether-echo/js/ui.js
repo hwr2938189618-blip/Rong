@@ -757,8 +757,7 @@
           '<div><div class="ach-name">' + a.name + '</div><div class="ach-desc">' + a.desc + '</div></div>' +
           '</div>';
       }).join('');
-      const runs = (S.bestRuns || []).map(function (r, i) {
-        const c = AE.Data.CHAR_MAP[r.char];
+      const runs = (S.bestRuns || []).map(function (r, i) {        const c = AE.Data.CHAR_MAP[r.char];
         return '<div class="run-row">' +
           '<span class="run-rank">#' + (i + 1) + '</span>' +
           '<b>' + U.fmtTime(r.time) + '</b>' +
@@ -784,6 +783,12 @@
             (AE.Data.CHAR_MAP[rb.char] ? AE.Data.CHAR_MAP[rb.char].name : rb.char) + ' · ' + (rb.date || '') + '</span></div>'
           : '<div class="daily-card-main"><b>— —</b><span>还没有连战记录</span></div>') +
         '</div>';
+      const charBestHtml = AE.Data.CHARS.map(function (c) {
+        const cb = (S.charBest && S.charBest[c.id]) || {};
+        return '<div class="run-row char-best"><b style="color:' + c.color + '">' + c.name + '</b>' +
+          '<span>最久 ' + U.fmtTime(cb.time || 0) + ' · 击杀 ' + (cb.kills || 0) +
+          ' · Lv' + (cb.level || 0) + (cb.wins ? ' · 通关 ' + cb.wins : '') + '</span></div>';
+      }).join('');
       const html =
         '<div class="screen archive-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -802,6 +807,8 @@
         '</div>' +
         dailyCard +
         rushCard +
+        '<div class="section-label">角色最佳 · 本地排行</div>' +
+        '<div class="run-list">' + charBestHtml + '</div>' +
         '<div class="section-label">成就 · ' + got.length + ' / ' + all.length + '</div>' +
         '<div class="ach-grid">' + achHtml + '</div>' +
         '<div class="section-label">最佳记录</div>' +
