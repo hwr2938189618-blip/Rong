@@ -20,6 +20,7 @@
     relicLock: false,
     event: null, eventT: 0, eventLeft: 0, meteorT: 0,
     eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false, stage: 1,
+    affixKills: 0,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -171,6 +172,7 @@
       if ((G.eventCount || 0) >= 5) unlock('event5');
       if ((G.burnKills || 0) >= 300) unlock('burn300');
       if ((G.ultCasts || 0) >= 20) unlock('ult20');
+      if ((G.affixKills || 0) >= 3) unlock('affix3');
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
     },
 
@@ -232,6 +234,7 @@
       G.pactWinTier = 0;
       G.event = null; G.eventLeft = 0; G.meteorT = 0;
       G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
+      G.affixKills = 0;
       G.stage = 1;
       G.eventT = 55 + Math.random() * 25;
       G.player = AE.Player.create(charId);
@@ -564,6 +567,9 @@
           G.bossWarned = false;
           G.bossWarnT = 1.2;
           if (AE.UI && AE.UI.bossIntro) AE.UI.bossIntro(def);
+          if (b.affix) {
+            this.announce('首领词缀 · ' + b.affix.name + ' · ' + b.affix.desc, b.affix.color, 2.6);
+          }
         }
       }
     },
@@ -1189,6 +1195,11 @@
         ctx.font = '600 8px ' + head;
         ctx.fillStyle = 'rgba(220,170,190,0.55)';
         ctx.fillText(b.bossTitle, W / 2, by + 18);
+        if (b.affix) {
+          ctx.font = '700 9px ' + head;
+          ctx.fillStyle = b.affix.color;
+          ctx.fillText('词缀 · ' + b.affix.name, W / 2, by + 31);
+        }
         this.bar(ctx, bx, by, bw, 10, b.hp / b.maxHp, '#ff5c7a', 'rgba(20,6,12,0.8)');
         ctx.strokeStyle = 'rgba(255,180,200,0.35)';
         ctx.lineWidth = 1;

@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.22.0';
+  D.VERSION = '1.23.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -436,6 +436,13 @@
   /* 首领连战顺序 */
   D.RUSH_ORDER = ['weaver', 'breaker', 'manyeye', 'eclipse', 'final', 'abyss'];
 
+  /* 无尽首领词缀 */
+  D.BOSS_AFFIXES = [
+    { id: 'frenzy', name: '狂暴', color: '#ff5c7a', desc: '攻击与移速 +25%' },
+    { id: 'aegis', name: '护盾', color: '#9fb4ff', desc: '生命 +25%，护甲 +8' },
+    { id: 'summoner', name: '召唤', color: '#8affc1', desc: '每 6 秒召唤 2 只虚空生物' }
+  ];
+
   /* ============================================================
    * 角色
    * ============================================================ */
@@ -545,6 +552,7 @@
     { id: 'event5', name: '星象观测者', desc: '单局经历 5 次星象事件', icon: '☄', color: '#ff9f68' },
     { id: 'burn300', name: '燎原', desc: '单局用灼烧击杀 300 个敌人', icon: '✹', color: '#ff9f68' },
     { id: 'ult20', name: '超新星', desc: '单局释放 20 次星核爆发', icon: '⚡', color: '#ffd479' },
+    { id: 'affix3', name: '词缀猎人', desc: '单局击破 3 名带词缀的首领', icon: '❖', color: '#9fb4ff' },
     { id: 'allchar', name: '全员集结', desc: '解锁全部角色', icon: '✺', color: '#7df9ff' }
   ];
 

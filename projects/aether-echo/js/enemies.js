@@ -72,6 +72,14 @@
       e.maxHp = G.rush
         ? def.hp * (1 + (G.rushIndex || 0) * 0.55)
         : def.hp * (1 + (G.time / 60) * 0.42) * (1 + (G.loop || 0) * 0.8);
+      e.affix = null;
+      if (!G.rush && (G.loop || 0) > 0 && AE.Data.BOSS_AFFIXES) {
+        const pool = AE.Data.BOSS_AFFIXES;
+        e.affix = pool[Math.floor(Math.random() * pool.length)];
+        if (e.affix.id === 'frenzy') { e.speed *= 1.25; e.dmg *= 1.25; }
+        else if (e.affix.id === 'aegis') { e.maxHp = Math.round(e.maxHp * 1.25); e.armor += 8; }
+        else if (e.affix.id === 'summoner') { e.summonT = 5; }
+      }
       e.hp = e.maxHp;
       this.list.push(e);
       AE.FX.ring(x, y, def.color, 10, 140, 0.9, 4);
@@ -631,7 +639,17 @@
           break;
         }
       }
+      if (e.affix && e.affix.id === 'summoner') {
+        e.summonT = (e.summonT === undefined ? 6 : e.summonT) - dt;
+        if (e.summonT <= 0) {
+          e.summonT = 6 / rage;
+          this.summon(e, 'wisp', 2, 240);
+          AE.FX.ring(e.x, e.y, e.affix.color, 8, 120, 0.5, 2);
+        }
+      }
       if (e.enraged) {
+        e.speed = e.def.speed * 1.25 * (e.affix && e.affix.id === 'frenzy' ? 1.25 : 1);
+      } else if (e.affix && e.affix.id === 'frenzy') {
         e.speed = e.def.speed * 1.25;
       }
     },
@@ -798,9 +816,10 @@
           pl.reaperBurst = false;
         }
       }
+      // 词缀首领击杀统计
+      if (e.boss && e.affix) G.affixKills = (G.affixKills || 0) + 1;
       // 星核能量：击杀积攒爆发
-      if (pl && pl.ult < pl.ultMax) {
-        const wasFull = pl.ult >= pl.ultMax;
+      if (pl && pl.ult < pl.ultMax) {        const wasFull = pl.ult >= pl.ultMax;
         const gain = (e.boss ? 40 : (e.elite ? 10 : 1.2)) * (1 + (pl.ultGain || 0)) *
           (G.event && G.event.id === 'surge' ? 2 : 1);
         pl.ult = Math.min(pl.ultMax, pl.ult + gain);
