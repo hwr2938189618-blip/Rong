@@ -1316,6 +1316,14 @@
           28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0) +
           (G.pacts && G.pacts.length ? statusGap : 0));
       }
+      if (p.warpT > 0) {
+        ctx.textAlign = 'left';
+        ctx.font = '700 10px ' + head;
+        ctx.fillStyle = 'rgba(217,198,255,0.95)';
+        ctx.fillText('时隙超频 · 攻速 +30%',
+          28, statusY + (G.daily ? statusGap : 0) + (p.killStack ? statusGap : 0) +
+          (G.pacts && G.pacts.length ? statusGap : 0) + (p.tetherT > 0 ? statusGap : 0));
+      }
 
       const compactRail = H < 520;
       const railStep = compactRail ? 40 : 52;
