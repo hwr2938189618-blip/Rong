@@ -220,6 +220,7 @@
       }
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
       if ((S.evolvedSeen || []).length >= AE.Data.WEAPONS.length) unlock('evolve12');
+      if ((S.relicsSeen || []).length >= AE.Data.RELICS.length) unlock('relic26');
     },
 
     /* ---------- 场景 ---------- */
@@ -1671,7 +1672,14 @@
       const def = this.def(id);
       if (!def || !p || p.relics.indexOf(id) >= 0) return false;
       p.relics.push(id);
+      const S = AE.Save && AE.Save.data;
+      if (S) {
+        if (!Array.isArray(S.relicsSeen)) S.relicsSeen = [];
+        if (S.relicsSeen.indexOf(id) < 0) S.relicsSeen.push(id);
+        AE.Save.save();
+      }
       if (def.apply) def.apply(p);
+      if (AE.Game && AE.Game.checkAchievements) AE.Game.checkAchievements();
       AE.FX.ring(p.x, p.y, def.color, 8, 120, 0.55, 3);
       AE.FX.spark(p.x, p.y, def.color, 20, { spd: 240, life: 0.6, size: 3 });
       AE.Audio.sfx('evolve');
