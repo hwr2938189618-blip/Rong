@@ -62,7 +62,8 @@ html, body {
   animation: overlayIn 0.25s ease both;
 }
 .overlay.hidden { display: none; }
-.overlay.scroll { overflow-y: auto; align-items: flex-start; }
+.overlay.scroll { overflow-y: auto; align-items: flex-start; padding-top: 0; }
+.overlay.scroll > .screen { padding-top: 14px; }
 
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -464,7 +465,7 @@ html, body {
 
 /* ---------------- 强化 ---------------- */
 .meta-screen { max-width: 1080px; gap: 20px; }
-.meta-head { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 16px; }
+.meta-head { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 16px; position: sticky; top: 0; z-index: 6; padding: 8px 2px; background: rgba(6, 9, 18, 0.97); backdrop-filter: blur(8px); box-shadow: 0 -70px 0 0 rgba(6, 9, 18, 0.97); }
 .meta-head h2 { margin: 0; font-size: clamp(24px, 3.6vw, 34px); font-weight: 900; letter-spacing: 0.16em; }
 .meta-head .sub { font-size: 10px; letter-spacing: 0.34em; color: var(--dim2); margin-top: 6px; }
 .wallet {
