@@ -9,6 +9,7 @@
   const W = {
     update: function (p, dt) {
       const D = AE.Data;
+      p.channeling = false;
       for (let i = 0; i < p.weapons.length; i++) {
         const w = p.weapons[i];
         const def = D.WEAPON_MAP[w.id];
@@ -275,7 +276,9 @@
 
     /* ---------- 湮灭光束（持续引导） ---------- */
     updateBeam: function (p, w, s, def, dt) {
+      w.t -= dt;
       if (w.beamT > 0) {
+        p.channeling = true;
         w.beamT -= dt;
         w.beamTick = (w.beamTick || 0) - dt;
         if (w.beamTick <= 0) {
@@ -285,7 +288,6 @@
         if (w.beamT <= 0) w.beamT = 0;
         return;
       }
-      w.t -= dt;
       if (w.t <= 0) {
         w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd));
         W.startBeam(p, w, s, def);
@@ -305,7 +307,7 @@
     },
 
     beamTick: function (p, w, s, def) {
-      const width = s.width * (0.85 + p.areaMul * 0.15);
+      const width = s.width * (p.beamWidth || 1) * (0.85 + p.areaMul * 0.15);
       const x1 = p.x, y1 = p.y;
       const x2 = x1 + Math.cos(w.beamAngle) * s.range;
       const y2 = y1 + Math.sin(w.beamAngle) * s.range;

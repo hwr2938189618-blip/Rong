@@ -32,6 +32,7 @@
         killStack: !!char.killStack,
         burn: !!char.burn,
         ultGain: 0, igniteChance: 0, burnMul: 1 + (meta.ignis || 0) * 0.15,
+        beamWidth: 1, beamGuard: false, channeling: false,
         killStacks: 0, stackBonus: 0,
         revives: lv('revive'),
         level: 1, xp: 0, xpNeed: D.xpNeed(1),
@@ -354,6 +355,7 @@
       if (!p.alive || p.invuln > 0) return 0;
       let dmg = Math.max(1, amount - p.armor);
       if (p.avatarT > 0) dmg = Math.max(1, dmg * ((p.avatar && p.avatar.reduce) || 0.55));
+      else if (p.beamGuard && p.channeling) dmg = Math.max(1, dmg * 0.6);
       p.hp -= dmg;
       p.invuln = 0.55;
       p.flash = 0.3;

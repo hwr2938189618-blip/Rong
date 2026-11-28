@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.34.0';
+  D.VERSION = '1.35.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -208,18 +208,18 @@
       id: 'scythe', name: '回旋月刃', icon: '☾', color: '#9fe8ff',
       tag: '回旋', intro: '甩出月牙刃，去程与回程各切一次。',
       levels: [
-        { dmg: 26, cd: 1.75, count: 2, speed: 430, spread: 0.55, life: 1.35, size: 7 },
-        { dmg: 32, cd: 1.70, count: 2, speed: 440, spread: 0.55, life: 1.35, size: 7 },
-        { dmg: 32, cd: 1.62, count: 3, speed: 450, spread: 0.62, life: 1.40, size: 7.5 },
-        { dmg: 42, cd: 1.55, count: 3, speed: 460, spread: 0.62, life: 1.40, size: 7.5 },
-        { dmg: 42, cd: 1.48, count: 3, speed: 475, spread: 0.70, life: 1.45, size: 8 },
-        { dmg: 52, cd: 1.40, count: 4, speed: 485, spread: 0.72, life: 1.50, size: 8 },
-        { dmg: 52, cd: 1.32, count: 4, speed: 500, spread: 0.80, life: 1.55, size: 8.5 },
-        { dmg: 64, cd: 1.24, count: 4, speed: 510, spread: 0.80, life: 1.60, size: 9 }
+        { dmg: 26, cd: 1.75, count: 2, speed: 430, spread: 0.30, life: 1.35, size: 7 },
+        { dmg: 32, cd: 1.70, count: 2, speed: 440, spread: 0.30, life: 1.35, size: 7 },
+        { dmg: 32, cd: 1.62, count: 3, speed: 450, spread: 0.32, life: 1.40, size: 7.5 },
+        { dmg: 42, cd: 1.55, count: 3, speed: 460, spread: 0.32, life: 1.40, size: 7.5 },
+        { dmg: 42, cd: 1.48, count: 3, speed: 475, spread: 0.34, life: 1.45, size: 8 },
+        { dmg: 52, cd: 1.40, count: 4, speed: 485, spread: 0.34, life: 1.50, size: 8 },
+        { dmg: 52, cd: 1.32, count: 4, speed: 500, spread: 0.36, life: 1.55, size: 8.5 },
+        { dmg: 80, cd: 1.24, count: 4, speed: 510, spread: 0.36, life: 1.60, size: 9 }
       ],
       evolved: {
-        name: '双生月蚀', icon: '☽', dmg: 92, cd: 1.00, count: 6, speed: 540,
-        spread: 0.95, life: 1.75, size: 10, note: '六刃往返，月蚀成环'
+        name: '双生月蚀', icon: '☽', dmg: 125, cd: 0.85, count: 6, speed: 540,
+        spread: 0.22, life: 1.75, size: 10, note: '六刃往返，月蚀成环'
       }
     },
     {
@@ -742,6 +742,11 @@
     {
       id: 'compass', name: '星象罗盘', icon: '✧', color: '#7df9ff', hook: true,
       desc: '星象事件间隔 -30%，事件结束回复提升到 14%'
+    },
+    {
+      id: 'stabilizer', name: '视界稳定器', icon: '◉', color: '#ff7fb0',
+      desc: '湮灭光束引导期间减伤 40%，光束宽度 +40%',
+      apply: function (p) { p.beamWidth = (p.beamWidth || 1) * 1.4; p.beamGuard = true; }
     }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
