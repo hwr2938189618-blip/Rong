@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.39.0';
+  D.VERSION = '1.40.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -606,7 +606,10 @@
     { id: 'frenzy', name: '狂暴低语', desc: '敌人伤害 +25%，回响 +20%', color: '#ff5c7a' },
     { id: 'greed', name: '丰饶裂隙', desc: '击杀掉落经验 +35%', color: '#ffd479' },
     { id: 'void', name: '虚空稀薄', desc: '敌人生命 -10%，数量 +20%', color: '#b388ff' },
-    { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' }
+    { id: 'iron', name: '铁壁回响', desc: '玩家护甲 +3，移速 -6%', color: '#9fb4ff' },
+    { id: 'overload', name: '超载星核', desc: '星核获取 +60%，但敌人伤害 +15%', color: '#ffd479' },
+    { id: 'glass', name: '折光星核', desc: '伤害 +25%，但生命上限 -20%', color: '#ff8fa3' },
+    { id: 'swarm', name: '虫群裂隙', desc: '敌人数量 +20%，经验 +10%', color: '#8affc1' }
   ];
 
   /* ============================================================
