@@ -64,7 +64,7 @@
         alive: true, t: 0, phase: U.rnd(0, 100),
         flash: 0, orbCd: 0, stun: 0, kx: 0, ky: 0,
         spawning: 1.5, rot: 0, spin: 1,
-        mode: 'idle', modeT: 0, t1: 1.2, t2: 3.0, t3: 5.0,
+        mode: 'idle', modeT: 0, t1: 1.2, t2: 3.0, t3: 5.0, t4: 7.0,
         chargeDir: { x: 1, y: 0 }, beams: [], spiral: 0, chaseT: 2.5,
         orbits: [0, 2.09, 4.19], orbitR: 118, pullT: 0,
         phase2: false, enraged: false, scale: 1
@@ -338,7 +338,7 @@
       const d = Math.hypot(dx, dy) || 1;
       const nx = dx / d, ny = dy / d;
       e.rot += dt * 0.8;
-      e.t1 -= dt; e.t2 -= dt; e.t3 -= dt;
+      e.t1 -= dt; e.t2 -= dt; e.t3 -= dt; e.t4 -= dt;
       if (!e.enraged && e.hp / e.maxHp < 0.45) {
         e.enraged = true;
         AE.Audio.sfx('roar');
@@ -671,6 +671,25 @@
           } else if (stage >= 2 && e.t3 < 2) {
             e.spiral = 3.2;
           }
+          // 回响裂痕：脚下预警圈，延迟爆炸
+          if (stage >= 2 && e.t4 <= 0) {
+            e.t4 = stage >= 3 ? 4.8 : 6.6;
+            const n = stage >= 3 ? 3 : 2;
+            if (!e.riftSeen) {
+              e.riftSeen = true;
+              AE.Game.announce('终焉回响 · 回响裂痕', '#ff5c7a', 2.0);
+            }
+            AE.Audio.sfx('warn', { pitch: 0.82 });
+            for (let m = 0; m < n; m++) {
+              let tx = p.x, ty = p.y;
+              if (m > 0) {
+                const a = Math.random() * U.TAU;
+                tx += Math.cos(a) * (m === 1 ? 125 : 210);
+                ty += Math.sin(a) * (m === 1 ? 125 : 210);
+              }
+              this.finalRift(e, tx, ty, stage >= 3 ? 96 : 104);
+            }
+          }
           break;
         }
       }
@@ -687,6 +706,28 @@
       } else if (e.affix && e.affix.id === 'frenzy') {
         e.speed = (e.baseSpeed || e.def.speed);
       }
+    },
+
+    finalRift: function (e, tx, ty, radius) {
+      const CW = AE.Data.CONST.WORLD_W, CH = AE.Data.CONST.WORLD_H;
+      tx = U.clamp(tx, 40, CW - 40);
+      ty = U.clamp(ty, 40, CH - 40);
+      radius = radius || 100;
+      AE.FX.ring(tx, ty, '#ff5c7a', radius, radius, 0.85, 3);
+      AE.FX.ring(tx, ty, '#ff9f68', 12, radius * 0.42, 0.85, 1.5);
+      AE.FX.text(tx, ty - radius - 6, '!', '#ff5c7a', 18);
+      AE.Game.delay(0.85, function () {
+        if (!e.alive) return;
+        AE.FX.ring(tx, ty, '#ff5c7a', radius * 0.18, radius, 0.36, 5);
+        AE.FX.ring(tx, ty, '#ffffff', 8, radius * 0.5, 0.24, 2);
+        AE.FX.spark(tx, ty, '#ff5c7a', 22, { spd: 330, life: 0.55, size: 3.4 });
+        AE.FX.shake(0.18);
+        AE.Audio.sfx('explosion', { pitch: 0.92 });
+        const p = AE.G.player;
+        if (p && p.alive && p.invuln <= 0 && U.d2(tx, ty, p.x, p.y) < radius * radius) {
+          AE.Player.hurt(p, e.dmg * 0.8, tx, ty);
+        }
+      });
     },
 
     bossRadial: function (e, n, speed, dmgMul) {
