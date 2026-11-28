@@ -219,6 +219,7 @@
         if (rc >= 3) unlock('resonance3');
       }
       if (S.chars.length >= AE.Data.CHARS.length) unlock('allchar');
+      if ((S.evolvedSeen || []).length >= AE.Data.WEAPONS.length) unlock('evolve12');
     },
 
     /* ---------- 场景 ---------- */
@@ -358,7 +359,7 @@
       G.bossWait = 0;
       G.winning = false;
       G.spawnT = 0.5;
-      // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避免“固定种子”假象
+      // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避開“固定种子”假象
       G.daily = null;
       G.dailyEvents = null;
       G.dailyEventsDone = 0;
