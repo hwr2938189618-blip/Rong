@@ -160,6 +160,7 @@
       }, { passive: false });
 
       const endTouch = function (e) {
+        self.touch.on = false;
         self.joy.active = false; self.joy.mag = 0; self.joy.dx = 0; self.joy.dy = 0;
         self.touch.active = false;
         e.preventDefault();
@@ -208,6 +209,7 @@
         stats: { kills: 0, time: 0, damage: 0, bosses: 0, wins: 0, evolves: 0, runs: 0 },
         achievements: [],
         bestRuns: [],
+        leaderboard: [],
         dailyBest: {},
         bestRush: { time: 0, char: '', date: '' },
         bestPact: { tier: 0, time: 0, char: '', date: '' },
@@ -233,6 +235,10 @@
         });
         if (!Array.isArray(d.achievements)) d.achievements = [];
         if (!Array.isArray(d.bestRuns)) d.bestRuns = [];
+        if (!Array.isArray(d.leaderboard)) d.leaderboard = [];
+        else d.leaderboard = d.leaderboard.filter(function (e) {
+          return e && typeof e === 'object' && isFinite(e.score);
+        }).slice(0, 8);
         if (!d.dailyBest || typeof d.dailyBest !== 'object') d.dailyBest = {};
         if (!d.bestRush || typeof d.bestRush !== 'object') d.bestRush = { time: 0, char: '', date: '' };
         if (!d.bestPact || typeof d.bestPact !== 'object') d.bestPact = base.bestPact;
