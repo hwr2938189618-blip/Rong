@@ -17,6 +17,7 @@
     enabled: false,
     _toastTimer: null,
     _touch: false,
+    lbMode: 'all',
 
     init: function () {
       this.el = document.getElementById('overlay');
@@ -253,6 +254,10 @@
           AE.Save.save();
           AE.Game.applySettings();
           if (this.mode === 'settings') this.showSettings();
+          break;
+        case 'lb-mode':
+          this.lbMode = id || 'all';
+          if (this.mode === 'archive') this.showArchive();
           break;
         case 'back':
           if (this.mode === 'settings' || this.mode === 'codex' || this.mode === 'archive') {
@@ -837,9 +842,12 @@
           '<span>最久 ' + U.fmtTime(cb.time || 0) + ' · 击杀 ' + (cb.kills || 0) +
           ' · Lv' + (cb.level || 0) + (cb.wins ? ' · 通关 ' + cb.wins : '') + '</span></div>';
       }).join('');
-      const lbHtml = (S.leaderboard || []).slice().sort(function (a, b) {
+      const allLb = (S.leaderboard || []).slice().sort(function (a, b) {
         return (b.score || 0) - (a.score || 0) || (b.time || 0) - (a.time || 0);
-      }).map(function (r, i) {
+      });
+      const lbMode = this.lbMode || 'all';
+      const lbList = lbMode === 'all' ? allLb : allLb.filter(function (r) { return r.mode === lbMode; });
+      const lbHtml = lbList.map(function (r, i) {
         const c = AE.Data.CHAR_MAP[r.char];
         const modeTag = r.mode === 'daily' ? '每日 · ' : (r.mode === 'rush' ? '连战 · ' : '');
         const g = r.grade || 'C';
@@ -851,7 +859,13 @@
           '<span class="run-char">' + (c ? c.name : r.char) + '</span>' +
           '<span class="' + (r.victory ? 'ok' : '') + '">' + (r.victory ? '通关' : U.fmtTime(r.time || 0)) + '</span>' +
           '</div>';
-      }).join('') || '<div class="empty">还没有评分记录，去打一局吧</div>';
+      }).join('') || '<div class="empty">该模式还没有评分记录</div>';
+      const lbTabs = '<div class="seg lb-tabs">' + [
+        ['all', '全部'], ['normal', '普通'], ['daily', '每日'], ['rush', '连战']
+      ].map(function (p) {
+        return '<button class="seg-btn ' + (lbMode === p[0] ? 'on' : '') +
+          '" data-act="lb-mode" data-id="' + p[0] + '">' + p[1] + '</button>';
+      }).join('') + '</div>';
       const html =
         '<div class="screen archive-screen">' +
         '<div class="meta-head"><div style="display:flex;align-items:center;gap:14px">' +
@@ -876,6 +890,7 @@
         rushCard +
         '<div class="section-label">本地排行榜 · 最高 ' +
         U.fmtNum((S.best && S.best.score) || 0) + '</div>' +
+        lbTabs +
         '<div class="run-list lb-list">' + lbHtml + '</div>' +
         '<div class="section-label">角色最佳 · 分角色记录</div>' +
         '<div class="run-list">' + charBestHtml + '</div>' +
