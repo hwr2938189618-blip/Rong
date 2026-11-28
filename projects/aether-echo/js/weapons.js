@@ -36,6 +36,8 @@
             }
             if (ts.length) AE.Audio.sfx('orbit');
           }
+        } else if (w.id === 'beam') {
+          W.updateBeam(p, w, s, def, dt);
         } else {
           w.t -= dt;
           if (w.t <= 0) {
@@ -268,6 +270,57 @@
           AE.Audio.sfx('pulse');
           break;
         }
+      }
+    },
+
+    /* ---------- 湮灭光束（持续引导） ---------- */
+    updateBeam: function (p, w, s, def, dt) {
+      if (w.beamT > 0) {
+        w.beamT -= dt;
+        w.beamTick = (w.beamTick || 0) - dt;
+        if (w.beamTick <= 0) {
+          w.beamTick = 0.1;
+          W.beamTick(p, w, s, def);
+        }
+        if (w.beamT <= 0) w.beamT = 0;
+        return;
+      }
+      w.t -= dt;
+      if (w.t <= 0) {
+        w.t = Math.max(0.08, s.cd / Math.max(0.25, p.atkSpd));
+        W.startBeam(p, w, s, def);
+      }
+    },
+
+    startBeam: function (p, w, s, def) {
+      const boss = AE.Enemies.list.filter(function (e) { return e.boss && e.alive; })[0];
+      const target = boss || W.nearestEnemies(p.x, p.y, 1, s.range)[0];
+      w.beamAngle = target ? Math.atan2(target.y - p.y, target.x - p.x) : p.aimAngle;
+      w.beamT = s.duration || 0.6;
+      w.beamTick = 0;
+      AE.FX.ring(p.x, p.y, def.color, 8, 38, 0.28, 2);
+      AE.FX.spark(p.x + Math.cos(w.beamAngle) * 18, p.y + Math.sin(w.beamAngle) * 18,
+        def.color, 6, { spd: 160, life: 0.3, size: 2.8 });
+      AE.Audio.sfx('lance', { pitch: 1.15 });
+    },
+
+    beamTick: function (p, w, s, def) {
+      const width = s.width * (0.85 + p.areaMul * 0.15);
+      const x1 = p.x, y1 = p.y;
+      const x2 = x1 + Math.cos(w.beamAngle) * s.range;
+      const y2 = y1 + Math.sin(w.beamAngle) * s.range;
+      AE.FX.line(x1, y1, x2, y2, def.color, 0.12, width, false);
+      AE.FX.line(x1, y1, x2, y2, '#ffffff', 0.08, Math.max(2, width * 0.3), false);
+      const list = AE.Enemies.list;
+      const cos = Math.cos(w.beamAngle), sin = Math.sin(w.beamAngle);
+      for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (!e.alive || e.spawning > 0) continue;
+        const dist = AE.Enemies.pointLineDist(e.x, e.y, x1, y1, x2, y2);
+        if (dist > e.r + width * 0.5) continue;
+        const dot = (e.x - x1) * cos + (e.y - y1) * sin;
+        if (dot < -20) continue;
+        W.rollCrit(p, e, s.dmg, { x: e.x, y: e.y });
       }
     },
 

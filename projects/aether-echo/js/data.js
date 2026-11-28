@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.33.0';
+  D.VERSION = '1.34.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -239,6 +239,24 @@
         name: '超新星花园', icon: '❁', dmg: 46, cd: 1.50, count: 22, speed: 350,
         life: 1.30, pierce: 2, size: 6.2, note: '花园盛开，环身皆刃'
       }
+    },
+    {
+      id: 'beam', name: '湮灭光束', icon: '⌁', color: '#ff7fb0', tag: '持续',
+      intro: '锁定单个方向持续轰击，沿直线反复灼击。',
+      levels: [
+        { dmg: 30, cd: 2.3, duration: 0.5, width: 10, range: 520 },
+        { dmg: 40, cd: 2.2, duration: 0.55, width: 11, range: 530 },
+        { dmg: 40, cd: 2.1, duration: 0.6, width: 12, range: 545 },
+        { dmg: 55, cd: 2.0, duration: 0.65, width: 13, range: 560 },
+        { dmg: 55, cd: 1.95, duration: 0.7, width: 14, range: 575 },
+        { dmg: 70, cd: 1.85, duration: 0.78, width: 15, range: 590 },
+        { dmg: 70, cd: 1.78, duration: 0.84, width: 16, range: 605 },
+        { dmg: 90, cd: 1.70, duration: 0.90, width: 18, range: 620 }
+      ],
+      evolved: {
+        name: '终焉光路', icon: '⇶', dmg: 120, cd: 1.35, duration: 1.0,
+        width: 26, range: 700, note: '一道光路，贯穿前方一切'
+      }
     }
   ];
 
@@ -271,6 +289,11 @@
     if (def.id === 'lance') {
       parts.push('宽度 ' + s.width);
       if (s.beams > 1) parts.push('光束 ' + s.beams);
+    }
+    if (def.id === 'beam') {
+      parts.push('引导 ' + s.duration + 's');
+      parts.push('宽度 ' + s.width);
+      parts.push('射程 ' + s.range);
     }
     return parts.join(' · ');
   };
