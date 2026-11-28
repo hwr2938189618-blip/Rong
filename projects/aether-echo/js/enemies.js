@@ -801,8 +801,7 @@
         return;
       }
       G.kills++;
-      G.combo++;
-      G.comboT = 2.6;
+      AE.Game.addCombo(1, 2.6);
       // 遗物：吸血符文 / 爆裂回响
       const pl = G.player;
       if (pl && pl.relics) {
