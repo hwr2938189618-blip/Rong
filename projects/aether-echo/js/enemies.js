@@ -916,9 +916,9 @@
       G.stats.damage += dmg;
       // 灼星者：命中点燃目标；引燃被动：任意角色有概率点燃
       if (pl && !(opts && opts.noBurn) && dmg > 0) {
-        if (pl.burn) {
+        if (pl.burn || (opts && opts.forceBurn)) {
           e.burnT = Math.max(e.burnT || 0, 3);
-          e.burnDps = Math.max(e.burnDps || 0, (6 + pl.level * 1.6) * (pl.burnMul || 1));
+          e.burnDps = Math.max(e.burnDps || 0, (5 + pl.level * 1.35) * (pl.burnMul || 1));
         } else if (pl.igniteChance > 0 && Math.random() < pl.igniteChance) {
           e.burnT = Math.max(e.burnT || 0, 2.5);
           e.burnDps = Math.max(e.burnDps || 0, (4 + pl.level * 1.2) * (pl.burnMul || 1));
