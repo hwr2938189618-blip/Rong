@@ -107,7 +107,7 @@
           e.burnAcc = (e.burnAcc || 0) + dt;
           if (e.burnAcc >= 0.4) {
             e.burnAcc = 0;
-            this.damage(e, (e.burnDps || 0) * 0.4, { noBurn: true, noSplash: true, noFrost: true });
+            this.damage(e, (e.burnDps || 0) * 0.4, { noBurn: true, noSplash: true, noFrost: true, burnKill: true });
             if (!e.alive) continue;
           }
           if (e.t % 0.18 < dt) {
@@ -783,7 +783,7 @@
       }
       if (opts && opts.crit) AE.FX.spark(e.x, e.y, '#ffd479', 3, { spd: 120, life: 0.25, size: 2.2 });
       AE.Audio.sfx('hit');
-      if (e.hp <= 0) this.kill(e);
+      if (e.hp <= 0) this.kill(e, opts);
       return dmg;
     },
 
@@ -803,7 +803,9 @@
       const pl = G.player;
       if (pl && pl.relics) {
         if (pl.relics.indexOf('leech') >= 0) {
+          const before = pl.hp;
           pl.hp = Math.min(pl.maxHp, pl.hp + 1.5);
+          pl.healed += pl.hp - before;
         }
         if (pl.relics.indexOf('boom') >= 0 && Math.random() < 0.18 && G.lastBoomFrame !== G.frame) {
           G.lastBoomFrame = G.frame;
@@ -858,9 +860,9 @@
         pl.ult = Math.min(pl.ultMax, pl.ult + gain);
         if (!wasFull && pl.ult >= pl.ultMax && AE.UI && AE.UI.syncDash) AE.UI.syncDash();
       }
-      // 灼星者 / 引燃：燃烧的敌人死亡时引燃周围
+      // 灼星者 / 引燃：燃烧的敌人死亡时引燃周围；只有灼烧 tick 击杀才计入燎原
       if (e.burnT > 0 && pl && (pl.burn || pl.igniteChance > 0)) {
-        G.burnKills = (G.burnKills || 0) + 1;
+        if (opts.burnKill) G.burnKills = (G.burnKills || 0) + 1;
         e.burnT = 0;
         const near = AE.World.grid.query(e.x, e.y, 140);
         for (let k = 0; k < near.length; k++) {

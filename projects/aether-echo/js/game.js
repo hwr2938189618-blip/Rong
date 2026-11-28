@@ -530,6 +530,17 @@
     updateDirector: function (dt) {
       if (G.winning) return;
       if (G.rush) { this.updateRushDirector(dt); return; }
+      // 无尽轮：六名首领全部击破后开启下一轮，避免长局没有首领的空转
+      if (G.loop > 0 && !G.boss && G.bossIdx >= AE.Data.BOSSES.length) {
+        G.loop++;
+        G.bossIdx = 0;
+        G.bossWarned = false;
+        G.bossWarnT = 0;
+        this.announce('深渊再临 · 第 ' + (G.loop + 1) + ' 轮', '#b388ff', 2.8);
+        AE.FX.flash(0.16, '#b388ff');
+        AE.FX.shake(0.5);
+        AE.Audio.sfx('roar');
+      }
       const C = AE.Data.CONST;
       const count = AE.Enemies.list.length;
       const pressure = count / C.MAX_ENEMIES;
