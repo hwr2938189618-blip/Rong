@@ -19,7 +19,7 @@
     rush: false, rushIndex: 0, rushGap: 0,
     relicLock: false,
     event: null, eventT: 0, eventLeft: 0, meteorT: 0,
-    eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false,
+    eventCount: 0, burnKills: 0, ultCasts: 0, abyssKilled: false, stage: 1,
     stats: { damage: 0 }, result: null
   };
   AE.G = G;
@@ -232,6 +232,7 @@
       G.pactWinTier = 0;
       G.event = null; G.eventLeft = 0; G.meteorT = 0;
       G.eventCount = 0; G.burnKills = 0; G.ultCasts = 0; G.abyssKilled = false;
+      G.stage = 1;
       G.eventT = 55 + Math.random() * 25;
       G.player = AE.Player.create(charId);
       G.player.level = 1;
@@ -300,6 +301,7 @@
       G.spawnT = 0.5;
       // 无尽轮不再属于每日挑战：恢复全局 RNG，避免污染当日最佳、也避免“固定种子”假象
       G.daily = null;
+      G.stage = 1;
       AE.RNG.restore();
       G.state = 'playing';
       AE.UI.hideAll();
@@ -369,6 +371,16 @@
       }
 
       G.time += dt;
+      // 层级转场：每 150 秒切换星域背景与演出
+      const stg = G.time >= 600 ? 5 : (G.time >= 450 ? 4 : (G.time >= 300 ? 3 : (G.time >= 150 ? 2 : 1)));
+      if (stg !== G.stage) {
+        G.stage = stg;
+        const names = ['苏醒', '织巢', '裂隙', '回响', '终焉'];
+        const cols = ['#7df9ff', '#b388ff', '#8affc1', '#ff5c7a', '#ffd479'];
+        this.announce('第 ' + stg + ' 层 · ' + names[stg - 1], cols[stg - 1], 2.2);
+        AE.FX.flash(0.07, cols[stg - 1]);
+        AE.Audio.sfx('warn');
+      }
       this.updateAim();
       AE.Player.update(p, dt);
       AE.Weapons.update(p, dt);

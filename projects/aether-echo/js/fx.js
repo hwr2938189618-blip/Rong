@@ -6,6 +6,7 @@
   'use strict';
   const AE = (g.AE = g.AE || {});
   const U = AE.U;
+  function wrap(v, m) { return ((v % m) + m) % m; }
   const FX = {
     particles: [], rings: [], texts: [], lines: [], flashes: [],
     t: 0, W: 1280, H: 720, dpr: 1,
@@ -260,18 +261,135 @@
     },
 
     /* ---------- 背景 ---------- */
+    /* 层级天体：每层一张离屏缓存，避免每帧重建渐变 */
+    makeBody: function (stage) {
+      if (typeof document === 'undefined' || !document.createElement) return null;
+      const c = document.createElement('canvas');
+      c.width = 620; c.height = 620;
+      const x = c.getContext('2d');
+      if (!x) return null;
+      x.translate(310, 310);
+      if (stage === 0) {
+        const g0 = x.createRadialGradient(-60, -70, 20, 0, 0, 210);
+        g0.addColorStop(0, '#e8f2ff');
+        g0.addColorStop(0.55, '#9fb6d8');
+        g0.addColorStop(1, 'rgba(80,100,140,0)');
+        x.fillStyle = g0;
+        x.beginPath(); x.arc(0, 0, 210, 0, U.TAU); x.fill();
+        x.fillStyle = 'rgba(90,110,150,0.35)';
+        [[-50, -30, 26], [40, 45, 18], [70, -60, 12], [-20, 80, 14]].forEach(function (cr) {
+          x.beginPath(); x.arc(cr[0], cr[1], cr[2], 0, U.TAU); x.fill();
+        });
+      } else if (stage === 1) {
+        const g1 = x.createRadialGradient(-80, -90, 20, 0, 0, 230);
+        g1.addColorStop(0, '#d9c4ff');
+        g1.addColorStop(0.5, '#7a5bd0');
+        g1.addColorStop(1, 'rgba(40,20,80,0)');
+        x.fillStyle = g1;
+        x.beginPath(); x.arc(0, 0, 230, 0, U.TAU); x.fill();
+        x.strokeStyle = 'rgba(200,180,255,0.42)';
+        x.lineWidth = 3;
+        x.save(); x.rotate(-0.38); x.scale(1, 0.28);
+        x.beginPath(); x.arc(0, 0, 300, 0, U.TAU); x.stroke();
+        x.beginPath(); x.arc(0, 0, 340, 0, U.TAU); x.stroke();
+        x.restore();
+      } else if (stage === 2) {
+        [[-70, -20, 150, 'rgba(90,255,190,0.55)'], [90, 50, 110, 'rgba(80,220,255,0.4)']].forEach(function (s) {
+          const g2 = x.createRadialGradient(s[0] - 30, s[1] - 30, 10, s[0], s[1], s[2]);
+          g2.addColorStop(0, '#e6fff5');
+          g2.addColorStop(0.5, s[3]);
+          g2.addColorStop(1, 'rgba(0,30,25,0)');
+          x.fillStyle = g2;
+          x.beginPath(); x.arc(s[0], s[1], s[2], 0, U.TAU); x.fill();
+        });
+      } else if (stage === 3) {
+        x.fillStyle = 'rgba(0,0,0,0.82)';
+        x.beginPath(); x.arc(0, 0, 150, 0, U.TAU); x.fill();
+        for (let i = 0; i < 3; i++) {
+          x.strokeStyle = 'rgba(255,' + (120 + i * 35) + ',80,' + (0.5 - i * 0.12) + ')';
+          x.lineWidth = 5 - i;
+          x.beginPath(); x.arc(0, 0, 176 + i * 26, i * 1.8, i * 1.8 + 4.4); x.stroke();
+        }
+        const g3 = x.createRadialGradient(0, 0, 120, 0, 0, 300);
+        g3.addColorStop(0, 'rgba(0,0,0,0)');
+        g3.addColorStop(0.7, 'rgba(255,120,60,0.10)');
+        g3.addColorStop(1, 'rgba(255,120,60,0)');
+        x.fillStyle = g3;
+        x.beginPath(); x.arc(0, 0, 300, 0, U.TAU); x.fill();
+      } else {
+        const g4 = x.createRadialGradient(-40, -50, 20, 0, 0, 250);
+        g4.addColorStop(0, '#fff3c4');
+        g4.addColorStop(0.4, '#ffb35c');
+        g4.addColorStop(0.75, 'rgba(255,80,60,0.5)');
+        g4.addColorStop(1, 'rgba(120,20,10,0)');
+        x.fillStyle = g4;
+        x.beginPath(); x.arc(0, 0, 250, 0, U.TAU); x.fill();
+        x.strokeStyle = 'rgba(255,200,120,0.28)';
+        x.lineWidth = 2;
+        for (let i = 0; i < 24; i++) {
+          const a = i * U.TAU / 24;
+          x.beginPath();
+          x.moveTo(Math.cos(a) * 170, Math.sin(a) * 170);
+          x.lineTo(Math.cos(a) * (260 + (i % 3) * 24), Math.sin(a) * (260 + (i % 3) * 24));
+          x.stroke();
+        }
+      }
+      return c;
+    },
+
     drawBackground: function (ctx, cam, w, h) {
       const t = this.t;
-      // 底色渐变：只在尺寸变化时创建（原先每帧 createLinearGradient）
-      if (!this._bgGrad || this._bgW !== w || this._bgH !== h) {
+      const G = AE.G;
+      const gt = (G && G.state !== 'menu') ? (G.time || 0) : 0;
+      const stage = gt >= 600 ? 4 : (gt >= 450 ? 3 : (gt >= 300 ? 2 : (gt >= 150 ? 1 : 0)));
+      // 每层独立底色
+      if (!this._bgGrad || this._bgW !== w || this._bgH !== h || this._bgStage !== stage) {
+        const pal = [
+          ['#060812', '#080c1c', '#05060f'],
+          ['#0b0618', '#140a26', '#06040f'],
+          ['#04100f', '#071d1e', '#030a0c'],
+          ['#14060c', '#1f0a13', '#080306'],
+          ['#120d05', '#1e1608', '#06040a']
+        ][stage];
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, '#060812');
-        grad.addColorStop(0.55, '#080c1c');
-        grad.addColorStop(1, '#05060f');
-        this._bgGrad = grad; this._bgW = w; this._bgH = h;
+        grad.addColorStop(0, pal[0]);
+        grad.addColorStop(0.55, pal[1]);
+        grad.addColorStop(1, pal[2]);
+        this._bgGrad = grad; this._bgW = w; this._bgH = h; this._bgStage = stage;
       }
       ctx.fillStyle = this._bgGrad;
       ctx.fillRect(0, 0, w, h);
+
+      // 每层一颗巨型天体（离屏缓存，只绘制一次）
+      if (this.quality > 0.65) {
+        this._bodyCache = this._bodyCache || {};
+        let body = this._bodyCache[stage];
+        if (body === undefined) {
+          body = this.makeBody(stage);
+          this._bodyCache[stage] = body;
+        }
+        if (body) {
+          const bw = body.width;
+          const nx = wrap((-cam.x * 0.018 + stage * 233 + t * 3), w + bw) - bw * 0.5;
+          const ny = wrap((-cam.y * 0.014 + stage * 151), h + bw) - bw * 0.6;
+          ctx.globalAlpha = 0.5;
+          ctx.drawImage(body, nx, ny);
+          ctx.globalAlpha = 1;
+        }
+        // 流星
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 2; i++) {
+          const sx = wrap(t * (120 + i * 55) + i * 610, w + 500) - 250;
+          const sy = wrap(t * (36 + i * 18) + i * 330, h + 200) - 100;
+          const lg = ctx.createLinearGradient(sx, sy, sx - 90, sy - 40);
+          lg.addColorStop(0, 'rgba(200,235,255,0.45)');
+          lg.addColorStop(1, 'rgba(200,235,255,0)');
+          ctx.strokeStyle = lg;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx - 90, sy - 40); ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      }
 
       // 星云（低画质时跳过，节省填充率）
       if (this.quality > 0.65) {
