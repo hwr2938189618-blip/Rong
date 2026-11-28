@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.44.0';
+  D.VERSION = '1.45.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -443,6 +443,10 @@
     priest: {
       name: '虚空祭司', hp: 74, speed: 62, dmg: 11, r: 15, xp: 5,
       color: '#d9a6ff', shape: 'priest', behavior: 'priest'
+    },
+    binder: {
+      name: '虚空缚者', hp: 78, speed: 72, dmg: 9, r: 14, xp: 4,
+      color: '#c9a6ff', shape: 'binder', behavior: 'binder'
     }
   };
 
@@ -455,8 +459,8 @@
     { t: 175, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2 } },
     { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2, mender: 2 } },
     { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3, mender: 2, charger: 3 } },
-    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1 } },
-    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2 } }
+    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1, binder: 2 } },
+    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2, binder: 2 } }
   ];
 
   /* ============================================================
@@ -594,6 +598,7 @@
     '金色精英会掉落大量经验。',
     '连杀达到 25 / 50 / 100 时会回复生命并补充星核。',
     '深渊之眼的触须横扫会留下三条直线预警，往侧面绕。',
+    '虚空缚者的锁链会减速；拉开距离或优先击杀它即可断链。',
     '同时携带脉冲 + 相位链、环刃 + 引力井等组合会触发武器共鸣。',
     'BOSS 的行动都有前摇，提前绕开。'
   ];
