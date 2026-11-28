@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.48.0';
+  D.VERSION = '1.49.0';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -447,6 +447,10 @@
     binder: {
       name: '虚空缚者', hp: 78, speed: 72, dmg: 9, r: 14, xp: 4,
       color: '#c9a6ff', shape: 'binder', behavior: 'binder'
+    },
+    screamer: {
+      name: '虚空尖啸者', hp: 92, speed: 64, dmg: 10, r: 15, xp: 5,
+      color: '#ff7fb0', shape: 'screamer', behavior: 'screamer'
     }
   };
 
@@ -459,8 +463,8 @@
     { t: 175, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2 } },
     { t: 235, w: { crawler: 6, stalker: 4, spitter: 3, bloater: 2, bulwark: 2, splitter: 2, mender: 2 } },
     { t: 300, w: { crawler: 5, stalker: 5, spitter: 3, bloater: 2, bulwark: 3, splitter: 3, mender: 2, charger: 3 } },
-    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1, binder: 2 } },
-    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2, binder: 2 } }
+    { t: 380, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 2, bulwark: 3, splitter: 3, wisp: 3, mender: 3, charger: 3, priest: 1, binder: 2, screamer: 1 } },
+    { t: 470, w: { crawler: 4, stalker: 5, spitter: 4, bloater: 3, bulwark: 4, splitter: 4, wisp: 4, mender: 3, charger: 4, priest: 2, binder: 2, screamer: 2 } }
   ];
 
   /* ============================================================
@@ -553,14 +557,14 @@
       hp: 92, speed: 226, dmgMul: 1.0, armor: 0, crit: 0, xpMul: 1.0,
       start: 'arc', color: '#ff7fb0', killStack: true,
       intro: '每一次击杀都让它更饥饿，也更强。',
-      perk: '每击杀 +0.5% 伤害（上限 +100%）· 生命 -8%'
+      perk: '每击杀 +0.5% 伤害（上限 +100%） · 生命 -8%'
     },
     {
       id: 'ember', name: '灼星者', title: 'EMBER STAR', cost: 520,
       hp: 96, speed: 240, dmgMul: 0.92, armor: 0, crit: 0, xpMul: 1.0,
       start: 'bloom', color: '#ff9f68', burn: true,
       intro: '把每一次命中都点成火种，让敌群自己烧起来。',
-      perk: '所有命中附加 3 秒灼烧（每秒 4 + 1.1×等级）· 伤害 -8%'
+      perk: '所有命中附加 3 秒灼烧（每秒 4 + 1.1×等级） · 伤害 -8%'
     }
   ];
   D.CHAR_MAP = {};
@@ -601,6 +605,7 @@
     '深渊之眼的触须横扫会留下三条直线预警，往侧面绕。',
     '无尽首领的「引力」词缀会先拉出紫色牵引线，随后把玩家拖向首领。',
     '虚空缚者的锁链会减速；拉开距离或优先击杀它即可断链。',
+    '虚空尖啸者会周期性清掉附近弹幕，优先点掉它再输出。',
     '同时携带脉冲 + 相位链、环刃 + 引力井等组合会触发武器共鸣。',
     'BOSS 的行动都有前摇，提前绕开。'
   ];
