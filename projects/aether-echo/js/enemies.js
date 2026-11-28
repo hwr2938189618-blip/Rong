@@ -1141,6 +1141,10 @@
       const G = AE.G;
       opts = opts || {};
       if (e.boss) {
+        if (e.affix) {
+          G.affixKills = (G.affixKills || 0) + 1;
+          if (e.affix.id === 'prism') G.prismBossKills = (G.prismBossKills || 0) + 1;
+        }
         this.bossDeath(e);
         return;
       }
@@ -1233,11 +1237,6 @@
           }
           pl.reaperBurst = false;
         }
-      }
-      // 词缀首领击杀统计
-      if (e.boss && e.affix) {
-        G.affixKills = (G.affixKills || 0) + 1;
-        if (e.affix.id === 'prism') G.prismBossKills = (G.prismBossKills || 0) + 1;
       }
       // 星核能量：击杀积攒爆发
       if (pl && pl.ult < pl.ultMax) {        const wasFull = pl.ult >= pl.ultMax;
