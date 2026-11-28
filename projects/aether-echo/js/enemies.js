@@ -326,6 +326,28 @@
           }
           if (removed) AE.FX.text(e.x, e.y - 24, '弹幕消散', e.color, 11);
         }
+      } else if (e.behavior === 'gorger') {
+        // 食星者：优先吞附近经验球，没球时追玩家
+        let target = null, best = 260 * 260;
+        const os = AE.World.orbs;
+        for (let i = 0; i < os.length; i++) {
+          const o = os[i];
+          const dd = U.d2(e.x, e.y, o.x, o.y);
+          if (dd < best) { best = dd; target = o; }
+        }
+        if (target) {
+          const n = U.norm(target.x - e.x, target.y - e.y);
+          mx = n.x; my = n.y; sp *= 1.35;
+          if (best < 24 * 24) {
+            const oi = os.indexOf(target);
+            if (oi >= 0) os.splice(oi, 1);
+            e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.06);
+            e.flash = 0.12;
+            AE.FX.ring(e.x, e.y, e.color, 6, 44, 0.35, 2.5);
+            AE.FX.spark(e.x, e.y, e.color, 8, { spd: 130, life: 0.35, size: 2.6, add: true });
+            AE.Audio.sfx('pickup', { pitch: 0.6 });
+          }
+        }
       } else if (e.behavior === 'chase') {
         // 爆裂囊靠近后启动引信
         if (e.def.explode && d < 58 && e.fuse <= 0) {
@@ -1323,6 +1345,31 @@
           ctx.fill();
         }
         ctx.globalCompositeOperation = 'source-over';
+      } else if (s === 'gorger') {
+        // 食星者：环齿巨口 + 肚子里翻滚的星屑
+        const pulse = 1 + Math.sin(time * 4.5 + e.phase) * 0.05;
+        ctx.scale(pulse, pulse);
+        ctx.fillStyle = flash ? 'rgba(255,240,255,0.75)' : '#1a1030';
+        ctx.strokeStyle = col; ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.arc(0, 0, e.r, 0, U.TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#090312';
+        ctx.beginPath(); ctx.ellipse(0, 0, e.r * 0.68, e.r * 0.56, 0, 0, U.TAU); ctx.fill();
+        ctx.fillStyle = '#e8d9ff';
+        for (let k = 0; k < 8; k++) {
+          const a = k * U.TAU / 8 + time * 0.35;
+          const rr = e.r * 0.62;
+          const px = Math.cos(a) * rr, py = Math.sin(a) * rr;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - Math.cos(a) * 5, py - Math.sin(a) * 5);
+          ctx.lineTo(px + Math.cos(a + 1.57) * 3, py + Math.sin(a + 1.57) * 3);
+          ctx.closePath(); ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'lighter';
+        AE.FX.glow(ctx, 0, 0, e.r * 0.7, col, 0.44 + Math.sin(time * 5) * 0.08);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(0, 0, e.r * 0.2, 0, U.TAU); ctx.fill();
       } else if (s === 'screamer') {
         // 尖啸者：锯齿声环 + 发光口器
         const pulse = 1 + Math.sin(time * 6 + e.phase) * 0.06;
