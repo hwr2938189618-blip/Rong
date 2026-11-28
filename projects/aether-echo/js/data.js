@@ -9,7 +9,7 @@
   const D = (g.DATA = g.DATA || {});
   AE.Data = D;
 
-  D.VERSION = '1.71.0';
+  D.VERSION = '1.71.1';
   D.TITLE = '星渊回响';
   D.SUBTITLE = 'AETHER ECHO';
 
@@ -633,7 +633,7 @@
     { id: 'revive', name: '回响之种', icon: '✷', max: 2, cost: function (l) { return 140 + l * 160; }, per: 1, stat: 'revive', desc: function (l) { return '每局复活 ' + l + ' 次'; } },
     { id: 'core', name: '星核基质', icon: '⚡', max: 3, cost: function (l) { return 40 + l * 30; }, per: 20, stat: 'ult', desc: function (l) { return '开局星核 +' + (l * 20) + ' 点'; } },
     { id: 'ignis', name: '炽焰基质', icon: '✹', max: 3, cost: function (l) { return 50 + l * 40; }, per: 0.15, stat: 'burn', desc: function (l) { return '灼烧伤害 +' + (l * 15) + '%'; } },
-    { id: 'tempo', name: '时律基质', icon: '↯', max: 5, cost: function (l) { return 20 + l * 20; }, per: 0.04, stat: 'dash', desc: function (l) { return '闪避冷却 -' + (l * 4) + '%'; } }
+    { id: 'tempo', name: '时隙基质', icon: '↯', max: 5, cost: function (l) { return 20 + l * 20; }, per: 0.04, stat: 'dash', desc: function (l) { return '闪避冷却 -' + (l * 4) + '%'; } }
   ];
 
   /* 首次进入游戏的操作提示 */
