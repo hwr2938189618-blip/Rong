@@ -536,7 +536,7 @@
         '<div><span>等级</span><b>' + G.level + '</b></div>' +
         '</div>' +
         (G.daily ? '<div class="pause-daily">每日挑战 · ' + G.daily.key + '<br>' +
-          G.daily.anomalies.map(function (a) { return a.name; }).join(' / ') +
+          G.daily.anomalies.map(function (a) { return a.name + '：' + a.desc; }).join('<br>') +
           (G.daily.events && G.daily.events.length ? '<br>星象 · ' + G.daily.events.map(function (id) {
             return AE.Data.EVENT_MAP[id] ? AE.Data.EVENT_MAP[id].name : id;
           }).join(' / ') : '') + '</div>' : '') +
