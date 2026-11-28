@@ -250,6 +250,7 @@
       G.state = 'playing';
       G.time = 0; G.loop = 0; G.frame = 0; this.acc = 0;
       G.kills = 0; G.bossKills = 0; G.combo = 0; G.comboT = 0;
+      G.comboAwarded = {};
       G.level = 1; G.xp = 0; G.xpNeed = AE.Data.xpNeed(1);
       G.pending = 0; G.draft = null;
       G.spawnT = 0.6;
@@ -828,6 +829,36 @@
     announce: function (text, color, dur) {
       G.anns.push({ text: text, color: color || '#ffffff', life: dur || 2, max: dur || 2 });
       while (G.anns.length > 3) G.anns.shift();
+    },
+
+    /* ---------- 连杀里程碑 ---------- */
+    addCombo: function (n, hold) {
+      G.combo = Math.min(999, (G.combo || 0) + n);
+      G.comboT = hold || 2.6;
+      this.rewardCombo();
+    },
+
+    rewardCombo: function () {
+      const p = G.player;
+      if (!p || !p.alive) return;
+      if (!G.comboAwarded) G.comboAwarded = {};
+      const tiers = [
+        { n: 25, heal: 0.05, ult: 8 },
+        { n: 50, heal: 0.07, ult: 10 },
+        { n: 100, heal: 0.10, ult: 15 },
+        { n: 200, heal: 0.14, ult: 20 }
+      ];
+      for (let i = 0; i < tiers.length; i++) {
+        const t = tiers[i];
+        if (G.combo < t.n || G.comboAwarded[t.n]) continue;
+        G.comboAwarded[t.n] = true;
+        AE.Player.heal(p, p.maxHp * t.heal);
+        p.ult = Math.min(p.ultMax, p.ult + t.ult);
+        AE.FX.ring(p.x, p.y, '#ffd479', 10, 150, 0.65, 4);
+        AE.FX.spark(p.x, p.y, '#ffd479', 22, { spd: 260, life: 0.55, size: 3 });
+        AE.Audio.sfx('evolve');
+        this.announce('连杀 ' + t.n + ' · 星核回响', '#ffd479', 2.0);
+      }
     },
 
     updateAnns: function (dt) {

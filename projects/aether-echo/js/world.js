@@ -332,8 +332,7 @@
         if (!b.grazed && dd < grazeR * grazeR && dd > rr * rr) {
           b.grazed = true;
           p.ult = Math.min(p.ultMax, p.ult + 1.8);
-          AE.G.combo = Math.min(999, (AE.G.combo || 0) + 1);
-          AE.G.comboT = 0.6;
+          AE.Game.addCombo(1, 0.6);
           p.grazeT = 0.25;
           if (AE.G.time - (p.lastGrazeFx || -9) > 0.09) {
             p.lastGrazeFx = AE.G.time;
