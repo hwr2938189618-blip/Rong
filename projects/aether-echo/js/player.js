@@ -377,7 +377,7 @@
     /* ---------- 绘制 ---------- */
     /* 星核化身：伪 3D 星神造型（分层棱面 + 光翼 + 三重环） */
     drawAvatar: function (ctx, p, t) {
-      const R = p.r * 2.1;
+      const R = p.r * 2.8;
       const av = p.avatar || AE.Data.AVATARS.echo;
       const col = av.color || '#ffd479';
       ctx.save();

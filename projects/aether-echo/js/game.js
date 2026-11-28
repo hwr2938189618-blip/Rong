@@ -161,6 +161,7 @@
       if (runKills >= 600) unlock('run_600');
       if (runLevel >= 20) unlock('lv20');
       if (runLevel >= 40) unlock('lv40');
+      if (runLevel >= AE.Data.CONST.LEVEL_MAX) unlock('lv60');
       if (totalBosses >= 1) unlock('boss1');
       if (totalBosses >= 10) unlock('boss10');
       if ((st.evolves || 0) >= 1) unlock('evolve1');
@@ -713,6 +714,7 @@
       p.level = G.level;
       p.maxHp += 4;
       p.hp = Math.min(p.maxHp, p.hp + 4);
+      if (G.level >= AE.Data.CONST.LEVEL_MAX) G.xp = 0;
       G.xpNeed = AE.Data.xpNeed(G.level);
       G.pending++;
       AE.FX.ring(p.x, p.y, '#ffd479', 6, 120, 0.6, 3);
@@ -788,6 +790,11 @@
       const p = G.player;
       if (!p) return;
       const v = n * p.xpMul * ((G.mod && G.mod.xpMul) || 1);
+      if (G.level >= AE.Data.CONST.LEVEL_MAX) {
+        G.echoBonus += v * 0.02;
+        if (n >= 6) AE.FX.text(p.x, p.y - 34, '+' + Math.round(v * 0.02) + ' 回响', '#ffd479', 13);
+        return;
+      }
       G.xp += v;
       if (n >= 6) AE.FX.text(p.x, p.y - 34, '+' + Math.round(v) + ' XP', '#9fd8ff', 13);
     },
@@ -1094,8 +1101,8 @@
 
       ctx.textAlign = 'left';
       ctx.font = '600 10px ' + head;
-      ctx.fillStyle = 'rgba(150,190,235,0.65)';
-      ctx.fillText(Math.floor(G.xp) + ' / ' + G.xpNeed, 62, 52);
+      ctx.fillStyle = G.level >= AE.Data.CONST.LEVEL_MAX ? '#ffd479' : 'rgba(150,190,235,0.65)';
+      ctx.fillText(G.level >= AE.Data.CONST.LEVEL_MAX ? '满级 · 经验转回响' : (Math.floor(G.xp) + ' / ' + G.xpNeed), 62, 52);
 
       // 星核能量条 / 化身持续时间
       const uw = 118, ux = 62, uy = 63;
